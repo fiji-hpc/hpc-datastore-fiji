@@ -5,15 +5,26 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datasetregisterservice;
+package cz.it4i.fiji.datastore;
 
-import java.util.Collection;
 import java.util.UUID;
 
-public interface DatasetRegisterService {
+import net.imagej.Dataset;
 
-	Collection<Dataset> getDatasest();
+import org.janelia.saalfeldlab.n5.DataBlock;
 
-	Dataset getDataset(UUID uuid);
+public interface RemoteDataset<T> extends Dataset {
+
+	UUID getUIUD();
+
+	DatasetVersion getVersion();
+
+	short getRx();
+
+	short getRy();
+
+	short getRz();
+
+	DataBlock<T> getBlock(int x, int y, int z);
 
 }

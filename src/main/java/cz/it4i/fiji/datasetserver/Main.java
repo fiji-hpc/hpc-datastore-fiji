@@ -7,28 +7,21 @@
  ******************************************************************************/
 package cz.it4i.fiji.datasetserver;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+
+import java.io.IOException;
+
+import org.janelia.saalfeldlab.n5.N5FSReader;
+import org.janelia.saalfeldlab.n5.N5Reader;
 
 @QuarkusMain
 public class Main {
 
-	public static void main(String... args) {
+	public static void main(String... args) throws IOException {
 
-		Quarkus.run(MyApp.class, args);
-
+		N5Reader reader = new N5FSReader("/home/koz01/aaa/export.n5");
+		System.out.println("" + reader.getDatasetAttributes("setup0"));
 
 	}
 
-	public static class MyApp implements QuarkusApplication {
-
-		@Override
-		public int run(String... args) throws Exception {
-			System.out.println("Do startup logic here");
-			Quarkus.waitForExit();
-
-			return 0;
-		}
-	}
 }

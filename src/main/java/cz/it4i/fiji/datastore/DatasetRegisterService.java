@@ -5,13 +5,16 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datasetregisterservice;
+package cz.it4i.fiji.datastore;
 
+import java.util.Collection;
 import java.util.UUID;
 
-public interface Dataset {
+public interface DatasetRegisterService {
 
-	UUID getUIUD();
+	Collection<RemoteDataset> getDatasest();
+
+	RemoteDataset getDataset(UUID uuid);
 
 
 }

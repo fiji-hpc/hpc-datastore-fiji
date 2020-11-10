@@ -13,12 +13,12 @@ import io.quarkus.vertx.web.Route;
 import io.vertx.core.http.HttpMethod;
 
 
-public class DatasetEndpoint {
+public class DatasetRegisterServiceEndpoint {
 
-	private static final String UUID = "uuid";
-	private static final String X_PARAM = "xParam";
-	private static final String Y_PARAM = "yParam";
-	private static final String Z_PARAM = "zParam";
+	public static final String UUID = "uuid";
+	public static final String X_PARAM = "xParam";
+	public static final String Y_PARAM = "yParam";
+	public static final String Z_PARAM = "zParam";
 
 	@Route(path = "/dataset/:" + UUID, methods = HttpMethod.GET)
 	public String get(@Param(UUID) String uuid) {
