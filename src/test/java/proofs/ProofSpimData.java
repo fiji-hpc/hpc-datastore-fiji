@@ -23,9 +23,10 @@ import mpicbg.spim.data.sequence.ViewId;
 public class ProofSpimData {
 
 	public static void main(String[] args) throws SpimDataException, IOException {
-		DatasetServerImpl<Integer> dsi = new DatasetServerImpl<>(
+		DatasetServerImpl dsi = new DatasetServerImpl(
 			"/home/koz01/Desktop/fiji/work/rex-n5/export.xml");
-  
-		DataBlock<Integer> block = dsi.read(0, 0, 0, 0, 1, 0);
+
+		DataBlock<?> block = dsi.read(new long[] { 0, 0, 0 }, 0, 1, 0, new int []{ 1, 1, 1 });
+
 	}
 }

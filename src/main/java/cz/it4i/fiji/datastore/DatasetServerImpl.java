@@ -5,42 +5,61 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
+
 package cz.it4i.fiji.datastore;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
-import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5FSReader;
+import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Reader;
+import org.janelia.saalfeldlab.n5.N5Writer;
 
 import bdv.img.n5.BdvN5Format;
+import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.ViewSetup;
 
-public class DatasetServerImpl<T> implements Closeable {
+@Slf4j
+public class DatasetServerImpl implements Closeable {
 
 	private final SpimData data;
 	private final N5Reader reader;
+	private final N5Writer writer;
+	private final Path baseDirectory;
 
 	public DatasetServerImpl(String path) throws SpimDataException, IOException {
+
 		final XmlIoSpimData io = new XmlIoSpimData();
 		data = io.load(path);
-		reader = new N5FSReader(path.replaceAll("\\.xml$", ".n5"));
+		baseDirectory = Paths.get(path.replaceAll("\\.xml$", ".n5"));
+		reader = new N5FSReader(baseDirectory.toString());
+		writer = new N5FSWriter(baseDirectory.toString());
 	}
 
-	public DataBlock<T> read(long x, long y, long z, int time, int channel,
-		long angle) throws IOException
+	public DataBlock<?> read(long[] gridPosition, int time, int channel,
+		long angle, int[] resolutionLevel) throws IOException
 	{
-		String path = getPath(time, channel, angle);
-		@SuppressWarnings("unchecked")
-		DataBlock<T> result = (DataBlock<T>) reader.readBlock(path, reader
-			.getDatasetAttributes(path), new long[] { x, y, z });
+		String path = getPath(time, channel, angle, resolutionLevel);
+		log.info("Path: {}", path);
+		DataBlock<?> result = reader.readBlock(path, reader.getDatasetAttributes(
+			path), gridPosition);
+
 		return result;
 	}
 
@@ -49,13 +68,80 @@ public class DatasetServerImpl<T> implements Closeable {
 
 	}
 
-	private String getPath(int time, int channel, long angle) {
-		
-		ViewSetup vs = data.getSequenceDescription().getViewSetupsOrdered().stream()
-			.filter(lvs -> lvs.getAngle().getId() == time && lvs.getChannel()
-				.getId() == channel)
-			.findFirst().orElse(null);
-		return BdvN5Format.getPathName(vs.getId(), time, 0);
+	private String getPath(int timId, int channel, long angle,
+		int[] resolutionLevel)
+	{
+		ViewSetup viewSetup = getViewSetup(channel, angle);
+		if (viewSetup == null) {
+			return null;
+		}
+
+		Integer levelId = getLevelId(viewSetup, timId, resolutionLevel);
+		if (levelId == null) {
+			return null;
+		}
+		return BdvN5Format.getPathName(viewSetup.getId(), timId, levelId);
+	}
+
+	private Integer getLevelId(ViewSetup viewSetup, int time,
+		int[] resolutionLevel)
+	{
+		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), time);
+		double[] resolution = getAttribute(BdvN5Format.getPathName(viewSetup
+			.getId(), time), "resolution", double[].class, () -> new double[] { 1.,
+				1., 1. });
+
+		if (!Arrays.equals(resolution, new double[] { 1., 1., 1. })) {
+			throw new UnsupportedOperationException("Resolution " + String.join(",",
+				getAttribute(baseGroup, "resolution", String[].class, () -> null)) +
+				" is not supported. Only supported resolution is [1.0, 1.0, 1.0].");
+		}
+
+		try {
+			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
+			String[] values = reader.list(baseGroup);
+			Matcher m2 = levelGroupPattern.matcher(values[1]);
+			log.info("Matches={}", m2.matches());
+			// @formatter:off			
+			return Arrays.asList(reader.list(baseGroup))
+														.stream().map(levelGroupPattern::matcher)
+														.filter(Matcher::matches)
+														.filter(m -> matchResolutionLevel(baseGroup, m.group(), resolutionLevel))
+														.map(m -> m.group(1))
+														.findAny()
+														.map(Integer::valueOf)
+														.orElse(null);
+		// @formatter:on
+		}
+		catch (IOException exc) {
+			log.warn("Listing group :" + baseGroup, exc);
+			return -1;
+		}
+	}
+
+	private boolean matchResolutionLevel(String baseGroup, String subGroup,
+		int[] resolutionLevel)
+	{
+		return Arrays.equals(resolutionLevel, getAttribute(baseGroup + "/" +
+			subGroup, "downsamplingFactors", int[].class, () -> new int[] {}));
+	}
+
+	private ViewSetup getViewSetup(int channel, long angle) {
+		return data.getSequenceDescription().getViewSetupsOrdered().stream().filter(
+			lvs -> lvs.getChannel().getId() == channel && lvs.getAngle()
+				.getId() == angle).findFirst().orElse(null);
+	}
+
+	private <T> T getAttribute(String pathName, String attrName, Class<T> clazz,
+		Supplier<T> defaultResult)
+	{
+		try {
+			return reader.getAttribute(pathName, attrName, clazz);
+		}
+		catch (IOException exc) {
+			return defaultResult.get();
+		}
+
 	}
 
 }

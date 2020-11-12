@@ -115,15 +115,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-resteasy</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-vertx-web</artifactId>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
@@ -142,6 +133,13 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-simple</artifactId>
+		    <optional>true</optional>
+		</dependency>
+		
 	</dependencies>
 
 	<dependencyManagement>
