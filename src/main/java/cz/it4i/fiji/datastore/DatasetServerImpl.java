@@ -10,22 +10,15 @@ package cz.it4i.fiji.datastore;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
-import org.janelia.saalfeldlab.n5.N5FSReader;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
-import org.janelia.saalfeldlab.n5.N5Reader;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import bdv.img.n5.BdvN5Format;
@@ -39,7 +32,6 @@ import mpicbg.spim.data.sequence.ViewSetup;
 public class DatasetServerImpl implements Closeable {
 
 	private final SpimData data;
-	private final N5Reader reader;
 	private final N5Writer writer;
 	private final Path baseDirectory;
 
@@ -48,7 +40,6 @@ public class DatasetServerImpl implements Closeable {
 		final XmlIoSpimData io = new XmlIoSpimData();
 		data = io.load(path);
 		baseDirectory = Paths.get(path.replaceAll("\\.xml$", ".n5"));
-		reader = new N5FSReader(baseDirectory.toString());
 		writer = new N5FSWriter(baseDirectory.toString());
 	}
 
@@ -57,7 +48,7 @@ public class DatasetServerImpl implements Closeable {
 	{
 		String path = getPath(time, channel, angle, resolutionLevel);
 		log.info("Path: {}", path);
-		DataBlock<?> result = reader.readBlock(path, reader.getDatasetAttributes(
+		DataBlock<?> result = writer.readBlock(path, writer.getDatasetAttributes(
 			path), gridPosition);
 
 		return result;
@@ -99,11 +90,11 @@ public class DatasetServerImpl implements Closeable {
 
 		try {
 			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
-			String[] values = reader.list(baseGroup);
+			String[] values = writer.list(baseGroup);
 			Matcher m2 = levelGroupPattern.matcher(values[1]);
 			log.info("Matches={}", m2.matches());
 			// @formatter:off			
-			return Arrays.asList(reader.list(baseGroup))
+			return Arrays.asList(writer.list(baseGroup))
 														.stream().map(levelGroupPattern::matcher)
 														.filter(Matcher::matches)
 														.filter(m -> matchResolutionLevel(baseGroup, m.group(), resolutionLevel))
@@ -136,7 +127,7 @@ public class DatasetServerImpl implements Closeable {
 		Supplier<T> defaultResult)
 	{
 		try {
-			return reader.getAttribute(pathName, attrName, clazz);
+			return writer.getAttribute(pathName, attrName, clazz);
 		}
 		catch (IOException exc) {
 			return defaultResult.get();
