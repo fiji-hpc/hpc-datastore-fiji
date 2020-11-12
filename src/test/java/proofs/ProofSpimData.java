@@ -8,6 +8,7 @@
 package proofs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map.Entry;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
@@ -26,7 +27,8 @@ public class ProofSpimData {
 		DatasetServerImpl dsi = new DatasetServerImpl(
 			"/home/koz01/Desktop/fiji/work/rex-n5/export.xml");
 
-		DataBlock<?> block = dsi.read(new long[] { 0, 0, 0 }, 0, 1, 0, new int []{ 1, 1, 1 });
+		ByteBuffer bb = dsi.read(new long[] { 0, 0, 0 }, 0, 1, 0, new int[] { 1, 1,
+			1 });
 
 	}
 }

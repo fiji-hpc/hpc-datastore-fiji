@@ -10,6 +10,7 @@ package cz.it4i.fiji.datastore;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -43,15 +44,14 @@ public class DatasetServerImpl implements Closeable {
 		writer = new N5FSWriter(baseDirectory.toString());
 	}
 
-	public DataBlock<?> read(long[] gridPosition, int time, int channel,
+	public ByteBuffer read(long[] gridPosition, int time, int channel,
 		long angle, int[] resolutionLevel) throws IOException
 	{
 		String path = getPath(time, channel, angle, resolutionLevel);
 		log.info("Path: {}", path);
-		DataBlock<?> result = writer.readBlock(path, writer.getDatasetAttributes(
+		DataBlock<?> block = writer.readBlock(path, writer.getDatasetAttributes(
 			path), gridPosition);
-
-		return result;
+		return block.toByteBuffer();
 	}
 
 	@Override
