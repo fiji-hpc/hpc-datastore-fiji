@@ -18,6 +18,9 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Default;
+
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
@@ -29,6 +32,8 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.sequence.ViewSetup;
 
+@Default
+@RequestScoped
 @Slf4j
 public class DatasetServerImpl implements Closeable {
 
@@ -36,18 +41,33 @@ public class DatasetServerImpl implements Closeable {
 	private final N5Writer writer;
 	private final Path baseDirectory;
 
-	public DatasetServerImpl(String path) throws SpimDataException, IOException {
+	public DatasetServerImpl() throws SpimDataException, IOException {
 
+		String path = System.getProperty("dataset.path");
 		final XmlIoSpimData io = new XmlIoSpimData();
 		data = io.load(path);
 		baseDirectory = Paths.get(path.replaceAll("\\.xml$", ".n5"));
 		writer = new N5FSWriter(baseDirectory.toString());
 	}
 
-	public ByteBuffer read(long[] gridPosition, int time, int channel,
-		long angle, int[] resolutionLevel) throws IOException
+	/**
+	 * TODO: Exceptions indicating not existent, block, angle, time, channel
+	 * 
+	 * @param gridPosition
+	 * @param time
+	 * @param channel
+	 * @param angle
+	 * @param resolutionLevel
+	 * @return readed ByteBuffer or null;
+	 * @throws IOException
+	 */
+	public ByteBuffer read(long[] gridPosition, int time, int channel, int angle,
+		int[] resolutionLevel) throws IOException
 	{
 		String path = getPath(time, channel, angle, resolutionLevel);
+		if (path == null) {
+			return null;
+		}
 		log.info("Path: {}", path);
 		DataBlock<?> block = writer.readBlock(path, writer.getDatasetAttributes(
 			path), gridPosition);
@@ -59,7 +79,7 @@ public class DatasetServerImpl implements Closeable {
 
 	}
 
-	private String getPath(int timId, int channel, long angle,
+	private String getPath(int timId, int channel, int angle,
 		int[] resolutionLevel)
 	{
 		ViewSetup viewSetup = getViewSetup(channel, angle);
@@ -74,12 +94,12 @@ public class DatasetServerImpl implements Closeable {
 		return BdvN5Format.getPathName(viewSetup.getId(), timId, levelId);
 	}
 
-	private Integer getLevelId(ViewSetup viewSetup, int time,
+	private Integer getLevelId(ViewSetup viewSetup, int timId,
 		int[] resolutionLevel)
 	{
-		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), time);
+		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), timId);
 		double[] resolution = getAttribute(BdvN5Format.getPathName(viewSetup
-			.getId(), time), "resolution", double[].class, () -> new double[] { 1.,
+			.getId(), timId), "resolution", double[].class, () -> new double[] { 1.,
 				1., 1. });
 
 		if (!Arrays.equals(resolution, new double[] { 1., 1., 1. })) {
