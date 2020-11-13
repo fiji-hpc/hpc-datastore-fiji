@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -150,13 +151,13 @@ public class DatasetServerEndpoint {
 	private void extract(List<String> blocksList,
 		int time, int channel, int angle, List<BlockIdentification> blocksId)
 	{
-		// TODO Auto-generated method stub
 
 	}
 
 	private void extract(String blocks, List<BlockIdentification> blocksId) {
-		// TODO Auto-generated method stub
-
+		Pattern URL_PATTERNS = Pattern.compile(
+			"\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+");
+//TODO: continue
 	}
 
 	@AllArgsConstructor
