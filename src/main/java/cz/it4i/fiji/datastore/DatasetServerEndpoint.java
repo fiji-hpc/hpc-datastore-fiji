@@ -80,6 +80,20 @@ public class DatasetServerEndpoint {
 			uuid, version, rX, rY, rZ, mode)).type(MediaType.TEXT_PLAIN).build();
 	}
 
+//@formatter:off
+	@Path("/{" + UUID + "}"
+			+ "/{" + R_X_PARAM + "}"
+			+ "/{" + R_Y_PARAM + "}"
+			+ "/{" + R_Z_PARAM +	"}"
+			+ "/{" + VERSION_PARAM + "}"
+			+ "/{" + X_PARAM + "}"
+			+ "/{" + Y_PARAM + "}"
+			+ "/{" +	Z_PARAM + "}"
+			+ "/{" + TIME_PARAM + "}"
+			+ "/{" + CHANNEL_PARAM + "}"
+			+ "/{" + ANGLE_PARAM +		"}"
+			+ "{" + BLOCKS_PARAM + ":/?.*}")
+	// @formatter:on
 	@GET
 	public Response readBlock(@PathParam(R_X_PARAM) int rX,
 		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
