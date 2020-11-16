@@ -18,8 +18,10 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
@@ -37,19 +39,25 @@ import mpicbg.spim.data.sequence.ViewSetup;
 @Slf4j
 public class DatasetServerImpl implements Closeable {
 
-	private final SpimData data;
-	private final N5Writer writer;
-	private final Path baseDirectory;
+	private SpimData data;
+	private N5Writer writer;
+	private Path baseDirectory;
 
-	public DatasetServerImpl() throws SpimDataException, IOException {
+	@Inject
+	private ApplicationConfiguration configuration;
 
-		String path = System.getProperty("dataset.path");
+	public DatasetServerImpl() {
+		System.out.println();
+	}
+
+	@PostConstruct
+	private void init() throws SpimDataException, IOException {
+		String path = configuration.getDatasetPath();
 		final XmlIoSpimData io = new XmlIoSpimData();
 		data = io.load(path);
 		baseDirectory = Paths.get(path.replaceAll("\\.xml$", ".n5"));
 		writer = new N5FSWriter(baseDirectory.toString());
 	}
-
 	/**
 	 * TODO: Exceptions indicating not existent, block, angle, time, channel
 	 * 

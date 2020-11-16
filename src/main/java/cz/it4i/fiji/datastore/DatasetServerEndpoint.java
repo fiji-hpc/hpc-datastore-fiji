@@ -91,7 +91,7 @@ public class DatasetServerEndpoint {
 			+ "/{" + TIME_PARAM + "}"
 			+ "/{" + CHANNEL_PARAM + "}"
 			+ "/{" + ANGLE_PARAM +		"}"
-			+ "{" + BLOCKS_PARAM + ":/.*}")
+			+ "{" + BLOCKS_PARAM + ":/?.*}")
 	// @formatter:on
 	@GET
 	public Response readBlock(ContainerRequestContext request,
