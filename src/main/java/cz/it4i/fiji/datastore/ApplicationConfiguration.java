@@ -21,4 +21,8 @@ public class ApplicationConfiguration {
 	public String getDatasetUUID() {
 		return System.getProperty("dataset.uuid");
 	}
+
+	public String getDatasetVersion() {
+		return System.getProperty("dataset.version");
+	}
 }

@@ -8,6 +8,7 @@
 
 package cz.it4i.fiji.datastore;
 
+import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.MODE_PARAM;
 import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.R_X_PARAM;
 import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.R_Y_PARAM;
 import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.R_Z_PARAM;
@@ -30,19 +31,17 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.server.internal.routing.RoutingContext;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Path("datasetserver")
+@Path("/")
 public class DatasetServerEndpoint {
 
 	private static final String TIME_PARAM = "TIME";
@@ -55,52 +54,39 @@ public class DatasetServerEndpoint {
 	@Inject
 	private DatasetServerImpl datasetServer;
 
-	// @formatter:off
-	@Path("{" + UUID + "}"
-			+"/{" + R_X_PARAM + "}"
-			+"/{" + R_Y_PARAM + "}"
-			+"/{" + R_Z_PARAM +	"}"
-			+"/{" + VERSION_PARAM + "}"
-			+"/{" + X_PARAM + "}"
-			+"/{" + Y_PARAM + "}"
-			+"/{" +	Z_PARAM + "}"
-			+"/{" + TIME_PARAM + "}"
-			+"/{" + CHANNEL_PARAM + "}"
-			+"/{" + ANGLE_PARAM +		"}")
-	// @formatter:on
-	@POST
-	public void writeBlock(RoutingContext ctx, @PathParam(UUID) String uuid,
-		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
-		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) int version,
-		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
-		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) long time,
-		@PathParam(CHANNEL_PARAM) int chanel, @PathParam(ANGLE_PARAM) int angle)
-	{
-
-	}
+	@Inject
+	private CheckUUIDVersionTS checkversionUUIDTS;
 
 	// @formatter:off
 	@Path("/{" + UUID + "}"
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + "}"
-			+ "/{" + X_PARAM + "}"
-			+ "/{" + Y_PARAM + "}"
-			+ "/{" +	Z_PARAM + "}"
-			+ "/{" + TIME_PARAM + "}"
-			+ "/{" + CHANNEL_PARAM + "}"
-			+ "/{" + ANGLE_PARAM +		"}"
-			+ "{" + BLOCKS_PARAM + ":/?.*}")
+			+ "/{" + VERSION_PARAM + "}")
 	// @formatter:on
+
 	@GET
-	public Response readBlock(ContainerRequestContext request,
-		@PathParam(UUID) String uuid, @PathParam(R_X_PARAM) int rX,
+	public Response confirm(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
+		@QueryParam(MODE_PARAM) String mode)
+	{
+		Response resp = checkversionUUIDTS.run(uuid, version);
+		if (resp != null) {
+			return resp;
+		}
+		return Response.ok().entity(String.format(
+			"Dataset UUID=%s, version=%s, level=[%d,%d,%d] ready for %s.",
+			uuid, version, rX, rY, rZ, mode)).type(MediaType.TEXT_PLAIN).build();
+	}
+
+	@GET
+	public Response readBlock(@PathParam(R_X_PARAM) int rX,
 		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
-		@PathParam(VERSION_PARAM) String version, @PathParam(X_PARAM) long x,
-		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
-		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
-		@PathParam(ANGLE_PARAM) int angle, @PathParam(BLOCKS_PARAM) String blocks)
+		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
+		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) int time,
+		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
+		@PathParam(BLOCKS_PARAM) String blocks)
 	{
 		try {
 			List<BlockIdentification> blocksId = new LinkedList<>();
@@ -142,6 +128,31 @@ public class DatasetServerEndpoint {
 				MediaType.TEXT_PLAIN).build();
 		}
 
+	}
+
+	// @formatter:off
+	@Path("{" + UUID + "}"
+			+"/{" + R_X_PARAM + "}"
+			+"/{" + R_Y_PARAM + "}"
+			+"/{" + R_Z_PARAM +	"}"
+			+"/{" + VERSION_PARAM + "}"
+			+"/{" + X_PARAM + "}"
+			+"/{" + Y_PARAM + "}"
+			+"/{" +	Z_PARAM + "}"
+			+"/{" + TIME_PARAM + "}"
+			+"/{" + CHANNEL_PARAM + "}"
+			+"/{" + ANGLE_PARAM +		"}")
+	// @formatter:on
+	@POST
+	public void
+		writeBlock(/*RoutingContext ctx, @PathParam(UUID) String uuid,
+								@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+								@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) int version,
+								@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
+								@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) long time,
+								@PathParam(CHANNEL_PARAM) int chanel, @PathParam(ANGLE_PARAM) int angle*/)
+	{
+	
 	}
 
 	private void extract(String blocks, List<BlockIdentification> blocksId) {

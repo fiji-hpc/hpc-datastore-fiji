@@ -7,6 +7,19 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import java.net.URI;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Path("/")
 public class DatasetRegisterServiceEndpoint {
 
 	public static final String UUID = "uuid";
@@ -17,6 +30,35 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String R_Y_PARAM = "RyParam";
 	public static final String R_Z_PARAM = "RzParam";
 	public static final String VERSION_PARAM = "versionParam";
+	public static final String MODE_PARAM = "mode";
+	public static final String TIMEOUT_PARAM = "timeout";
+
+	@Inject
+	private CheckUUIDVersionTS checkversionUUIDTS;
+
+//@formatter:off
+	@Path("{" + UUID + "}"
+			+"/{" + R_X_PARAM + "}"
+			+"/{" + R_Y_PARAM + "}"
+			+"/{" + R_Z_PARAM +	"}"
+			+"/{" + VERSION_PARAM + "}"
+			+"/{" + MODE_PARAM + "}")
+// @formatter:on
+			
+	@GET
+	public Response start(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
+		@PathParam(MODE_PARAM) String mode, @QueryParam(TIMEOUT_PARAM) Long timeout)
+	{
+		log.debug("timeout = {}", timeout);
+		Response resp = checkversionUUIDTS.run(uuid, version);
+		if (resp != null) {
+			return resp;
+		}
+		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
+			rY + "/" + rZ + "/" + version + "?mode=" + mode)).build();
+	}
 
 	/*	@Route(path = "/dataset/:" + UUID, methods = HttpMethod.GET)
 		public String get(@Param(UUID) String uuid) {
@@ -47,4 +89,6 @@ public class DatasetRegisterServiceEndpoint {
 		public String setMetadata(@Param(UUID) String uuid) {
 			return "setMetadata uuid: " + uuid;
 		}*/
+
+
 }
