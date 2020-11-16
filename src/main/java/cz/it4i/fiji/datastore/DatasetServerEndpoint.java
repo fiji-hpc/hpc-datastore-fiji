@@ -19,23 +19,20 @@ import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.Z_PARAM;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.MatrixParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.internal.routing.RoutingContext;
@@ -94,7 +91,7 @@ public class DatasetServerEndpoint {
 			+ "/{" + TIME_PARAM + "}"
 			+ "/{" + CHANNEL_PARAM + "}"
 			+ "/{" + ANGLE_PARAM +		"}"
-			+ "/{" + BLOCKS_PARAM + ":.*}")
+			+ "{" + BLOCKS_PARAM + ":/.*}")
 	// @formatter:on
 	@GET
 	public Response readBlock(ContainerRequestContext request,
@@ -103,14 +100,13 @@ public class DatasetServerEndpoint {
 		@PathParam(VERSION_PARAM) String version, @PathParam(X_PARAM) long x,
 		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
 		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
-		@PathParam(ANGLE_PARAM) int angle, @PathParam(BLOCKS_PARAM) String blocks, @MatrixParam("blocks") List<String> blocksList)
+		@PathParam(ANGLE_PARAM) int angle, @PathParam(BLOCKS_PARAM) String blocks)
 	{
 		try {
 			List<BlockIdentification> blocksId = new LinkedList<>();
 			blocksId.add(new BlockIdentification(new long[] { x, y, z }, time,
 				channel, angle));
 			extract(blocks, blocksId);
-			extract(blocksList, time, channel, angle, blocksId);
 			List<BlockIdentification> notExistentBlocks = new LinkedList<>();
 			ByteBuffer result = null;
 			for (BlockIdentification bi : blocksId) {
@@ -148,16 +144,23 @@ public class DatasetServerEndpoint {
 
 	}
 
-	private void extract(List<String> blocksList,
-		int time, int channel, int angle, List<BlockIdentification> blocksId)
-	{
-
+	private void extract(String blocks, List<BlockIdentification> blocksId) {
+		Pattern URL_BLOCKS_PATTERN = Pattern.compile(
+			"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
+		Matcher matcher = URL_BLOCKS_PATTERN.matcher(blocks);
+		while (matcher.find()) {
+			blocksId.add(new BlockIdentification(new long[] { getLong(matcher, 1),
+				getLong(matcher, 2), getLong(matcher, 3) }, getInt(matcher, 4), getInt(
+					matcher, 4), getInt(matcher, 4)));
+		}
 	}
 
-	private void extract(String blocks, List<BlockIdentification> blocksId) {
-		Pattern URL_PATTERNS = Pattern.compile(
-			"\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+/\\p{Alpha}+");
-//TODO: continue
+	private int getInt(Matcher matcher, int i) {
+		return Integer.parseInt(matcher.group(i));
+	}
+
+	private long getLong(Matcher matcher, int i) {
+		return Long.parseLong(matcher.group(i));
 	}
 
 	@AllArgsConstructor
