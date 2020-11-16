@@ -47,7 +47,7 @@ public class DatasetServerImpl implements Closeable {
 	private ApplicationConfiguration configuration;
 
 	public DatasetServerImpl() {
-		System.out.println();
+		log.debug("constructed");
 	}
 
 	@PostConstruct
