@@ -10,10 +10,13 @@ package cz.it4i.fiji.datastore;
 import java.net.URI;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/")
 public class DatasetRegisterServiceEndpoint {
 
+
 	public static final String UUID = "uuid";
-	public static final String X_PARAM = "xParam";
-	public static final String Y_PARAM = "yParam";
-	public static final String Z_PARAM = "zParam";
+	public static final String X_PARAM = "x";
+	public static final String Y_PARAM = "y";
+	public static final String Z_PARAM = "z";
 	public static final String R_X_PARAM = "RxParam";
 	public static final String R_Y_PARAM = "RyParam";
 	public static final String R_Z_PARAM = "RzParam";
@@ -58,6 +62,16 @@ public class DatasetRegisterServiceEndpoint {
 		}
 		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
 			rY + "/" + rZ + "/" + version + "?mode=" + mode)).build();
+	}
+
+	@POST
+	@Path("datasets/")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response createEmptyDaset(
+		DatasetJSON dataset)
+	{
+		log.info("dataset=" + dataset);
+		return Response.ok().build();
 	}
 
 }
