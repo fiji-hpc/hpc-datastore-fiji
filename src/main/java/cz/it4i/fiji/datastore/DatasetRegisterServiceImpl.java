@@ -18,6 +18,7 @@ import javax.inject.Inject;
 
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
+import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.Lz4Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
@@ -48,7 +49,7 @@ public class DatasetRegisterServiceImpl {
 	private N5Description convert(DatasetDTO dataset) {
 // @formatter:off
 		return N5Description.builder()
-				.dataType(dataset.getDataType())
+				.dataType(DataType.valueOf(dataset.getDataType().toUpperCase()))
 				.dimensions(dataset.getDimensions())
 				.voxelDimensions(new FinalVoxelDimensions(dataset.getVoxelUnit(), dataset.getVoxelDimensions()))
 				.timepoints(dataset.getTimepoints())

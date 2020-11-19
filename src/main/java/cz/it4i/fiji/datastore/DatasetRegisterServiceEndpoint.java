@@ -40,6 +40,9 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String TIMEOUT_PARAM = "timeout";
 
 	@Inject
+	private ApplicationConfiguration configuration;
+
+	@Inject
 	private CheckUUIDVersionTS checkversionUUIDTS;
 
 	@Inject
@@ -77,9 +80,10 @@ public class DatasetRegisterServiceEndpoint {
 		log.info("dataset=" + dataset);
 		try {
 			datasetRegisterServiceImpl.createEmptyDataset(dataset);
-			return Response.ok().build();
+			return Response.ok().entity(configuration.getDatasetUUID()).type(
+				MediaType.TEXT_PLAIN).build();
 		}
-		catch (IOException | SpimDataException exc) {
+		catch (Exception exc) {
 			log.warn("read", exc);
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();

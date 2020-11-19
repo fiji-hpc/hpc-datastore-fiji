@@ -43,7 +43,7 @@ public class DatasetDTO {
 
 	@Setter
 	@Getter
-	private DataType dataType;
+	private String dataType;
 
 	@Setter
 	@Getter
