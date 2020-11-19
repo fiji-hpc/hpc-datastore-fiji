@@ -7,8 +7,6 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
-import org.janelia.saalfeldlab.n5.DataType;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

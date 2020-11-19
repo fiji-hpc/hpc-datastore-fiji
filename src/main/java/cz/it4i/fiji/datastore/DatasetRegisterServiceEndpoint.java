@@ -7,7 +7,6 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
-import java.io.IOException;
 import java.net.URI;
 
 import javax.inject.Inject;
@@ -21,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import lombok.extern.slf4j.Slf4j;
-import mpicbg.spim.data.SpimDataException;
 
 @Slf4j
 @Path("/")

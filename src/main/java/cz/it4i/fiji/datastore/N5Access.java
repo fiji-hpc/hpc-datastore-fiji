@@ -34,7 +34,6 @@ import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
-import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
@@ -55,7 +54,6 @@ import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.Channel;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.Illumination;
 import mpicbg.spim.data.sequence.ImgLoader;
 import mpicbg.spim.data.sequence.SequenceDescription;
@@ -97,23 +95,6 @@ public class N5Access {
 		private final ExportMipmapInfo mipmapInfo;
 		
 
-	}
-
-	public static void main(String[] args) throws IOException, SpimDataException {
-		createNew("/tmp/n5/export.xml",
-		// @formatter:off
-			N5Description.builder()
-										.dataType(DataType.UINT64)
-										.dimensions(new long[] { 1000, 1000, 100 })
-										.voxelDimensions(new FinalVoxelDimensions("um", 0.4, 0.4, 0.4))
-										.timepoints(2)
-										.channels(2)
-										.angles(2)
-										.compression(new RawCompression())
-										.mipmapInfo(new ExportMipmapInfo(new int[][] { { 1, 1, 1 }, { 2, 2,2 } }
-																										,new int[][] { { 64, 64, 64 }, { 64, 64, 64 } }))
-										.build());
-		// @formatter:on
 	}
 
 	private Path baseDirectory;
