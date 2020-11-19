@@ -28,13 +28,14 @@ import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.list.AbstractListImg;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.RawCompression;
+import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid.AfterEachPlane;
@@ -43,6 +44,8 @@ import bdv.export.ProgressWriter;
 import bdv.export.n5.WriteSequenceToN5;
 import bdv.img.n5.BdvN5Format;
 import bdv.img.n5.N5ImageLoader;
+import lombok.Builder;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -52,6 +55,7 @@ import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.Channel;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.Illumination;
 import mpicbg.spim.data.sequence.ImgLoader;
 import mpicbg.spim.data.sequence.SequenceDescription;
@@ -65,10 +69,51 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Slf4j
 public class N5Access {
 
+	@Builder
+	public static class N5Description {
+
+		@NonNull
+		private final DataType dataType;
+
+		@NonNull
+		private final int[] dimensions;
+
+		@NonNull
+		private final VoxelDimensions voxelDimensions;
+
+		@Builder.Default
+		private final int timepoints = 1;
+
+		@Builder.Default
+		private final int channels = 1;
+
+		@Builder.Default
+		private final int angles = 1;
+
+		@NonNull
+		private final Compression compression;
+
+		@NonNull
+		private final ExportMipmapInfo mipmapInfo;
+		
+
+	}
+
 	public static void main(String[] args) throws IOException, SpimDataException {
-		createNew("/tmp/n5/export.xml", new int[] { 1000, 1000, 100 }, 2, 2, 2,
-			new RawCompression(), new int[][] { { 1, 1, 1 }, { 2, 2, 2 } },
-			new int[][] { { 64, 64, 64 }, { 64, 64, 64 } });
+		createNew("/tmp/n5/export.xml",
+		// @formatter:off
+			N5Description.builder()
+										.dataType(DataType.UINT64)
+										.dimensions(new int[] { 1000, 1000, 100 })
+										.voxelDimensions(new FinalVoxelDimensions("um", 0.4, 0.4, 0.4))
+										.timepoints(2)
+										.channels(2)
+										.angles(2)
+										.compression(new RawCompression())
+										.mipmapInfo(new ExportMipmapInfo(new int[][] { { 1, 1, 1 }, { 2, 2,2 } }
+																										,new int[][] { { 64, 64, 64 }, { 64, 64, 64 } }))
+										.build());
+		// @formatter:on
 	}
 
 	private Path baseDirectory;
@@ -83,14 +128,13 @@ public class N5Access {
 		return result;
 	}
 
-	public static N5Access createNew(String path, int[] dimensions,
-		int timepoints, int channels, int angles, Compression compression,
-		int[][] resolutions, int[][] subdivisions)
+	public static N5Access createNew(String path, N5Description dsc)
 		throws IOException, SpimDataException
 	{
 		N5Access result = new N5Access(path);
-		SpimData data = result.createNew(dimensions, timepoints, channels, angles,
-			compression, resolutions, subdivisions);
+		SpimData data = result.createNew(dsc.dataType, dsc.dimensions,
+			dsc.voxelDimensions, dsc.timepoints, dsc.channels, dsc.angles,
+			dsc.compression, dsc.mipmapInfo);
 		result.saveToXML(data, path);
 		return result;
 	}
@@ -133,22 +177,22 @@ public class N5Access {
 		this.data = aData;
 	}
 
-	private SpimData createNew(int[] dimensions, int timepoints, int channels,
-		int angles, Compression compression, int[][] resolutions,
-		int[][] subdivisions) throws IOException
+	private SpimData createNew(DataType dataType, int[] dimensions,
+		VoxelDimensions voxelDimensions, int timepoints, int channels, int angles,
+		Compression compression, ExportMipmapInfo mipmapInfo) throws IOException
 	{
 
 		final Collection<TimePoint> timepointsCol = IntStream.range(0, timepoints)
 			.<TimePoint> mapToObj(TimePoint::new).collect(Collectors.toList());
 
 		Collection<ViewSetup> viewSetups = generateViewSetups(dimensions,
-			channels, angles);
+			voxelDimensions, channels, angles);
 
-		Map<Integer, ExportMipmapInfo> exportMipmapInfo = generateMipmapInfo(
-			viewSetups, resolutions, subdivisions);
+		Map<Integer, ExportMipmapInfo> exportMipmapInfo =
+			assignMipmapInfoToViewSetups(viewSetups, mipmapInfo);
 		long[] lDimensions = Arrays.stream(dimensions).asLongStream().toArray();
 		SequenceDescription sequenceDescription = new SequenceDescription(new TimePoints(
-			timepointsCol), viewSetups, new ImgLoaderImpl<>(new IntType(),
+			timepointsCol), viewSetups, new ImgLoaderImpl<>(N5Utils.type(dataType),
 					lDimensions));
 		WriteSequenceToN5.writeN5File(sequenceDescription, exportMipmapInfo, compression, baseDirectory.toFile(),
 			new LoopbackHeuristicAdapter(), new AfterEachPlaneAdapter(), 1,
@@ -161,19 +205,19 @@ public class N5Access {
 				viewSetups)));
 	}
 
-	private Map<Integer, ExportMipmapInfo> generateMipmapInfo(
-		Collection<ViewSetup> viewSetups, int[][] resolutions, int[][] subdivisions)
+	private Map<Integer, ExportMipmapInfo> assignMipmapInfoToViewSetups(
+		Collection<ViewSetup> viewSetups, ExportMipmapInfo mipmapInfo)
 	{
-		ExportMipmapInfo info = new ExportMipmapInfo(resolutions, subdivisions);
+		
 		Map<Integer, ExportMipmapInfo> result = new HashMap<>();
 		for (ViewSetup viewSetup : viewSetups) {
-			result.put(viewSetup.getId(), info);
+			result.put(viewSetup.getId(), mipmapInfo);
 		}
 		return result;
 	}
 
 	private Collection<ViewSetup> generateViewSetups(int[] dimensions,
-		int channels, int angles)
+		VoxelDimensions voxelDimensions, int channels, int angles)
 	{
 		Collection<ViewSetup> viewSetups = new LinkedList<>();
 		Illumination illumination = new Illumination(0);
@@ -183,7 +227,8 @@ public class N5Access {
 				Angle angleObj = new Angle(angle);
 				Channel channelObj = new Channel(channel);
 				ViewSetup vs = new ViewSetup(setupId, "setup" + setupId,
-					new FinalDimensions(dimensions), null, channelObj, angleObj,
+					new FinalDimensions(dimensions), voxelDimensions, channelObj,
+					angleObj,
 					illumination);
 				viewSetups.add(vs);
 				setupId++;
