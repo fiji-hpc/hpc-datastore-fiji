@@ -41,7 +41,7 @@ public class DatasetDTO {
 
 	@Setter
 	@Getter
-	private String dataType;
+	private String voxelType;
 
 	@Setter
 	@Getter

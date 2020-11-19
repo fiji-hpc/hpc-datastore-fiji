@@ -49,7 +49,7 @@ public class DatasetRegisterServiceImpl {
 	private N5Description convert(DatasetDTO dataset) {
 // @formatter:off
 		return N5Description.builder()
-				.dataType(DataType.valueOf(dataset.getDataType().toUpperCase()))
+				.voxelType(DataType.valueOf(dataset.getVoxelType().toUpperCase()))
 				.dimensions(dataset.getDimensions())
 				.voxelDimensions(new FinalVoxelDimensions(dataset.getVoxelUnit(), dataset.getVoxelDimensions()))
 				.timepoints(dataset.getTimepoints())
