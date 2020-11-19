@@ -7,12 +7,14 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import org.janelia.saalfeldlab.n5.DataType;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @ToString
-public class DatasetJSON {
+public class DatasetDTO {
 
 	@ToString
 	public static class Resolution {
@@ -31,47 +33,59 @@ public class DatasetJSON {
 
 		@Getter
 		@Setter
-		int[] resolutionLevel;
+		int[] resolutions;
 
 		@Getter
 		@Setter
-		int[] blockSize;
+		int[] blockDimensions;
 
 	}
 
 	@Setter
 	@Getter
-	long[] dimensions;
+	private DataType dataType;
+
+	@Setter
+	@Getter
+	private long[] dimensions;
 
 	@Getter
 	@Setter
-	int timepoints = 1;
+	private int timepoints = 1;
 
 	@Getter
 	@Setter
-	int channels = 1;
+	private int channels = 1;
 
 	@Getter
 	@Setter
-	int angles = 1;
+	private int angles = 1;
 
 	@Getter
 	@Setter
-	Resolution[] pixelResolutions;
+	private String voxelUnit;
 
 	@Getter
 	@Setter
-	Resolution timepointResolution;
+	private double[] voxelDimensions;
 
 	@Getter
 	@Setter
-	Resolution channelResolution;
+	private Resolution timepointResolution;
 
 	@Getter
 	@Setter
-	Resolution angleResolution;
+	private Resolution channelResolution;
 
 	@Getter
 	@Setter
-	ResolutionLevel[] resolutionLevels;
+	private Resolution angleResolution;
+
+	@Getter
+	@Setter
+	private String compression;
+
+	@Getter
+	@Setter
+	private ResolutionLevel[] resolutionLevels;
 }

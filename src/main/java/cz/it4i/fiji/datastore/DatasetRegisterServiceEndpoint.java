@@ -7,6 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import java.io.IOException;
 import java.net.URI;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import lombok.extern.slf4j.Slf4j;
+import mpicbg.spim.data.SpimDataException;
 
 @Slf4j
 @Path("/")
@@ -39,6 +41,9 @@ public class DatasetRegisterServiceEndpoint {
 
 	@Inject
 	private CheckUUIDVersionTS checkversionUUIDTS;
+
+	@Inject
+	private DatasetRegisterServiceImpl datasetRegisterServiceImpl;
 
 //@formatter:off
 	@Path("{" + UUID + "}"
@@ -67,11 +72,18 @@ public class DatasetRegisterServiceEndpoint {
 	@POST
 	@Path("datasets/")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response createEmptyDaset(
-		DatasetJSON dataset)
+	public Response createEmptyDataset(DatasetDTO dataset)
 	{
 		log.info("dataset=" + dataset);
-		return Response.ok().build();
+		try {
+			datasetRegisterServiceImpl.createEmptyDataset(dataset);
+			return Response.ok().build();
+		}
+		catch (IOException | SpimDataException exc) {
+			log.warn("read", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+				MediaType.TEXT_PLAIN).build();
+		}
 	}
 
 }

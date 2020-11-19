@@ -76,7 +76,7 @@ public class N5Access {
 		private final DataType dataType;
 
 		@NonNull
-		private final int[] dimensions;
+		private final long[] dimensions;
 
 		@NonNull
 		private final VoxelDimensions voxelDimensions;
@@ -104,7 +104,7 @@ public class N5Access {
 		// @formatter:off
 			N5Description.builder()
 										.dataType(DataType.UINT64)
-										.dimensions(new int[] { 1000, 1000, 100 })
+										.dimensions(new long[] { 1000, 1000, 100 })
 										.voxelDimensions(new FinalVoxelDimensions("um", 0.4, 0.4, 0.4))
 										.timepoints(2)
 										.channels(2)
@@ -177,7 +177,7 @@ public class N5Access {
 		this.data = aData;
 	}
 
-	private SpimData createNew(DataType dataType, int[] dimensions,
+	private SpimData createNew(DataType dataType, long[] dimensions,
 		VoxelDimensions voxelDimensions, int timepoints, int channels, int angles,
 		Compression compression, ExportMipmapInfo mipmapInfo) throws IOException
 	{
@@ -190,10 +190,9 @@ public class N5Access {
 
 		Map<Integer, ExportMipmapInfo> exportMipmapInfo =
 			assignMipmapInfoToViewSetups(viewSetups, mipmapInfo);
-		long[] lDimensions = Arrays.stream(dimensions).asLongStream().toArray();
 		SequenceDescription sequenceDescription = new SequenceDescription(new TimePoints(
 			timepointsCol), viewSetups, new ImgLoaderImpl<>(N5Utils.type(dataType),
-					lDimensions));
+				dimensions));
 		WriteSequenceToN5.writeN5File(sequenceDescription, exportMipmapInfo, compression, baseDirectory.toFile(),
 			new LoopbackHeuristicAdapter(), new AfterEachPlaneAdapter(), 1,
 			new ProgressWriterAdapter());
@@ -216,7 +215,7 @@ public class N5Access {
 		return result;
 	}
 
-	private Collection<ViewSetup> generateViewSetups(int[] dimensions,
+	private Collection<ViewSetup> generateViewSetups(long[] dimensions,
 		VoxelDimensions voxelDimensions, int channels, int angles)
 	{
 		Collection<ViewSetup> viewSetups = new LinkedList<>();
