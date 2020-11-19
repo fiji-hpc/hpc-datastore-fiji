@@ -14,21 +14,21 @@ import lombok.ToString;
 @ToString
 public class DatasetJSON {
 
+	@ToString
+	public static class Resolution {
+
+		@Getter
+		@Setter
+		double value;
+
+		@Getter
+		@Setter
+		String unit;
+	}
 
 	@ToString
 	public static class ResolutionLevel {
 
-		@ToString
-		public static class Resolution {
-
-			@Getter
-			@Setter
-			double value;
-
-			@Getter
-			@Setter
-			String unit;
-		}
 		@Getter
 		@Setter
 		int[] resolutionLevel;
@@ -37,21 +37,6 @@ public class DatasetJSON {
 		@Setter
 		int[] blockSize;
 
-		@Getter
-		@Setter
-		Resolution[] pixelResolutions;
-
-		@Getter
-		@Setter
-		Resolution timepointResolution;
-
-		@Getter
-		@Setter
-		Resolution channelResolution;
-
-		@Getter
-		@Setter
-		Resolution angleResolution;
 	}
 
 	@Setter
@@ -72,6 +57,21 @@ public class DatasetJSON {
 
 	@Getter
 	@Setter
-	ResolutionLevel[] resolutionLevels;
+	Resolution[] pixelResolutions;
 
+	@Getter
+	@Setter
+	Resolution timepointResolution;
+
+	@Getter
+	@Setter
+	Resolution channelResolution;
+
+	@Getter
+	@Setter
+	Resolution angleResolution;
+
+	@Getter
+	@Setter
+	ResolutionLevel[] resolutionLevels;
 }
