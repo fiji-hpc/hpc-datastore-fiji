@@ -52,6 +52,7 @@ import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.Channel;
+import mpicbg.spim.data.sequence.Illumination;
 import mpicbg.spim.data.sequence.ImgLoader;
 import mpicbg.spim.data.sequence.SequenceDescription;
 import mpicbg.spim.data.sequence.SetupImgLoader;
@@ -65,7 +66,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 public class N5Access {
 
 	public static void main(String[] args) throws IOException, SpimDataException {
-		createNew("/tmp/n5", new int[] { 1000, 1000, 100 }, 2, 2, 2,
+		createNew("/tmp/n5/export.xml", new int[] { 1000, 1000, 100 }, 2, 2, 2,
 			new RawCompression(), new int[][] { { 1, 1, 1 }, { 2, 2, 2 } },
 			new int[][] { { 64, 64, 64 }, { 64, 64, 64 } });
 	}
@@ -175,13 +176,15 @@ public class N5Access {
 		int channels, int angles)
 	{
 		Collection<ViewSetup> viewSetups = new LinkedList<>();
+		Illumination illumination = new Illumination(0);
 		int setupId = 0;
 		for (int channel = 0; channel < channels; channel++) {
 			for (int angle = 0; angle < angles; angle++) {
 				Angle angleObj = new Angle(angle);
 				Channel channelObj = new Channel(channel);
 				ViewSetup vs = new ViewSetup(setupId, "setup" + setupId,
-					new FinalDimensions(dimensions), null, channelObj, angleObj, null);
+					new FinalDimensions(dimensions), null, channelObj, angleObj,
+					illumination);
 				viewSetups.add(vs);
 				setupId++;
 			}
