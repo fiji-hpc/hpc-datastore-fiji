@@ -7,9 +7,6 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
-import static bdv.img.n5.BdvN5Format.DATA_TYPE_KEY;
-import static bdv.img.n5.BdvN5Format.getPathName;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
@@ -36,6 +33,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
+import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
@@ -71,8 +69,6 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Slf4j
 public class N5Access {
 
-	private static final String BLOCK_SIZE = "blockSize";
-
 	@Builder
 	public static class N5Description {
 
@@ -107,8 +103,7 @@ public class N5Access {
 
 		private final String path;
 		private final ViewSetup viewSetup;
-		private final DataType dataType;
-		private final int[] blockSize;
+		private final DatasetAttributes datasetAttributes;
 
 		private DatasetLocation4Writing(SpimData spimData, N5Writer writer,
 			int time,
@@ -127,26 +122,26 @@ public class N5Access {
 			}
 			log.info("Path: {}", path);
 
-			dataType = writer.getAttribute(getPathName(viewSetup.getId()),
-				DATA_TYPE_KEY, DataType.class);
-			blockSize = writer.getAttribute(path, BLOCK_SIZE, int[].class);
+			datasetAttributes = writer.getDatasetAttributes(path);
 
 		}
 
 		public void writeBlock(N5Writer writer, long[] gridPosition,
 			ByteBuffer data) throws IOException
 		{
-			DataBlock<?> block = dataType.createDataBlock(blockSize, gridPosition);
+			DataBlock<?> block = datasetAttributes.getDataType().createDataBlock(
+				datasetAttributes.getBlockSize(), gridPosition);
 			block.readData(data);
-			writer.writeBlock(path, writer.getDatasetAttributes(path), block);
+			writer.writeBlock(path, datasetAttributes, block);
 		}
 
 		public int getNumOfBytes() {
-			return DataBlock.getNumElements(blockSize) * getSizeOfElement();
+			return DataBlock.getNumElements(datasetAttributes.getBlockSize()) *
+				getSizeOfElement();
 		}
 
 		private int getSizeOfElement() {
-			switch (dataType) {
+			switch (datasetAttributes.getDataType()) {
 				case UINT8:
 				case INT8:
 					return 1;
@@ -162,7 +157,8 @@ public class N5Access {
 				case FLOAT64:
 					return 8;
 				default:
-					throw new IllegalArgumentException("Datatype " + dataType +
+					throw new IllegalArgumentException("Datatype " + datasetAttributes
+						.getDataType() +
 						" not supported");
 			}
 		}
