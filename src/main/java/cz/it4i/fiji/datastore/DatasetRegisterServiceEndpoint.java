@@ -47,7 +47,8 @@ public class DatasetRegisterServiceEndpoint {
 	private DatasetRegisterServiceImpl datasetRegisterServiceImpl;
 
 //@formatter:off
-	@Path("{" + UUID + "}"
+	@Path("datasets"
+		  +"/{" + UUID + "}"
 			+"/{" + R_X_PARAM + "}"
 			+"/{" + R_Y_PARAM + "}"
 			+"/{" + R_Z_PARAM +	"}"
@@ -67,7 +68,7 @@ public class DatasetRegisterServiceEndpoint {
 			return resp;
 		}
 		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
-			rY + "/" + rZ + "/" + version + "?mode=" + mode)).build();
+			rY + "/" + rZ + "/" + version + "/" + mode)).build();
 	}
 
 	@POST

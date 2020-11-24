@@ -19,6 +19,7 @@ import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.Y_PARAM;
 import static cz.it4i.fiji.datastore.DatasetRegisterServiceEndpoint.Z_PARAM;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,11 +32,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import cz.it4i.fiji.datastore.DatasetServerImpl.WritedData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,11 @@ public class DatasetServerEndpoint {
 	private static final String CHANNEL_PARAM = "CHANNEL";
 
 	private static final String ANGLE_PARAM = "ANGLE";
+
 	private static final String BLOCKS_PARAM = "BLOCKS";
+
+	private static final Pattern URL_BLOCKS_PATTERN = Pattern.compile(
+	"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
 
 	@Inject
 	private DatasetServerImpl datasetServer;
@@ -62,6 +67,7 @@ public class DatasetServerEndpoint {
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
+			+ "/{" + MODE_PARAM + "}"
 			+ "/{" + VERSION_PARAM + "}")
 	// @formatter:on
 
@@ -69,7 +75,7 @@ public class DatasetServerEndpoint {
 	public Response confirm(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
-		@QueryParam(MODE_PARAM) String mode)
+		@PathParam(MODE_PARAM) String mode)
 	{
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
@@ -155,23 +161,39 @@ public class DatasetServerEndpoint {
 			+"/{" +	Z_PARAM + "}"
 			+"/{" + TIME_PARAM + "}"
 			+"/{" + CHANNEL_PARAM + "}"
-			+"/{" + ANGLE_PARAM +		"}")
+			+"/{" + ANGLE_PARAM +		"}"
+			+ "{" + BLOCKS_PARAM + ":/?.*}")
 	// @formatter:on
 	@POST
-	public void
-		writeBlock(/*RoutingContext ctx, @PathParam(UUID) String uuid,
-								@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
-								@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) int version,
-								@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
-								@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) long time,
-								@PathParam(CHANNEL_PARAM) int chanel, @PathParam(ANGLE_PARAM) int angle*/)
+	public Response writeBlock(@PathParam(R_X_PARAM) int rX,
+		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
+		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
+		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) int time,
+		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
+		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
-	
+		List<BlockIdentification> blocksId = new LinkedList<>();
+		blocksId.add(new BlockIdentification(new long[] { x, y, z }, time, channel,
+			angle));
+		extract(blocks, blocksId);
+		WritedData data = new WritedData(inputStream);
+		try {
+
+			for (BlockIdentification blockId : blocksId) {
+				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
+					blockId.angle, new int[] { rX, rY, rZ }, data);
+			}
+		}
+		catch (IOException exc) {
+			log.warn("write", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+				MediaType.TEXT_PLAIN).build();
+		}
+		return Response.ok().build();
 	}
 
 	private void extract(String blocks, List<BlockIdentification> blocksId) {
-		Pattern URL_BLOCKS_PATTERN = Pattern.compile(
-			"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
+
 		Matcher matcher = URL_BLOCKS_PATTERN.matcher(blocks);
 		while (matcher.find()) {
 			blocksId.add(new BlockIdentification(new long[] { getLong(matcher, 1),
