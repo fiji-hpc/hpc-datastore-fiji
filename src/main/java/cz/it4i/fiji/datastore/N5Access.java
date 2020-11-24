@@ -419,7 +419,7 @@ public class N5Access {
 
 		@Override
 		public void afterEachPlane(boolean usedLoopBack) {
-
+			// it is only adapter
 		}
 
 	}
@@ -438,7 +438,7 @@ public class N5Access {
 
 		@Override
 		public void setProgress(double completionRatio) {
-
+			// it is only adapter
 		}
 	}
 
