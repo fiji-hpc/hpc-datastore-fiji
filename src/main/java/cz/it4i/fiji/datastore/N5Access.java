@@ -263,9 +263,11 @@ public class N5Access {
 		sequenceDescription = new SequenceDescription(new TimePoints(timepointsCol),
 			viewSetups, new N5ImageLoader(baseDirectory.toFile(),
 				sequenceDescription));
-		return new SpimData(baseDirectory.toFile(), sequenceDescription,
+		SpimData result = new SpimData(baseDirectory.toFile(), sequenceDescription,
 			new ViewRegistrations(generateViewRegistrations(timepointsCol,
 				viewSetups)));
+		removeAllBlocks(viewSetups, timepointsCol);
+		return result;
 	}
 
 	private Map<Integer, ExportMipmapInfo> assignMipmapInfoToViewSetups(
@@ -310,6 +312,23 @@ public class N5Access {
 			}
 		}
 		return result;
+	}
+
+	private void removeAllBlocks(Collection<ViewSetup> viewSetups,
+		final Collection<TimePoint> timepointsCol) throws IOException
+	{
+		for (TimePoint timePoint : timepointsCol) {
+			for (ViewSetup viewSetup : viewSetups) {
+				String path = BdvN5Format.getPathName(viewSetup.getId(), timePoint
+					.getId());
+				for (String levelPath : writer.list(path)) {
+					String subPath = String.format("%s/%s", path, levelPath);
+					for (String datasetPath : writer.list(subPath)) {
+						writer.remove(String.format("%s/%s", subPath, datasetPath));
+					}
+				}
+			}
+		}
 	}
 
 	private static String getPath(SpimData spimData, N5Writer writer, int timeId,
