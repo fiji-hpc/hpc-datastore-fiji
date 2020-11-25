@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-curl -X POST --data-binary "@/home/koz01/Downloads/eclipse-inst-jre-linux64.tar.gz" -H "Content-Type: application/octet-stream" http://localhost:9080/123/2/2/1/latest/0/0/0/0/0/0/
-echo
