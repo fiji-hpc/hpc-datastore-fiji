@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -165,6 +166,7 @@ public class DatasetServerEndpoint {
 			+ "{" + BLOCKS_PARAM + ":/?.*}")
 	// @formatter:on
 	@POST
+	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	public Response writeBlock(@PathParam(R_X_PARAM) int rX,
 		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
 		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,

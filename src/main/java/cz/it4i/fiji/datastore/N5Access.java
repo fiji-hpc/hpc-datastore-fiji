@@ -356,16 +356,6 @@ public class N5Access {
 		int timId, int[] resolutionLevel)
 	{
 		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), timId);
-		double[] resolution = getAttribute(writer, BdvN5Format.getPathName(viewSetup
-			.getId(), timId), "resolution", double[].class, () -> new double[] { 1.,
-				1., 1. });
-
-		if (!Arrays.equals(resolution, new double[] { 1., 1., 1. })) {
-			throw new UnsupportedOperationException("Resolution " + String.join(",",
-				getAttribute(writer, baseGroup, "resolution", String[].class,
-					() -> null)) +
-				" is not supported. Only supported resolution is [1.0, 1.0, 1.0].");
-		}
 
 		try {
 			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
