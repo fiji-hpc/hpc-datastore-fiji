@@ -120,10 +120,7 @@ public class N5Access {
 					"Channel=%d, angle=%d and timepoint=%d not found.", channel, angle,
 					time));
 			}
-			log.info("Path: {}", path);
-
 			datasetAttributes = writer.getDatasetAttributes(path);
-
 		}
 
 		public void writeBlock(N5Writer writer, long[] gridPosition,
@@ -211,7 +208,6 @@ public class N5Access {
 		if (path == null) {
 			return null;
 		}
-		log.info("Path: {}", path);
 		return writer.readBlock(path, writer.getDatasetAttributes(path),
 			gridPosition).toByteBuffer();
 	}
@@ -361,7 +357,6 @@ public class N5Access {
 			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
 			String[] values = writer.list(baseGroup);
 			Matcher m2 = levelGroupPattern.matcher(values[1]);
-			log.info("Matches={}", m2.matches());
 			// @formatter:off			
 			return Arrays.asList(writer.list(baseGroup))
 														.stream().map(levelGroupPattern::matcher)

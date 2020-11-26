@@ -117,8 +117,9 @@ public class DatasetServerEndpoint {
 			List<BlockIdentification> notExistentBlocks = new LinkedList<>();
 			ByteBuffer result = null;
 			for (BlockIdentification bi : blocksId) {
-				ByteBuffer block = datasetServer.read(new long[] { x, y, z }, time,
-					channel, angle, new int[] { rX, rY, rZ });
+				ByteBuffer block = datasetServer.read(new long[] { bi.gridPosition[0],
+					bi.gridPosition[1], bi.gridPosition[2] }, bi.time, bi.channel,
+					bi.angle, new int[] { rX, rY, rZ });
 
 				if (block == null) {
 					notExistentBlocks.add(bi);
