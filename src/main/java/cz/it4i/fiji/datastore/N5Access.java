@@ -355,8 +355,6 @@ public class N5Access {
 
 		try {
 			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
-			String[] values = writer.list(baseGroup);
-			Matcher m2 = levelGroupPattern.matcher(values[1]);
 			// @formatter:off			
 			return Arrays.asList(writer.list(baseGroup))
 														.stream().map(levelGroupPattern::matcher)
