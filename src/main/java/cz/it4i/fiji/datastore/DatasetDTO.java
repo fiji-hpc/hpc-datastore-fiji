@@ -65,7 +65,7 @@ public class DatasetDTO {
 
 	@Getter
 	@Setter
-	private double[] voxelDimensions;
+	private double[] voxelResolution;
 
 	@Getter
 	@Setter

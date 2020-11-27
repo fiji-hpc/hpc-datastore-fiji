@@ -51,7 +51,7 @@ public class DatasetRegisterServiceImpl {
 		return N5Description.builder()
 				.voxelType(DataType.valueOf(dataset.getVoxelType().toUpperCase()))
 				.dimensions(dataset.getDimensions())
-				.voxelDimensions(new FinalVoxelDimensions(dataset.getVoxelUnit(), dataset.getVoxelDimensions()))
+				.voxelDimensions(new FinalVoxelDimensions(dataset.getVoxelUnit(), dataset.getVoxelResolution()))
 				.timepoints(dataset.getTimepoints())
 				.channels(dataset.getChannels())
 				.angles(dataset.getAngles())
