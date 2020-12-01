@@ -27,13 +27,12 @@
 	</licenses>
 
 	<developers>
-
 		<developer>
 			<id>kozusznikj</id>
 			<name>Jan Kožusznik</name>
 			<url>https://www.kozusznik.cz</url>
 			<roles>
-				<role>found</role>
+				<role>founder</role>
 				<role>lead</role>
 				<role>developer</role>
 				<role>debugger</role>
@@ -49,6 +48,20 @@
 			<name>None</name>
 		</contributor>
 	</contributors>
+	<mailingLists>
+		<mailingList>
+			<name>none</name>
+		</mailingList>
+	</mailingLists>
+	<scm>
+		<url>https://code.it4i.cz/fiji/hpc-datastore.git</url>
+	</scm>
+	<issueManagement>
+		<system>none</system>
+	</issueManagement>
+	<ciManagement>
+		<system>none</system>
+	</ciManagement>
 	<!-- <mailingLists> <mailingList> <name>Image.sc Forum</name> <archive>ToDo</archive> 
 		</mailingList> </mailingLists> <scm> <connection>scm:git:git://github.com/fiji-hpc/scijava-parallel</connection> 
 		<developerConnection>scm:git:git@github.com:fiji-hpc/scijava-parallel</developerConnection> 
@@ -144,14 +157,40 @@
 			<groupId>io.helidon.microprofile.bundles</groupId>
 			<artifactId>helidon-microprofile-3.1</artifactId>
 			<version>1.4.7</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish</groupId>
+					<artifactId>jakarta.json</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.json</groupId>
+					<artifactId>jakarta.json-api</artifactId>
+				</exclusion>
+				
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.el</groupId>
+					<artifactId>jboss-el-api_3.0_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.interceptor</groupId>
+					<artifactId>jboss-interceptors-api_1.2_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.annotation</groupId>
+					<artifactId>jboss-annotations-api_1.3_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.hk2.external</groupId>
+					<artifactId>jakarta.inject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	
 
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-binding</artifactId>
-			<version>2.32</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
