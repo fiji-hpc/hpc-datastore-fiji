@@ -227,10 +227,7 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-undertow</artifactId>
 		</dependency>
-
-
-
-		<!-- Hibernate ORM specific dependencies -->
+		<!-- https://mvnrepository.com/artifact/io.helidon.microprofile.bundles/helidon-microprofile-3.0 -->
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-hibernate-orm</artifactId>
@@ -257,11 +254,36 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+	
 
 		<!-- Hibernate ORM specific dependencies -->
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-hibernate-orm-panache</artifactId>
+		</dependency>
+		
+		
+		<dependency>
+		    <groupId>org.apache.deltaspike.core</groupId>
+		    <artifactId>deltaspike-core-api</artifactId>
+		    <version>${deltaspike.version}</version>
+		    <scope>compile</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.core</groupId>
+		    <artifactId>deltaspike-core-impl</artifactId>
+		    <version>${deltaspike.version}</version>
+		    <scope>runtime</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.modules</groupId>
+		    <artifactId>deltaspike-data-module-api</artifactId>
+		    <version>${deltaspike.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.modules</groupId>
+		    <artifactId>deltaspike-data-module-impl</artifactId>
+		    <version>${deltaspike.version}</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
@@ -405,6 +427,7 @@
 		</resources>
 	</build>
 
+	
 
 
 </project>
