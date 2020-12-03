@@ -227,6 +227,15 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-undertow</artifactId>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+		<dependency>
+		    <groupId>jakarta.persistence</groupId>
+		    <artifactId>jakarta.persistence-api</artifactId>
+		    <version>3.0.0</version>
+		</dependency>
+				
+		
 		<!-- https://mvnrepository.com/artifact/io.helidon.microprofile.bundles/helidon-microprofile-3.0 -->
 		<dependency>
 			<groupId>io.quarkus</groupId>
