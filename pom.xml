@@ -80,6 +80,8 @@
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 		<quarkus.version>1.7.0.Final</quarkus.version>
 		<cdi-api.version>2.0.SP1</cdi-api.version>
+		<persistence-api.version>3.0.0</persistence-api.version>
+		<hibernate.version>5.4.25.Final</hibernate.version>
 		<deltaspike.version>1.9.4</deltaspike.version>
 	</properties>
 
@@ -149,6 +151,30 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+		<dependency>
+		    <groupId>jakarta.persistence</groupId>
+		    <artifactId>jakarta.persistence-api</artifactId>
+		    <version>${persistence-api.version}</version>
+		</dependency>
+		
+		<dependency>
+	        <groupId>org.hibernate</groupId>
+	        <artifactId>hibernate-core</artifactId>
+	        <version>${hibernate.version}</version>
+	        <exclusions>
+	           <exclusion>
+	              <groupId>javax.persistence</groupId>
+	              <artifactId>javax.persistence-api</artifactId>
+	           </exclusion>
+	        </exclusions>
+	     </dependency>
+	     <dependency>
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-entitymanager</artifactId>
+		    <version>${hibernate.version}</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/io.helidon.microprofile.bundles/helidon-microprofile-3.0 -->
 		<dependency>
 			<groupId>io.helidon.microprofile.bundles</groupId>
