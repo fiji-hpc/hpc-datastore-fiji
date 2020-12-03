@@ -80,6 +80,7 @@
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 		<quarkus.version>1.7.0.Final</quarkus.version>
 		<cdi-api.version>2.0.SP1</cdi-api.version>
+		<deltaspike.version>1.9.4</deltaspike.version>
 	</properties>
 
 	<repositories>
@@ -189,6 +190,19 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+<<<<<<< Upstream, based on chore
+=======
+		
+		<dependency>
+		    <groupId>io.helidon.integrations.cdi</groupId>
+		    <artifactId>helidon-integrations-cdi-jpa</artifactId>
+		    <!-- https://mvnrepository.com/artifact/io.helidon.integrations.cdi/helidon-integrations-cdi-jpa -->
+			<version>2.1.0</version>
+    	    <scope>runtime</scope>
+		</dependency>
+	
+
+>>>>>>> d87440f feat: Add JPA, deltaspike
 		<!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
@@ -208,10 +222,34 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		
+		<dependency>
+		    <groupId>org.apache.deltaspike.core</groupId>
+		    <artifactId>deltaspike-core-api</artifactId>
+		    <version>${deltaspike.version}</version>
+		    <scope>compile</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.core</groupId>
+		    <artifactId>deltaspike-core-impl</artifactId>
+		    <version>${deltaspike.version}</version>
+		    <scope>runtime</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.modules</groupId>
+		    <artifactId>deltaspike-data-module-api</artifactId>
+		    <version>${deltaspike.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.deltaspike.modules</groupId>
+		    <artifactId>deltaspike-data-module-impl</artifactId>
+		    <version>${deltaspike.version}</version>
+		</dependency>
 
 	</dependencies>
 
-
+	
 
 
 </project>
