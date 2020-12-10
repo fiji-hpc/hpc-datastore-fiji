@@ -5,7 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,8 +25,10 @@ import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
 
 import bdv.export.ExportMipmapInfo;
-import cz.it4i.fiji.datastore.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.N5Access;
 import cz.it4i.fiji.datastore.N5Access.N5Description;
+import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;

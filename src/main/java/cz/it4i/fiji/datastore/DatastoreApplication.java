@@ -14,6 +14,8 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint;
+
 public class DatastoreApplication extends Application {
 
 	@Override

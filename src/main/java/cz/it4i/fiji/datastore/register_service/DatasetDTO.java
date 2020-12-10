@@ -5,7 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
 import lombok.Getter;
 import lombok.Setter;

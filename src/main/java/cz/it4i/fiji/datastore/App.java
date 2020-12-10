@@ -13,7 +13,7 @@ public class App {
 
 	public static void main(String[] args) {
 		Server server = Server.builder().addApplication(DatastoreApplication.class)
-			.port(9080).build();
+			.build();
 		server.start();
 
 	}

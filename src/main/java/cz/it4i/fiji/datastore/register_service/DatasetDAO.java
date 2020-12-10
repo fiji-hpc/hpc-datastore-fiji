@@ -7,9 +7,12 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
-import cz.it4i.fiji.datastore.BaseEntity;
+import org.apache.deltaspike.data.api.AbstractEntityRepository;
+import org.apache.deltaspike.data.api.Repository;
 
-class Dataset extends BaseEntity {
-
+@Repository(forEntity = Dataset.class)
+public abstract class DatasetDAO extends
+	AbstractEntityRepository<Dataset, Long>
+{
 
 }

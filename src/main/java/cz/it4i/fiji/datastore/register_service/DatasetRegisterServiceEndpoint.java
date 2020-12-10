@@ -5,7 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
 import java.net.URI;
 
@@ -19,6 +19,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.CheckUUIDVersionTS;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
