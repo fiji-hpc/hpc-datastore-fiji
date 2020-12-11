@@ -83,7 +83,7 @@
 		<helidon-integrations.version>1.3.1</helidon-integrations.version>
 		<persistence-api.version>3.0.0</persistence-api.version>
 		<hibernate.version>5.4.25.Final</hibernate.version>
-		<derby.version>10.15.2.0</derby.version>
+		<derby.version>10.14.2.0</derby.version>
 		<deltaspike.version>1.9.4</deltaspike.version>
 		
 		<project.stage>development</project.stage>
@@ -203,18 +203,6 @@
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-			<version>${derby.version}</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.derby/derbyclient -->
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derbyclient</artifactId>
-			<version>${derby.version}</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.derby/derbytools -->
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derbytools</artifactId>
 			<version>${derby.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.helidon.microprofile.bundles/helidon-microprofile-3.0 -->
