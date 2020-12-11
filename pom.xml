@@ -254,10 +254,26 @@
     	    <scope>runtime</scope>
 		</dependency>
 		
+		<!-- https://mvnrepository.com/artifact/io.helidon.integrations.cdi/helidon-integrations-cdi-hibernate -->
+		<dependency>
+		    <groupId>io.helidon.integrations.cdi</groupId>
+		    <artifactId>helidon-integrations-cdi-hibernate</artifactId>
+		    <version>${helidon-integrations.version}</version>
+		    <scope>runtime</scope>
+		</dependency>
+				
+		
 		<dependency>
 		    <groupId>io.helidon.integrations.cdi</groupId>
 		    <artifactId>helidon-integrations-cdi-datasource-hikaricp</artifactId>
 		    <version>${helidon-integrations.version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.helidon.integrations.cdi</groupId>
+		    <artifactId>helidon-integrations-cdi-jta-weld</artifactId>
+		    <version>${helidon-integrations.version}</version>
+		    <scope>runtime</scope>
 		</dependency>
 	
 		<!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->
