@@ -5,17 +5,14 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
-import io.helidon.microprofile.server.Server;
+import org.apache.deltaspike.data.api.AbstractEntityRepository;
+import org.apache.deltaspike.data.api.Repository;
 
-public class App {
-
-	public static void main(String[] args) {
-		Server server = Server.builder().addApplication(DatastoreApplication.class)
-			.build();
-		server.start();
-
-	}
+@Repository(forEntity = Dataset.class)
+public abstract class DatasetDAO extends
+	AbstractEntityRepository<Dataset, Long>
+{
 
 }

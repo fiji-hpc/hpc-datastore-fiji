@@ -1,0 +1,10 @@
+server:
+  port: 9080
+
+javax:
+  sql:
+    DataSource:
+      myDataSource:
+        dataSourceClassName: org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource
+        dataSource:
+          databaseName: myDb

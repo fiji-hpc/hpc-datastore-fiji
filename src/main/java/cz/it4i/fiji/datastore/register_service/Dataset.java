@@ -5,17 +5,11 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
-import io.helidon.microprofile.server.Server;
+import cz.it4i.fiji.datastore.BaseEntity;
 
-public class App {
+class Dataset extends BaseEntity {
 
-	public static void main(String[] args) {
-		Server server = Server.builder().addApplication(DatastoreApplication.class)
-			.build();
-		server.start();
-
-	}
 
 }

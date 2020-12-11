@@ -5,22 +5,25 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-
 package cz.it4i.fiji.datastore;
 
-import io.helidon.common.CollectionsHelper;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Set;
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+public abstract class BaseEntity {
 
-import javax.ws.rs.core.Application;
-
-import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint;
-
-public class DatastoreApplication extends Application {
-
-	@Override
-	public Set<Class<?>> getClasses() {
-		return CollectionsHelper.setOf(DatasetServerEndpoint.class,
-			DatasetRegisterServiceEndpoint.class);
-	}
+	@Id
+	@GeneratedValue
+	@Getter
+	@Setter
+	private Long id;
+	
 }
