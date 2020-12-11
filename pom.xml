@@ -33,7 +33,7 @@
 			<name>Jan Kožusznik</name>
 			<url>https://www.kozusznik.cz</url>
 			<roles>
-				<role>found</role>
+				<role>founder</role>
 				<role>lead</role>
 				<role>developer</role>
 				<role>debugger</role>
@@ -49,6 +49,20 @@
 			<name>None</name>
 		</contributor>
 	</contributors>
+	<mailingLists>
+		<mailingList>
+			<name>none</name>
+		</mailingList>
+	</mailingLists>
+	<scm>
+		<url>https://code.it4i.cz/fiji/hpc-datastore.git</url>
+	</scm>
+	<issueManagement>
+		<system>none</system>
+	</issueManagement>
+	<ciManagement>
+		<system>none</system>
+	</ciManagement>
 	<!-- <mailingLists> <mailingList> <name>Image.sc Forum</name> <archive>ToDo</archive> 
 		</mailingList> </mailingLists> <scm> <connection>scm:git:git://github.com/fiji-hpc/scijava-parallel</connection> 
 		<developerConnection>scm:git:git@github.com:fiji-hpc/scijava-parallel</developerConnection> 
@@ -133,17 +147,21 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<optional>true</optional>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.helidon.microprofile.bundles/helidon-microprofile-3.0 -->
 		<dependency>
 			<groupId>io.helidon.microprofile.bundles</groupId>
 			<artifactId>helidon-microprofile-3.1</artifactId>
 			<version>1.4.7</version>
+			<exclusions>
+				<exclusion>
+          			<groupId>javax.annotation</groupId>
+    				<artifactId>javax.annotation-api</artifactId>
+        		</exclusion>
+        		<exclusion>
+					<groupId>javax.inject</groupId>
+  					<artifactId>javax.inject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	
 
@@ -151,13 +169,44 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-binding</artifactId>
 			<version>2.32</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish</groupId>
+					<artifactId>jakarta.json</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.json</groupId>
+					<artifactId>jakarta.json-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.el</groupId>
+					<artifactId>jboss-el-api_3.0_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.annotation</groupId>
+    				<artifactId>jakarta.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
 			<artifactId>cdi-api</artifactId>
-			<version>2.0.SP1</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.el</groupId>
+    				<artifactId>javax.el-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.interceptor</groupId>
+    				<artifactId>javax.interceptor-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.inject</groupId>
+  					<artifactId>javax.inject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
