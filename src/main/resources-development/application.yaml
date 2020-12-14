@@ -7,4 +7,4 @@ javax:
       myDataSource:
         dataSourceClassName: org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource
         dataSource:
-          databaseName: myDb;create=true
+          databaseName: output/myDb;create=true

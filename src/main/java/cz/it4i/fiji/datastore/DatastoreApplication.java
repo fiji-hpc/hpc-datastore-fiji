@@ -21,6 +21,6 @@ public class DatastoreApplication extends Application {
 	@Override
 	public Set<Class<?>> getClasses() {
 		return CollectionsHelper.setOf(DatasetServerEndpoint.class,
-			DatasetRegisterServiceEndpoint.class);
+			DatasetRegisterServiceEndpoint.class, DbProofs.class);
 	}
 }

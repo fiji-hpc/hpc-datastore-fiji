@@ -7,9 +7,16 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import javax.persistence.Entity;
+
 import cz.it4i.fiji.datastore.BaseEntity;
 
-class Dataset extends BaseEntity {
+@Entity
+public class Dataset extends BaseEntity {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4257740020931057972L;
 
 }
