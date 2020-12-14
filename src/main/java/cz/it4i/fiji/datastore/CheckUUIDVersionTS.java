@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,14 +16,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+
 @ApplicationScoped
 public class CheckUUIDVersionTS {
 
 	@Inject
 	private ApplicationConfiguration configuration;
 
+	@Inject
+	private DatasetRepository datasetRepository;
+
 	public Response run(String uuid, String version) {
-		if (!Objects.equals(uuid, configuration.getDatasetUUID())) {
+		if (datasetRepository.findByUUID(UUID.fromString(uuid)) == null) {
 			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_HTML).entity(
 				"Dataset with UUID: " + uuid + " not found").build();
 		}

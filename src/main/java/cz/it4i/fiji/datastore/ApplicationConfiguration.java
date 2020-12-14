@@ -14,12 +14,8 @@ public class ApplicationConfiguration {
 
 
 
-	public String getDatasetPath() {
-		return System.getProperty("dataset.path");
-	}
-
-	public String getDatasetUUID() {
-		return System.getProperty("dataset.uuid");
+	public String getDatastorePath() {
+		return System.getProperty("datastore.path");
 	}
 
 	public String getDatasetVersion() {

@@ -80,8 +80,9 @@ public class DatasetRegisterServiceEndpoint {
 	{
 		log.info("dataset=" + dataset);
 		try {
-			datasetRegisterServiceImpl.createEmptyDataset(dataset);
-			return Response.ok().entity(configuration.getDatasetUUID()).type(
+			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+				dataset);
+			return Response.ok().entity(result).type(
 				MediaType.TEXT_PLAIN).build();
 		}
 		catch (Exception exc) {

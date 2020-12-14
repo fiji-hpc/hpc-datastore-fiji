@@ -7,13 +7,28 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import java.util.UUID;
+
 import javax.persistence.Entity;
 
 import cz.it4i.fiji.datastore.BaseEntity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Builder
+@AllArgsConstructor
 public class Dataset extends BaseEntity {
 
+	@Getter
+	@Setter
+	private UUID uuid;
+
+	@Getter
+	@Setter
+	private String path;
 	/**
 	 * 
 	 */

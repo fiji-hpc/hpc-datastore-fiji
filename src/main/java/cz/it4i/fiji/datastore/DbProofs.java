@@ -36,8 +36,7 @@ public class DbProofs {
 		log.info("insertData");
 		EntityTransaction trx = entityManager.getTransaction();
 		trx.begin();
-		entityManager.persist(
-			new Dataset());
+		entityManager.persist(Dataset.builder().build());
 		trx.commit();
 
 	}

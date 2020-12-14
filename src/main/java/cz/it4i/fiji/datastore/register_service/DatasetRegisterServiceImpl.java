@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
@@ -42,10 +43,18 @@ public class DatasetRegisterServiceImpl {
 
 	private Map<String, Compression> name2compression = null;
 
-	public void createEmptyDataset(DatasetDTO dataset) throws IOException,
+	@Inject
+	private DatasetRepository datasetDAO;
+
+	public UUID createEmptyDataset(DatasetDTO dataset) throws IOException,
 		SpimDataException
 	{
-		N5Access.createNew(configuration.getDatasetPath(), convert(dataset));
+		UUID result = UUID.randomUUID();
+		String path = String.format("%s/%s/export.xml", configuration
+			.getDatastorePath(), result);
+		N5Access.createNew(path, convert(dataset));
+		datasetDAO.save(Dataset.builder().uuid(result).path(path).build());
+		return result;
 	}
 
 	private N5Description convert(DatasetDTO dataset) {

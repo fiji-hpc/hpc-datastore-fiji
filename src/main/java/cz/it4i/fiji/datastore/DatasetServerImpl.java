@@ -56,7 +56,8 @@ public class DatasetServerImpl implements Closeable {
 
 	@PostConstruct
 	private void init() throws SpimDataException, IOException {
-		n5Access = N5Access.loadExisting(configuration.getDatasetPath());
+		// TODO
+		// n5Access = N5Access.loadExisting(configuration.getDatasetPath());
 	}
 
 	@Override
