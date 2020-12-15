@@ -51,7 +51,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		}
 	}
 
-	transient private N5Access n5Access;
+	private transient N5Access n5Access;
 
 	@Inject
 	private ApplicationConfiguration configuration;

@@ -20,6 +20,7 @@ import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndp
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -46,7 +48,10 @@ import mpicbg.spim.data.SpimDataException;
 
 @Slf4j
 @Path("/")
-public class DatasetServerEndpoint {
+@SessionScoped
+public class DatasetServerEndpoint implements Serializable {
+
+	private static final long serialVersionUID = 3030620649903413986L;
 
 	private static final String TIME_PARAM = "TIME";
 

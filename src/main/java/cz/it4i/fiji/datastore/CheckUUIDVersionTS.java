@@ -7,6 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,7 +20,9 @@ import javax.ws.rs.core.Response.Status;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 
 @ApplicationScoped
-public class CheckUUIDVersionTS {
+public class CheckUUIDVersionTS implements Serializable {
+
+	private static final long serialVersionUID = -8514559133503569747L;
 
 	@Inject
 	private ApplicationConfiguration configuration;
