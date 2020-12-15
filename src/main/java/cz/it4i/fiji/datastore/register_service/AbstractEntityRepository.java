@@ -5,15 +5,9 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.register_service;
 
-import io.quarkus.runtime.Quarkus;
 
-public class App {
-
-	public static void main(String[] args) {
-		Quarkus.run(args);
-
-	}
+public class AbstractEntityRepository<T1, T2> {
 
 }

@@ -48,7 +48,6 @@ import mpicbg.spim.data.SpimDataException;
 
 @Slf4j
 @Path("/")
-@SessionScoped
 public class DatasetServerEndpoint implements Serializable {
 
 	private static final long serialVersionUID = 3030620649903413986L;

@@ -52,7 +52,7 @@ public class DatasetRegisterServiceImpl {
 		UUID result = UUID.randomUUID();
 		String path = configuration.getDatasetPath(result);
 		N5Access.createNew(path, convert(dataset));
-		datasetDAO.save(Dataset.builder().uuid(result).path(path).build());
+		// datasetDAO.save(Dataset.builder().uuid(result).path(path).build());
 		return result;
 	}
 
