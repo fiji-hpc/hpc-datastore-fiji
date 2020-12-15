@@ -50,8 +50,7 @@ public class DatasetRegisterServiceImpl {
 		SpimDataException
 	{
 		UUID result = UUID.randomUUID();
-		String path = String.format("%s/%s/export.xml", configuration
-			.getDatastorePath(), result);
+		String path = configuration.getDatasetPath(result);
 		N5Access.createNew(path, convert(dataset));
 		datasetDAO.save(Dataset.builder().uuid(result).path(path).build());
 		return result;

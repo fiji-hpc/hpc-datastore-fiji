@@ -78,7 +78,7 @@ public class DatasetRegisterServiceEndpoint {
 		try {
 			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
 				dataset);
-			return Response.ok().entity(result).type(
+			return Response.ok().entity(result.toString()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
 		catch (Exception exc) {

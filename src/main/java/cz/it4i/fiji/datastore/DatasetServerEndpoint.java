@@ -41,6 +41,8 @@ import cz.it4i.fiji.datastore.DatasetServerImpl.WritedData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import mpicbg.spim.data.SpimDataException;
+
 
 @Slf4j
 @Path("/")
@@ -81,6 +83,14 @@ public class DatasetServerEndpoint {
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;
+		}
+		try {
+			datasetServer.init(java.util.UUID.fromString(uuid));
+		}
+		catch (SpimDataException | IOException exc) {
+			log.warn("init", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+				MediaType.TEXT_PLAIN).build();
 		}
 		return Response.ok().entity(String.format(
 			"Dataset UUID=%s, version=%s, level=[%d,%d,%d] ready for %s.",

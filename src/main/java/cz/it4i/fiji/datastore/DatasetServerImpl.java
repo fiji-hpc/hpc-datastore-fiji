@@ -13,10 +13,11 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
@@ -24,9 +25,11 @@ import lombok.Getter;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
-@RequestScoped
-public class DatasetServerImpl implements Closeable {
+@SessionScoped
+public class DatasetServerImpl implements Closeable, Serializable {
 
+
+	private static final long serialVersionUID = -2060288635563742563L;
 
 	public static class WritedData {
 
@@ -48,21 +51,24 @@ public class DatasetServerImpl implements Closeable {
 		}
 	}
 
-	private N5Access n5Access;
+	transient private N5Access n5Access;
 
 	@Inject
 	private ApplicationConfiguration configuration;
 
+	private UUID uuid;
 
-	@PostConstruct
-	private void init() throws SpimDataException, IOException {
-		// TODO
-		// n5Access = N5Access.loadExisting(configuration.getDatasetPath());
+	synchronized public void init(UUID aUuid) throws SpimDataException,
+		IOException
+	{
+		uuid = aUuid;
+		initN5Access();
 	}
 
 	@Override
-	public void close() {
-
+	synchronized public void close() {
+		uuid = null;
+		n5Access = null;
 	}
 
 	public ByteBuffer read(long[] gridPosition, int time, int channel, int angle,
@@ -81,4 +87,19 @@ public class DatasetServerImpl implements Closeable {
 	}
 
 
+	private void initN5Access() throws IOException, SpimDataException {
+		n5Access = N5Access.loadExisting(configuration.getDatasetPath(uuid));
+	}
+
+	private void readObject(java.io.ObjectInputStream in) throws IOException,
+		ClassNotFoundException
+	{
+		in.defaultReadObject();
+		try {
+			initN5Access();
+		}
+		catch (SpimDataException exc) {
+			throw new IOException(exc);
+		}
+	}
 }
