@@ -17,7 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
+@Entity(name = "Dataset")
 @Builder
 @AllArgsConstructor
 public class Dataset extends BaseEntity {
