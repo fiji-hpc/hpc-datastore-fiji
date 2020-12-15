@@ -39,10 +39,10 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String TIMEOUT_PARAM = "timeout";
 
 	@Inject
-	private CheckUUIDVersionTS checkversionUUIDTS;
+	CheckUUIDVersionTS checkversionUUIDTS;
 
 	@Inject
-	private DatasetRegisterServiceImpl datasetRegisterServiceImpl;
+	DatasetRegisterServiceImpl datasetRegisterServiceImpl;
 
 //@formatter:off
 	@Path("datasets"

@@ -39,13 +39,13 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 public class DatasetRegisterServiceImpl {
 
 	@Inject
-	private ApplicationConfiguration configuration;
+	ApplicationConfiguration configuration;
 
 	private Map<String, Compression> name2compression = null;
 
-	@Inject
-	private DatasetRepository datasetDAO;
-
+	/*	@Inject
+		private DatasetRepository datasetDAO;
+	*/
 	public UUID createEmptyDataset(DatasetDTO dataset) throws IOException,
 		SpimDataException
 	{

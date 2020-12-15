@@ -64,10 +64,10 @@ public class DatasetServerEndpoint implements Serializable {
 	"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
 
 	@Inject
-	private DatasetServerImpl datasetServer;
+	DatasetServerImpl datasetServer;
 
 	@Inject
-	private CheckUUIDVersionTS checkversionUUIDTS;
+	CheckUUIDVersionTS checkversionUUIDTS;
 
 	// @formatter:off
 	@Path("/{" + UUID + "}"

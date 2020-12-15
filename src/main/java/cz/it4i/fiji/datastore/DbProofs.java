@@ -24,20 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DbProofs {
 
-	@Inject
+	/*@Inject
 	@Named("myDataSource")
 	private DataSource dataSource;
-
+	
 	@PersistenceContext
 	private EntityManager entityManager;
-
+	*/
 	@POST
 	public void createTable() {
 		log.info("insertData");
-		EntityTransaction trx = entityManager.getTransaction();
-		trx.begin();
-		entityManager.persist(Dataset.builder().build());
-		trx.commit();
-
+		/*	EntityTransaction trx = entityManager.getTransaction();
+			trx.begin();
+			entityManager.persist(Dataset.builder().build());
+			trx.commit();
+		*/
 	}
 }

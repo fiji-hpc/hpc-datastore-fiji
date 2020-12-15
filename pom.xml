@@ -79,18 +79,18 @@
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 		<cdi-api.version>2.0.SP1</cdi-api.version>
 		<quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-	    <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
-	    <quarkus.platform.version>1.10.3.Final</quarkus.platform.version>
-	    <quarkus-plugin.version>1.10.3.Final</quarkus-plugin.version>
-	    <persistence-api.version>3.0.0</persistence-api.version>
+		<quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
+		<quarkus.platform.version>1.10.3.Final</quarkus.platform.version>
+		<quarkus-plugin.version>1.10.3.Final</quarkus-plugin.version>
+		<persistence-api.version>3.0.0</persistence-api.version>
 		<hibernate.version>5.4.25.Final</hibernate.version>
 		<derby.version>10.14.2.0</derby.version>
 		<deltaspike.version>1.9.4</deltaspike.version>
-		
+
 		<project.stage>development</project.stage>
 		<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
-		
-		
+
+
 	</properties>
 
 	<repositories>
@@ -111,20 +111,20 @@
 	</distributionManagement>
 	<profiles>
 		<profile>
-				<!-- The default profile skips all tests, though you can tune it to run 
-					just unit tests based on a custom pattern -->
-				<!-- Seperate profiles are provided for running all tests, including Arquillian 
-					tests that execute in the specified container -->
-				<id>default</id>
-				<activation>
-					<activeByDefault>true</activeByDefault>
-				</activation>
-				<properties>
-					<project.stage>development</project.stage>
-					<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
-				</properties>
-				
-			</profile>
+			<!-- The default profile skips all tests, though you can tune it to run 
+				just unit tests based on a custom pattern -->
+			<!-- Seperate profiles are provided for running all tests, including Arquillian 
+				tests that execute in the specified container -->
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<project.stage>development</project.stage>
+				<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
+			</properties>
+
+		</profile>
 		<profile>
 			<id>develop</id>
 			<properties>
@@ -153,16 +153,16 @@
 		</profile>
 	</profiles>
 	<dependencyManagement>
-    <dependencies>
-    	<dependency>
-	        <groupId>${quarkus.platform.group-id}</groupId>
-	        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-	        <version>${quarkus.platform.version}</version>
-	        <type>pom</type>
-	        <scope>import</scope>
-      	</dependency>
-    </dependencies>
-  	</dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>${quarkus.platform.group-id}</groupId>
+				<artifactId>${quarkus.platform.artifact-id}</artifactId>
+				<version>${quarkus.platform.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -170,31 +170,39 @@
 			<version>1.18.12</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
-	      <groupId>io.quarkus</groupId>
-	      <artifactId>quarkus-arc</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>io.quarkus</groupId>
-	      <artifactId>quarkus-resteasy</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>io.quarkus</groupId>
-	      <artifactId>quarkus-junit5</artifactId>
-	      <scope>test</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>io.rest-assured</groupId>
-	      <artifactId>rest-assured</artifactId>
-	      <scope>test</scope>
-	    </dependency>
-	    
-	    <dependency>
-	    	<groupId>javax.persistence</groupId>
-	        <artifactId>javax.persistence-api</artifactId>
-	         <version>2.2</version>
-	    </dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-arc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-junit5</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>javax.persistence-api</artifactId>
+			<version>2.2</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-jackson2-provider -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+		</dependency>
+
+
 
 		<!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
 		<dependency>
@@ -214,26 +222,26 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 		</dependency>
-		
+
 
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
-		        <groupId>io.quarkus</groupId>
-		        <artifactId>quarkus-maven-plugin</artifactId>
-		        <version>${quarkus-plugin.version}</version>
-		        <extensions>true</extensions>
-		        <executions>
-		          <execution>
-		            <goals>
-		              <goal>build</goal>
-		              <goal>generate-code</goal>
-		              <goal>generate-code-tests</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-		      </plugin>
+				<groupId>io.quarkus</groupId>
+				<artifactId>quarkus-maven-plugin</artifactId>
+				<version>${quarkus-plugin.version}</version>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+							<goal>generate-code</goal>
+							<goal>generate-code-tests</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -246,7 +254,7 @@
 			</resource>
 		</resources>
 	</build>
-	
+
 
 
 </project>

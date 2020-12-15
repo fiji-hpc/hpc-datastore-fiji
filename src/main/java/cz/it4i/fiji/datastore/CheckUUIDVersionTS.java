@@ -25,16 +25,16 @@ public class CheckUUIDVersionTS implements Serializable {
 	private static final long serialVersionUID = -8514559133503569747L;
 
 	@Inject
-	private ApplicationConfiguration configuration;
-
-	@Inject
-	private DatasetRepository datasetRepository;
+	ApplicationConfiguration configuration;
+	/*
+		@Inject
+		private DatasetRepository datasetRepository;*/
 
 	public Response run(String uuid, String version) {
-		if (datasetRepository.findByUUID(UUID.fromString(uuid)) == null) {
+		/*if (datasetRepository.findByUUID(UUID.fromString(uuid)) == null) {
 			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_HTML).entity(
 				"Dataset with UUID: " + uuid + " not found").build();
-		}
+		}*/
 
 		if (!Objects.equals(version, configuration.getDatasetVersion())) {
 			return Response.status(Status.NOT_IMPLEMENTED).type(MediaType.TEXT_HTML)

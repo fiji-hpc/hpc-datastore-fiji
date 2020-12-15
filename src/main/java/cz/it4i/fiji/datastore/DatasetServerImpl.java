@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
+import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
@@ -24,6 +25,7 @@ import lombok.Getter;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
+@RequestScoped
 public class DatasetServerImpl implements Closeable, Serializable {
 
 
@@ -49,12 +51,12 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		}
 	}
 
-	private transient N5Access n5Access;
+	transient N5Access n5Access;
 
 	@Inject
-	private ApplicationConfiguration configuration;
+	ApplicationConfiguration configuration;
 
-	private UUID uuid;
+	UUID uuid;
 
 	synchronized public void init(UUID aUuid) throws SpimDataException,
 		IOException
