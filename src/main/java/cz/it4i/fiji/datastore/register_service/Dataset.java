@@ -15,11 +15,13 @@ import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity(name = "Dataset")
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Dataset extends BaseEntity {
 
 	@Getter

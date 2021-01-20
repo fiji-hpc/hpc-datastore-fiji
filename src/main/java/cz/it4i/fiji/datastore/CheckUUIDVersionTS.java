@@ -5,6 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
+
 package cz.it4i.fiji.datastore;
 
 import java.io.Serializable;
@@ -26,15 +27,15 @@ public class CheckUUIDVersionTS implements Serializable {
 
 	@Inject
 	ApplicationConfiguration configuration;
-	/*
-		@Inject
-		private DatasetRepository datasetRepository;*/
+
+	@Inject
+	DatasetRepository datasetRepository;
 
 	public Response run(String uuid, String version) {
-		/*if (datasetRepository.findByUUID(UUID.fromString(uuid)) == null) {
+		if (datasetRepository.findByUUID(UUID.fromString(uuid)) == null) {
 			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_HTML).entity(
 				"Dataset with UUID: " + uuid + " not found").build();
-		}*/
+		}
 
 		if (!Objects.equals(version, configuration.getDatasetVersion())) {
 			return Response.status(Status.NOT_IMPLEMENTED).type(MediaType.TEXT_HTML)

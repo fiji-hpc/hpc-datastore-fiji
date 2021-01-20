@@ -16,6 +16,7 @@ import java.util.UUID;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
@@ -43,16 +44,17 @@ public class DatasetRegisterServiceImpl {
 
 	private Map<String, Compression> name2compression = null;
 
-	/*	@Inject
-		private DatasetRepository datasetDAO;
-	*/
+	@Inject
+	DatasetRepository datasetDAO;
+
+	@Transactional
 	public UUID createEmptyDataset(DatasetDTO dataset) throws IOException,
 		SpimDataException
 	{
 		UUID result = UUID.randomUUID();
 		String path = configuration.getDatasetPath(result);
 		N5Access.createNew(path, convert(dataset));
-		// datasetDAO.save(Dataset.builder().uuid(result).path(path).build());
+		datasetDAO.persist(Dataset.builder().uuid(result).path(path).build());
 		return result;
 	}
 

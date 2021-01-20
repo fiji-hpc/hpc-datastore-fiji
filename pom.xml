@@ -179,15 +179,88 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-resteasy</artifactId>
 		</dependency>
+		
+		
+
 		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-junit5</artifactId>
-			<scope>test</scope>
+		    <groupId>io.quarkus</groupId>
+		    <artifactId>quarkus-resteasy-jackson</artifactId>
+		    <exclusions>
+		    	<exclusion>
+				    <groupId>jakarta.activation</groupId>
+				    <artifactId>jakarta.activation-api</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>org.glassfish.jaxb</groupId>
+    				<artifactId>jaxb-runtime</artifactId>
+		    	</exclusion>
+		    </exclusions>
 		</dependency>
+		
+				
+		
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+    				<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.xml.bind</groupId>
+    				<artifactId>jakarta.xml.bind-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+
+		<dependency>
+		  <groupId>io.quarkus</groupId>
+		  <artifactId>quarkus-undertow</artifactId>
+		</dependency>
+		
+				
+		
+		<!-- Hibernate ORM specific dependencies -->
+	    <dependency>
+	        <groupId>io.quarkus</groupId>
+	        <artifactId>quarkus-hibernate-orm</artifactId>
+	        <exclusions>
+		    	<exclusion>
+				    <groupId>jakarta.activation</groupId>
+				    <artifactId>jakarta.activation-api</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>org.glassfish.jaxb</groupId>
+    				<artifactId>txw2</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>com.sun.istack</groupId>
+        			<artifactId>istack-commons-runtime</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>org.glassfish.jaxb</groupId>
+    				<artifactId>jaxb-runtime</artifactId>
+		    	</exclusion>
+		    	<exclusion>
+		    		<groupId>jakarta.persistence</groupId>
+    				<artifactId>jakarta.persistence-api</artifactId>
+	        	</exclusion>
+		    </exclusions>
+		</dependency>
+	    
+	    <!-- Hibernate ORM specific dependencies -->
+	    <dependency>
+	        <groupId>io.quarkus</groupId>
+	        <artifactId>quarkus-hibernate-orm-panache</artifactId>
+	    </dependency>
+	    
+	    <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
+		<dependency>
+		    <groupId>io.quarkus</groupId>
+		    <artifactId>quarkus-jdbc-h2</artifactId>
 		</dependency>
 
 		<dependency>
@@ -196,14 +269,11 @@
 			<version>2.2</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-jackson2-provider -->
 		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson2-provider</artifactId>
+		    <groupId>io.quarkus</groupId>
+		    <artifactId>quarkus-config-yaml</artifactId>
 		</dependency>
-
-
-
+		
 		<!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
@@ -213,7 +283,7 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-common</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>spim_data</artifactId>
@@ -222,8 +292,25 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 		</dependency>
-
-
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer_fiji</artifactId>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
+		<dependency>
+		    <groupId>com.squareup.okhttp3</groupId>
+		    <artifactId>okhttp</artifactId>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/xml-apis/xml-apis -->
+	<dependency>
+	    <groupId>xml-apis</groupId>
+	    <artifactId>xml-apis</artifactId>
+	    <version>1.4.01</version>
+	</dependency>
+		
+		
 	</dependencies>
 	<build>
 		<plugins>

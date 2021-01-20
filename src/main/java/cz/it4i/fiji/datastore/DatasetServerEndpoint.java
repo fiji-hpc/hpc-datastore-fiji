@@ -28,7 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -74,8 +73,8 @@ public class DatasetServerEndpoint implements Serializable {
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + MODE_PARAM + "}"
-			+ "/{" + VERSION_PARAM + "}")
+			+ "/{" + VERSION_PARAM + "}"
+			+ "/{" + MODE_PARAM + "}")
 	// @formatter:on
 
 	@GET

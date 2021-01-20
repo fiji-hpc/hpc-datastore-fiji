@@ -8,12 +8,9 @@
 
 package cz.it4i.fiji.datastore;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
-import javax.sql.DataSource;
+import javax.transaction.Transactional;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
@@ -24,20 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DbProofs {
 
-	/*@Inject
-	@Named("myDataSource")
-	private DataSource dataSource;
 	
 	@PersistenceContext
-	private EntityManager entityManager;
-	*/
+	EntityManager entityManager;
+
+
 	@POST
+	@Transactional
 	public void createTable() {
 		log.info("insertData");
-		/*	EntityTransaction trx = entityManager.getTransaction();
-			trx.begin();
-			entityManager.persist(Dataset.builder().build());
-			trx.commit();
-		*/
+		entityManager.persist(Dataset.builder().build());
 	}
 }

@@ -7,20 +7,32 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Parameters;
+
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.UUID;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
 
 /*import org.apache.deltaspike.data.api.AbstractEntityRepository;
 import org.apache.deltaspike.data.api.Query;
 import org.apache.deltaspike.data.api.Repository;*/
 
 //@Repository(forEntity = Dataset.class)
-public abstract class DatasetRepository extends
-	AbstractEntityRepository<Dataset, Long> implements Serializable
+
+@Default
+@ApplicationScoped
+public class DatasetRepository implements PanacheRepository<Dataset>,
+	Serializable
 {
 
 	private static final long serialVersionUID = 7503192760728646786L;
 
-//	@Query("select d from Dataset d where d.uuid = ?1")
-	public abstract Dataset findByUUID(UUID uuid);
+	public Optional<Dataset> findByUUID(UUID uuid) {
+		return find("from Dataset where uuid = :uuid", Parameters.with("uuid",
+			uuid)).singleResultOptional();
+	}
 }

@@ -7,10 +7,12 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+@Builder
 @ToString
 public class DatasetDTO {
 
@@ -26,6 +28,7 @@ public class DatasetDTO {
 		String unit;
 	}
 
+	@Builder
 	@ToString
 	public static class ResolutionLevel {
 

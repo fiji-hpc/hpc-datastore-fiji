@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 head -c 20000 /dev/urandom > input.bin
-curl -X POST --data-binary "@input.bin" -H "Content-Type: application/octet-stream" http://localhost:9080/123/2/2/1/latest/0/0/0/0/0/0/
-curl -X GET http://localhost:9080/123/2/2/1/latest/0/0/0/0/0/0/ --output output.bin
+curl -X GET -c cookies.txt http://localhost:9080/19a407aa-7db4-47df-84c3-67adbe1f1225/1/1/1/latest/write
+
+curl -X POST -b cookies.txt --data-binary "@input.bin" -H "Content-Type: application/octet-stream" http://localhost:9080/19a407aa-7db4-47df-84c3-67adbe1f1225/2/2/1/latest/0/0/0/0/0/0/
+curl -X GET -b cookies.txt  http://localhost:9080/19a407aa-7db4-47df-84c3-67adbe1f1225/2/2/1/latest/0/0/0/0/0/0/ --output output.bin
 diff input.bin output.bin
-#rm input.bin output.bin
+rm input.bin output.bin cookies.txt
 echo

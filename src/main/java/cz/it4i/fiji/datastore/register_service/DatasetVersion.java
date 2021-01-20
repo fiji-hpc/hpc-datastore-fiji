@@ -15,7 +15,7 @@ import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
+//@Entity
 public class DatasetVersion extends BaseEntity {
 
 	private static final long serialVersionUID = -8255836802533553273L;

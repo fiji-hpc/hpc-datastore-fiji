@@ -17,7 +17,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
@@ -25,7 +25,7 @@ import lombok.Getter;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
-@RequestScoped
+@SessionScoped
 public class DatasetServerImpl implements Closeable, Serializable {
 
 
