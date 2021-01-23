@@ -10,8 +10,11 @@ package cz.it4i.fiji.datastore.legacy;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
 
 import net.imglib2.util.Cast;
 
@@ -23,9 +26,11 @@ import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
+import cz.it4i.fiji.datastore.DatasetServerClient;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
-import lombok.AllArgsConstructor;
+import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
+import cz.it4i.fiji.rest.RESTClientFactory;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -96,13 +101,29 @@ public class N5RESTAdapter {
 		return result;
 	}
 
-	@AllArgsConstructor
 	private class N5RESTWriter implements N5Writer {
 
 		private final Pattern PATH = Pattern.compile(
 			"\\p{Alnum}+/\\p{Alnum}+/s(\\p{Digit}+)");
 
-		private String url;
+		private final String url;
+
+		private UUID uuid;
+
+		private boolean alreadyCreated;
+
+		private DatasetRegisterServiceClient registerServiceClient;
+		
+		private DatasetServerClient serverClient;
+
+		public N5RESTWriter(String url) {
+			this.url = url;
+			this.uuid = readUUID();
+		}
+
+		private UUID readUUID() {
+			return null;
+		}
 
 		@Override
 		public <T> T getAttribute(String pathName, String key, Class<T> clazz)
@@ -161,7 +182,11 @@ public class N5RESTAdapter {
 
 		@Override
 		public void createGroup(String pathName) throws IOException {
-			System.out.printf("Create group: %s\n", pathName);
+			if (!alreadyCreated) {
+				String result = getRegisterServiceClient().createEmptyDataset(dto);
+				uuid = UUID.fromString(result);
+				alreadyCreated = true;
+			}
 		}
 
 		@Override
@@ -179,6 +204,7 @@ public class N5RESTAdapter {
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
+			getServerClient();
 			System.out.println("writeBlock " + pathName);
 		}
 
@@ -187,6 +213,24 @@ public class N5RESTAdapter {
 			throws IOException
 		{
 			throw new UnsupportedOperationException();
+		}
+
+		private DatasetRegisterServiceClient getRegisterServiceClient() {
+			if (registerServiceClient == null) {
+				registerServiceClient = RESTClientFactory.create(url,
+					DatasetRegisterServiceClient.class);
+			}
+			return registerServiceClient;
+		}
+
+		private DatasetServerClient getServerClient() {
+			if (this.serverClient == null) {
+				Response response = getRegisterServiceClient().start(url, 1, 1, 1,
+					"LATEST", "WRITE",
+					10000l);
+				System.out.println(response.getLocation());
+			}
+			return this.serverClient;
 		}
 
 	}

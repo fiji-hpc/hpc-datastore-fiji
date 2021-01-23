@@ -7,12 +7,20 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+
+@XmlRootElement
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class DatasetDTO {
 
@@ -52,14 +60,17 @@ public class DatasetDTO {
 
 	@Getter
 	@Setter
+	@Builder.Default
 	private int timepoints = 1;
 
 	@Getter
 	@Setter
+	@Builder.Default
 	private int channels = 1;
 
 	@Getter
 	@Setter
+	@Builder.Default
 	private int angles = 1;
 
 	@Getter

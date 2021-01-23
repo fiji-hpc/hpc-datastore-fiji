@@ -258,7 +258,8 @@ public class ExportImagePlusAsN5PlugIn implements Command
 				imgLoader, params.compression);
 
 			WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
-				params.compression, () -> adapter.constructN5Writer(""),
+				params.compression, () -> adapter.constructN5Writer(
+					"http://localhost:9080"),
 				loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads,
 					new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
