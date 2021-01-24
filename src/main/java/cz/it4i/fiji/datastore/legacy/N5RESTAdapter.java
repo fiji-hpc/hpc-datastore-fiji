@@ -35,6 +35,7 @@ import cz.it4i.fiji.rest.RESTClientFactory;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -48,10 +49,13 @@ public class N5RESTAdapter {
 
 	private final DataType dataType;
 
+	private AbstractSequenceDescription<?, ?, ?> seq;
+
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
 		Map<Integer, ExportMipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
 		Compression compression)
 	{
+		this.seq = seq;
 		this.compression = compression;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
 
@@ -105,7 +109,7 @@ public class N5RESTAdapter {
 	private class N5RESTWriter implements N5Writer {
 
 		private final Pattern PATH = Pattern.compile(
-			"\\p{Alnum}+/\\p{Alnum}+/s(\\p{Digit}+)");
+			"setup(\\p{Digit}+)/timepoint(\\p{Digit}+)/s(\\p{Digit}+)");
 
 		private final String url;
 
@@ -143,7 +147,7 @@ public class N5RESTAdapter {
 				throw new IllegalArgumentException("path = " + pathName +
 					" not supported.");
 			}
-			int level = Integer.parseInt(matcher.group(1));
+			int level = Integer.parseInt(matcher.group(3));
 			return new DatasetAttributes(dto.getDimensions(), dto
 				.getResolutionLevels()[level].getBlockDimensions(), dataType,
 				compression);
@@ -205,8 +209,28 @@ public class N5RESTAdapter {
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
-			getServerClient();
+			DatasetServerClient client = getServerClient();
+			// client.
 			System.out.println("writeBlock " + pathName);
+			Matcher matcher = PATH.matcher(pathName);
+			if (!matcher.matches()) {
+				throw new IllegalArgumentException("path = " + pathName +
+					" not supported.");
+			}
+			int setupID = Integer.parseInt(matcher.group(1));
+			int timepointID = Integer.parseInt(matcher.group(2));
+
+			BasicViewSetup bvs = seq.getViewSetups().get(setupID);
+			int channel = 1;
+			int angle = 1;
+			if (bvs instanceof ViewSetup) {
+				ViewSetup vs = (ViewSetup) bvs;
+				channel = vs.getChannel().getId();
+				angle = vs.getAngle().getId();
+			}
+			long []pos =dataBlock.getGridPosition();
+			client.writeBlock(pos[0], pos[1], pos[2], timepointID, channel, angle,
+				dataBlock.toByteBuffer().array());
 		}
 
 		@Override

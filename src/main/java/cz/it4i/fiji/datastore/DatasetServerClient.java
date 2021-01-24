@@ -8,18 +8,12 @@
 package cz.it4i.fiji.datastore;
 
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.ANGLE_PARAM;
-import static cz.it4i.fiji.datastore.DatasetServerEndpoint.BLOCKS_PARAM;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.CHANNEL_PARAM;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.TIME_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.MODE_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_X_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Y_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Z_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.X_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Y_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Z_PARAM;
-
-import java.io.OutputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -44,15 +38,12 @@ public interface DatasetServerClient {
 			+"/{" +	Z_PARAM + "}"
 			+"/{" + TIME_PARAM + "}"
 			+"/{" + CHANNEL_PARAM + "}"
-			+"/{" + ANGLE_PARAM +		"}"
-			+ "{" + BLOCKS_PARAM + ":/?.*}")
+			+"/{" + ANGLE_PARAM +		"}")
 	// @formatter:on
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response writeBlock(@PathParam(R_X_PARAM) int rX,
-		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
-		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
-		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) int time,
-		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
-		@PathParam(BLOCKS_PARAM) String blocks, OutputStream outputStream);
+	public Response writeBlock(@PathParam(X_PARAM) long x,
+		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
+		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
+		@PathParam(ANGLE_PARAM) int angle, byte[] data);
 }
