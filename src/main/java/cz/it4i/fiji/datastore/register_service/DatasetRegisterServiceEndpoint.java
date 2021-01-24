@@ -66,7 +66,7 @@ public class DatasetRegisterServiceEndpoint {
 			return resp;
 		}
 		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
-			rY + "/" + rZ + "/" + version + "/" + mode)).build();
+			rY + "/" + rZ + "/" + version)).build();
 	}
 
 	@POST

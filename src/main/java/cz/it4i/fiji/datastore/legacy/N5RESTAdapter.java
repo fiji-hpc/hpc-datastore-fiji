@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 
 import net.imglib2.util.Cast;
 
+import org.apache.http.HttpStatus;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -225,10 +226,17 @@ public class N5RESTAdapter {
 
 		private DatasetServerClient getServerClient() {
 			if (this.serverClient == null) {
-				Response response = getRegisterServiceClient().start(url, 1, 1, 1,
-					"LATEST", "WRITE",
+				Response response = getRegisterServiceClient().start(uuid.toString(), 1,
+					1, 1,
+					"latest", "write",
 					10000l);
-				System.out.println(response.getLocation());
+				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
+					String uri = response.getLocation().toString();
+					this.serverClient = RESTClientFactory.create(uri,
+						DatasetServerClient.class);
+					response = this.serverClient.confirm("write");
+					System.out.println("status: " + response.getStatus());
+				}
 			}
 			return this.serverClient;
 		}

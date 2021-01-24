@@ -32,6 +32,9 @@ public interface DatasetRegisterServiceClient {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public String createEmptyDataset(DatasetDTO dataset);
 
+	@Path("datasets" + "/{" + UUID + "}" + "/{" + R_X_PARAM + "}" + "/{" +
+		R_Y_PARAM + "}" + "/{" + R_Z_PARAM + "}" + "/{" + VERSION_PARAM + "}" +
+		"/{" + MODE_PARAM + "}")
 	@GET
 	public Response start(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,

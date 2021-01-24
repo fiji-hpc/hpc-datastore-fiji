@@ -51,13 +51,13 @@ public class DatasetServerEndpoint implements Serializable {
 
 	private static final long serialVersionUID = 3030620649903413986L;
 
-	private static final String TIME_PARAM = "TIME";
+	public static final String TIME_PARAM = "TIME";
 
-	private static final String CHANNEL_PARAM = "CHANNEL";
+	public static final String CHANNEL_PARAM = "CHANNEL";
 
-	private static final String ANGLE_PARAM = "ANGLE";
+	public static final String ANGLE_PARAM = "ANGLE";
 
-	private static final String BLOCKS_PARAM = "BLOCKS";
+	public static final String BLOCKS_PARAM = "BLOCKS";
 
 	private static final Pattern URL_BLOCKS_PATTERN = Pattern.compile(
 	"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
@@ -76,7 +76,6 @@ public class DatasetServerEndpoint implements Serializable {
 			+ "/{" + VERSION_PARAM + "}"
 			+ "/{" + MODE_PARAM + "}")
 	// @formatter:on
-
 	@GET
 	public Response confirm(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
