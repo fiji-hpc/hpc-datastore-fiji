@@ -58,9 +58,10 @@ public class DatasetRegisterServiceEndpoint {
 	public Response start(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
-		@PathParam(MODE_PARAM) String mode, @QueryParam(TIMEOUT_PARAM) Long timeout)
+		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
+		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
-		log.debug("timeout = {}", timeout);
+		log.info("start> timeout = {}", timeout);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;

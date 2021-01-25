@@ -34,3 +34,7 @@ hs_err_pid*
 /output
 
 /ObjectStore/
+
+uuid.txt
+export.xml
+cookies.txt

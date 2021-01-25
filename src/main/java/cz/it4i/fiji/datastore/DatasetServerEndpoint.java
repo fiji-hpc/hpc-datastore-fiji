@@ -84,6 +84,7 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
 		@PathParam(MODE_PARAM) String mode)
 	{
+		log.info("confirm> uuid={}", uuid);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;
