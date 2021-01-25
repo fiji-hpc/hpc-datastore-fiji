@@ -3,8 +3,9 @@ package cz.it4i.fiji.datastore.legacy;
 import java.awt.Checkbox;
 import java.awt.TextField;
 import java.awt.event.ItemEvent;
-import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,22 +34,16 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.img.imagestack.ImageStackImageLoader;
-import bdv.img.n5.N5ImageLoader;
 import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import lombok.extern.slf4j.Slf4j;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
-import mpicbg.spim.data.registration.ViewRegistration;
-import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.TimePoint;
@@ -259,30 +254,15 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
 				perSetupExportMipmapInfo,
 				imgLoader, params.compression);
-
 			WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
-				params.compression, () -> adapter.constructN5Writer(
-					"http://localhost:9080"),
+				params.compression, () -> adapter.constructN5Writer(params.serverURL
+					.toString()),
 				loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads,
 					new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
-
-			// write xml sequence description
-			final N5ImageLoader n5Loader = new N5ImageLoader( params.n5File, null );
-			final SequenceDescriptionMinimal seqh5 = new SequenceDescriptionMinimal( seq, n5Loader );
-
-			final ArrayList< ViewRegistration > registrations = new ArrayList<>();
-			for ( int t = 0; t < numTimepoints; ++t )
-				for ( int s = 0; s < numSetups; ++s )
-					registrations.add( new ViewRegistration( t, s, sourceTransform ) );
-
-			final File basePath = params.seqFile.getParentFile();
-			final SpimDataMinimal spimData = new SpimDataMinimal( basePath, seqh5, new ViewRegistrations( registrations ) );
-
-			new XmlIoSpimDataMinimal().save( spimData, params.seqFile.getAbsolutePath() );
 			progressWriter.setProgress( 1.0 );
 		}
-		catch ( final SpimDataException | IOException e )
+		catch (final IOException e)
 		{
 			throw new RuntimeException( e );
 		}
@@ -297,22 +277,19 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
 		final int[][] subdivisions;
 
-		final File seqFile;
+		final URL serverURL;
 
-		final File n5File;
 
 		final Compression compression;
 
 		public Parameters(
 				final boolean setMipmapManual, final int[][] resolutions, final int[][] subdivisions,
-				final File seqFile, final File n5File,
-				final Compression compression )
+			final URL serverURL, final Compression compression)
 		{
 			this.setMipmapManual = setMipmapManual;
 			this.resolutions = resolutions;
 			this.subdivisions = subdivisions;
-			this.seqFile = seqFile;
-			this.n5File = n5File;
+			this.serverURL = serverURL;
 			this.compression = compression;
 		}
 	}
@@ -327,7 +304,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
 	static boolean lastCompressionDefaultSettings = true;
 
-	static String lastExportPath = "./export.xml";
+	static String lastServerURL = "http://localhost:9080";
 
 	protected Parameters getParameters( final ExportMipmapInfo autoMipmapSettings  )
 	{
@@ -348,7 +325,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			gd.addCheckbox( "default settings", lastCompressionDefaultSettings );
 
 			gd.addMessage( "" );
-			gd.addStringField("Export_path", lastExportPath, 25);
+			gd.addStringField("Export_URL", lastServerURL, 25);
 
 			final String autoSubsampling = ProposeMipmaps.getArrayString( autoMipmapSettings.getExportResolutions() );
 			final String autoChunkSizes = ProposeMipmaps.getArrayString( autoMipmapSettings.getSubdivisions() );
@@ -390,7 +367,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			lastChunkSizes = gd.getNextString();
 			lastCompressionChoice = gd.getNextChoiceIndex();
 			lastCompressionDefaultSettings = gd.getNextBoolean();
-			lastExportPath = gd.getNextString();
+			lastServerURL = gd.getNextString();
 
 			// parse mipmap resolutions and cell sizes
 			final int[][] resolutions = PluginHelper.parseResolutionsString( lastSubsampling );
@@ -410,19 +387,14 @@ public class ExportImagePlusAsN5PlugIn implements Command
 				IJ.showMessage( "subsampling factors and n5 chunk sizes must have the same number of elements" );
 				continue;
 			}
-
-			String seqFilename = lastExportPath;
-			if ( !seqFilename.endsWith( ".xml" ) )
-				seqFilename += ".xml";
-			final File seqFile = new File( seqFilename );
-			final File parent = seqFile.getParentFile();
-			if ( parent == null || !parent.exists() || !parent.isDirectory() )
-			{
-				IJ.showMessage( "Invalid export filename " + seqFilename );
+			URL serverURL;
+			try {
+				serverURL = new URL(lastServerURL);
+			}
+			catch (MalformedURLException exc) {
+				IJ.showMessage("Invalid server URL" + lastServerURL);
 				continue;
 			}
-			final String n5Filename = seqFilename.substring( 0, seqFilename.length() - 4 ) + ".n5";
-			final File n5File = new File( n5Filename );
 
 			final Compression compression;
 			switch ( lastCompressionChoice )
@@ -456,7 +428,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 				return null;
 
 			return new Parameters(lastSetMipmapManual, resolutions, subdivisions,
-				seqFile, n5File, compression);
+				serverURL, compression);
 		}
 	}
 
