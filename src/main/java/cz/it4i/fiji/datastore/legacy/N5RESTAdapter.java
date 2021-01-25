@@ -32,6 +32,7 @@ import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
 import cz.it4i.fiji.rest.RESTClientFactory;
+import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -39,10 +40,8 @@ import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
+@Slf4j
 public class N5RESTAdapter {
-
-
-
 	private final Compression compression;
 
 	private final DatasetDTO dto;
@@ -77,6 +76,7 @@ public class N5RESTAdapter {
 	}
 
 	public N5Writer constructN5Writer(String url) {
+		log.debug("constructN5Writer> url={}", url);
 		return new N5RESTWriter(url);
 	}
 
@@ -211,7 +211,7 @@ public class N5RESTAdapter {
 		{
 			DatasetServerClient client = getServerClient();
 			// client.
-			System.out.println("writeBlock " + pathName);
+			log.debug("writeBlock path= {}", pathName);
 			Matcher matcher = PATH.matcher(pathName);
 			if (!matcher.matches()) {
 				throw new IllegalArgumentException("path = " + pathName +
@@ -221,8 +221,8 @@ public class N5RESTAdapter {
 			int timepointID = Integer.parseInt(matcher.group(2));
 
 			BasicViewSetup bvs = seq.getViewSetups().get(setupID);
-			int channel = 1;
-			int angle = 1;
+			int channel = 0;
+			int angle = 0;
 			if (bvs instanceof ViewSetup) {
 				ViewSetup vs = (ViewSetup) bvs;
 				channel = vs.getChannel().getId();
@@ -240,7 +240,9 @@ public class N5RESTAdapter {
 			throw new UnsupportedOperationException();
 		}
 
-		private DatasetRegisterServiceClient getRegisterServiceClient() {
+		private synchronized DatasetRegisterServiceClient
+			getRegisterServiceClient()
+		{
 			if (registerServiceClient == null) {
 				registerServiceClient = RESTClientFactory.create(url,
 					DatasetRegisterServiceClient.class);
@@ -248,7 +250,7 @@ public class N5RESTAdapter {
 			return registerServiceClient;
 		}
 
-		private DatasetServerClient getServerClient() {
+		private synchronized DatasetServerClient getServerClient() {
 			if (this.serverClient == null) {
 				Response response = getRegisterServiceClient().start(uuid.toString(), 1,
 					1, 1,
@@ -259,7 +261,7 @@ public class N5RESTAdapter {
 					this.serverClient = RESTClientFactory.create(uri,
 						DatasetServerClient.class);
 					response = this.serverClient.confirm("write");
-					System.out.println("status: " + response.getStatus());
+					log.debug("getServerClient> status={}", response.getStatus());
 				}
 			}
 			return this.serverClient;

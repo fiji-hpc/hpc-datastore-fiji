@@ -43,6 +43,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
@@ -58,12 +59,14 @@ import mpicbg.spim.data.sequence.TimePoints;
  *
  * @author Tobias Pietzsch
  */
+@Slf4j
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export Current Image as remote XML/N5")
 public class ExportImagePlusAsN5PlugIn implements Command
 {
 	public static void main( final String[] args )
 	{
+		log.debug("main");
 		new ImageJ();
 		final ImagePlus imp = IJ.openImage("/home/koz01/aaa/t1-head.tif");
 		imp.show();

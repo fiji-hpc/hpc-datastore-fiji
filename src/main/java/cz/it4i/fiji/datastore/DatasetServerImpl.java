@@ -22,8 +22,10 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.SpimDataException;
 
+@Slf4j
 @Default
 @SessionScoped
 public class DatasetServerImpl implements Closeable, Serializable {
@@ -46,8 +48,26 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			if (buffer == null || buffer.length < bytes) {
 				buffer = new byte[bytes];
 			}
-			inputStream.readFully(buffer, 0, bytes);
+			int readed = readFully((InputStream) inputStream, buffer, 0, bytes);
+			if (readed != bytes) {
+				log.warn("read> requested={}, readed={}", bytes, readed);
+			}
 			return ByteBuffer.wrap(buffer, 0, bytes);
+		}
+
+		private static int readFully(InputStream in, byte[] b, int off, int len)
+			throws IOException
+		{
+			if (len < 0) throw new IndexOutOfBoundsException();
+			int n = 0;
+			while (n < len) {
+				int count = in.read(b, off + n, len - n);
+				if (count < 0) {
+					break;
+				}
+				n += count;
+			}
+			return n;
 		}
 	}
 
