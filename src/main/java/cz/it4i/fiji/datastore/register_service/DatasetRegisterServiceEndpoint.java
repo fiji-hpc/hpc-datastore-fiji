@@ -61,7 +61,7 @@ public class DatasetRegisterServiceEndpoint {
 		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
-		log.info("start> timeout = {}", timeout);
+		log.debug("start> timeout = {}", timeout);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;
@@ -75,7 +75,7 @@ public class DatasetRegisterServiceEndpoint {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createEmptyDataset(DatasetDTO dataset)
 	{
-		log.info("dataset=" + dataset);
+		log.debug("dataset=" + dataset);
 		try {
 			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
 				dataset);

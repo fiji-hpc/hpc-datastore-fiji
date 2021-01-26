@@ -39,7 +39,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import cz.it4i.fiji.datastore.DatasetServerImpl.WritedData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +83,7 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
 		@PathParam(MODE_PARAM) String mode)
 	{
-		log.info("confirm> uuid={}", uuid);
+		log.debug("confirm> uuid={}", uuid);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;
@@ -194,12 +193,11 @@ public class DatasetServerEndpoint implements Serializable {
 		blocksId.add(new BlockIdentification(new long[] { x, y, z }, time, channel,
 			angle));
 		extract(blocks, blocksId);
-		WritedData data = new WritedData(inputStream);
 		try {
 
 			for (BlockIdentification blockId : blocksId) {
 				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
-					blockId.angle, new int[] { rX, rY, rZ }, data);
+					blockId.angle, new int[] { rX, rY, rZ }, inputStream);
 			}
 		}
 		catch (IOException exc) {

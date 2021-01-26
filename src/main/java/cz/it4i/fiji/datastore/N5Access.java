@@ -7,7 +7,9 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -69,6 +71,29 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Slf4j
 public class N5Access {
 
+	public static int getSizeOfElement(DatasetAttributes datasetAttributes) {
+		switch (datasetAttributes.getDataType()) {
+			case UINT8:
+			case INT8:
+				return 1;
+			case UINT16:
+			case INT16:
+				return 2;
+			case UINT32:
+			case INT32:
+			case FLOAT32:
+				return 4;
+			case UINT64:
+			case INT64:
+			case FLOAT64:
+				return 8;
+			default:
+				throw new IllegalArgumentException("Datatype " + datasetAttributes
+					.getDataType() + " not supported");
+		}
+	}
+
+
 	@Builder
 	public static class N5Description {
 
@@ -99,67 +124,6 @@ public class N5Access {
 
 	}
 
-	public static class DatasetLocation4Writing {
-
-		private final String path;
-		private final ViewSetup viewSetup;
-		private final DatasetAttributes datasetAttributes;
-
-		private DatasetLocation4Writing(SpimData spimData, N5Writer writer,
-			int time,
-			int channel, int angle, int[] resolutionLevel) throws IOException
-		{
-			viewSetup = getViewSetup(spimData, channel, angle);
-			if (viewSetup == null) {
-				throw new IllegalArgumentException(String.format(
-					"Channel=%d and angle=%d not found.", channel, angle));
-			}
-			path = getPath(writer, time, viewSetup, resolutionLevel);
-			if (path == null) {
-				throw new IllegalArgumentException(String.format(
-					"Channel=%d, angle=%d and timepoint=%d not found.", channel, angle,
-					time));
-			}
-			datasetAttributes = writer.getDatasetAttributes(path);
-		}
-
-		public void writeBlock(N5Writer writer, long[] gridPosition,
-			ByteBuffer data) throws IOException
-		{
-			DataBlock<?> block = datasetAttributes.getDataType().createDataBlock(
-				datasetAttributes.getBlockSize(), gridPosition);
-			block.readData(data);
-			writer.writeBlock(path, datasetAttributes, block);
-		}
-
-		public int getNumOfBytes() {
-			return DataBlock.getNumElements(datasetAttributes.getBlockSize()) *
-				getSizeOfElement();
-		}
-
-		private int getSizeOfElement() {
-			switch (datasetAttributes.getDataType()) {
-				case UINT8:
-				case INT8:
-					return 1;
-				case UINT16:
-				case INT16:
-					return 2;
-				case UINT32:
-				case INT32:
-				case FLOAT32:
-					return 4;
-				case UINT64:
-				case INT64:
-				case FLOAT64:
-					return 8;
-				default:
-					throw new IllegalArgumentException("Datatype " + datasetAttributes
-						.getDataType() +
-						" not supported");
-			}
-		}
-	}
 
 	private Path baseDirectory;
 	private N5Writer writer;
@@ -212,20 +176,32 @@ public class N5Access {
 			gridPosition).toByteBuffer();
 	}
 
-	public void write(long[] gridPosition,
-		DatasetLocation4Writing location4Writing, ByteBuffer data)
-		throws IOException
+	public void write(long[] gridPosition, int time, int channel, int angle,
+		int[] resolutionLevel, InputStream inputStream) throws IOException
 	{
-		location4Writing.writeBlock(writer, gridPosition, data);
+		String path = getPath(spimData, writer, time, channel, angle,
+			resolutionLevel);
+		DatasetAttributes attributes = writer.getDatasetAttributes(path);
+		DataBlock<?> dataBlock = constructDataBlock(gridPosition, attributes,
+			inputStream);
+		writer.writeBlock(path, attributes, dataBlock);
 	}
 
-
-
-	public DatasetLocation4Writing getDatasetLocation4Writing(int time,
-		int channel, int angle, int[] resolutionLevel) throws IOException
+	private DataBlock<?> constructDataBlock(long[] gridPosition,
+		DatasetAttributes attributes, InputStream inputStream) throws IOException
 	{
-		return new DatasetLocation4Writing(spimData, writer, time, channel, angle,
-			resolutionLevel);
+		DataInputStream dis = new DataInputStream(inputStream);
+		int[] size = new int[3];
+		for (int i = 0; i < 3; i++) {
+			size[i] = dis.readInt();
+		}
+		DataBlock<?> block = attributes.getDataType().createDataBlock(size,
+			gridPosition);
+		byte[] buffer = new byte[block.getNumElements() * getSizeOfElement(
+			attributes)];
+		readFully(inputStream, buffer);
+		block.readData(ByteBuffer.wrap(buffer));
+		return block;
 	}
 
 	private void loadFromXML(String path) throws SpimDataException {
@@ -327,15 +303,15 @@ public class N5Access {
 		}
 	}
 
-	private static String getPath(SpimData spimData, N5Writer writer, int timeId,
-		int channel, int angle,
-		int[] resolutionLevel)
+	private static String getPath(SpimData spimData, N5Writer writer, int time,
+		int channel, int angle, int[] resolutionLevel)
 	{
 		ViewSetup viewSetup = getViewSetup(spimData, channel, angle);
 		if (viewSetup == null) {
-			return null;
+			throw new IllegalArgumentException(String.format(
+				"Channel=%d and angle=%d not found.", channel, angle));
 		}
-		return getPath(writer, timeId, viewSetup, resolutionLevel);
+		return getPath(writer, time, viewSetup, resolutionLevel);
 	}
 
 	private static String getPath(N5Writer writer, int timeId,
@@ -401,6 +377,21 @@ public class N5Access {
 		}
 
 	}
+
+	private static int readFully(InputStream in, byte[] b)
+			throws IOException
+		{
+			int n = 0;
+			while (n < b.length) {
+				int count = in.read(b, n, b.length - n);
+				if (count < 0) {
+					break;
+				}
+				n += count;
+			}
+			return n;
+		}
+
 
 	private static class LoopbackHeuristicAdapter implements LoopbackHeuristic {
 

@@ -8,11 +8,15 @@
 package cz.it4i.fiji.datastore.legacy;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import javax.ws.rs.core.Response;
 
@@ -28,6 +32,7 @@ import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.DatasetServerClient;
+import cz.it4i.fiji.datastore.N5Access;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
@@ -42,6 +47,11 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 
 @Slf4j
 public class N5RESTAdapter {
+	public static String coordsAsString(long[] position) {
+		return LongStream.of(position).mapToObj(i -> "" + i).collect(
+			Collectors.joining(","));
+	}
+
 	private final Compression compression;
 
 	private final DatasetDTO dto;
@@ -210,8 +220,7 @@ public class N5RESTAdapter {
 			throws IOException
 		{
 			DatasetServerClient client = getServerClient();
-			// client.
-			log.debug("writeBlock path= {}", pathName);
+
 			Matcher matcher = PATH.matcher(pathName);
 			if (!matcher.matches()) {
 				throw new IllegalArgumentException("path = " + pathName +
@@ -228,9 +237,22 @@ public class N5RESTAdapter {
 				channel = vs.getChannel().getId();
 				angle = vs.getAngle().getId();
 			}
-			long []pos =dataBlock.getGridPosition();
+			long[] pos = dataBlock.getGridPosition();
+
+			ModifiedByteArrayOutputStream baos;
+			DataOutputStream os = new DataOutputStream(baos =
+				new ModifiedByteArrayOutputStream(
+				N5Access.getSizeOfElement(datasetAttributes) * dataBlock
+					.getNumElements() + 3 * 4));
+			for (int i = 0; i < dataBlock.getSize().length; i++) {
+				os.writeInt(dataBlock.getSize()[i]);
+			}
+			os.write(dataBlock.toByteBuffer().array());
+			os.flush();
+			log.debug("writeBlock path={},coord=[{}],bytes={}", pathName,
+				coordsAsString(dataBlock.getGridPosition()), baos.size());
 			client.writeBlock(pos[0], pos[1], pos[2], timepointID, channel, angle,
-				dataBlock.toByteBuffer().array());
+				baos.getData());
 		}
 
 		@Override
@@ -267,6 +289,23 @@ public class N5RESTAdapter {
 			return this.serverClient;
 		}
 
+	}
+
+	private static class ModifiedByteArrayOutputStream extends
+		ByteArrayOutputStream
+	{
+
+		private ModifiedByteArrayOutputStream() {
+			super();
+		}
+
+		private ModifiedByteArrayOutputStream(int size) {
+			super(size);
+		}
+
+		byte[] getData() {
+			return buf;
+		}
 	}
 
 }

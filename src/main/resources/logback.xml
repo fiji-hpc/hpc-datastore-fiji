@@ -1,6 +1,6 @@
 <configuration debug="false">
 
-	<!-- Stop output INFO at start -->
+		<!-- Stop output INFO at start -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
 	        <pattern>[%t] %d{HH:mm:ss.SSS}  %-5level %logger{10} - %msg%n</pattern>
@@ -9,6 +9,10 @@
 
    
 	<logger name="cz.it4i.fiji.datastore.legacy.N5RESTAdapter" level="debug" additivity="false" >
+		<appender-ref ref="CONSOLE"/>
+	</logger>
+	
+	<logger name="cz.it4i.fiji.datastore.DatasetServerEndpoint" level="debug" additivity="false">
 		<appender-ref ref="CONSOLE"/>
 	</logger>
 
