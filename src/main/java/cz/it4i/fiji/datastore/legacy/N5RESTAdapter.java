@@ -66,6 +66,8 @@ public class N5RESTAdapter {
 	{
 		this.seq = seq;
 		this.compression = compression;
+		int angles = 1;
+		int channels = 1;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
 
 		final int setupId = setup.getId();
@@ -76,6 +78,8 @@ public class N5RESTAdapter {
 		dto = DatasetDTO.builder()
 				.voxelType(dataType.toString())
 				.dimensions(setup.getSize().dimensionsAsLongArray())
+				.angles(angles)
+				.channels(channels)
 				.timepoints(seq.getTimePoints().size())
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
