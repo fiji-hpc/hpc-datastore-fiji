@@ -39,6 +39,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.janelia.saalfeldlab.n5.DataBlock;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -129,28 +131,25 @@ public class DatasetServerEndpoint implements Serializable {
 				channel, angle));
 			extract(blocks, blocksId);
 			List<BlockIdentification> notExistentBlocks = new LinkedList<>();
-			ByteBuffer result = null;
-			for (BlockIdentification bi : blocksId) {
-				ByteBuffer block = datasetServer.read(new long[] { bi.gridPosition[0],
-					bi.gridPosition[1], bi.gridPosition[2] }, bi.time, bi.channel,
-					bi.angle, new int[] { rX, rY, rZ });
+			try (DataBlockInputStream result = new DataBlockInputStream()) {
+				for (BlockIdentification bi : blocksId) {
+					DataBlock<?> block = datasetServer.read(new long[] {
+						bi.gridPosition[0], bi.gridPosition[1], bi.gridPosition[2] },
+						bi.time, bi.channel, bi.angle, new int[] { rX, rY, rZ });
 
-				if (block == null) {
-					notExistentBlocks.add(bi);
+					if (block == null) {
+						notExistentBlocks.add(bi);
+						continue;
+					}
+					if (!notExistentBlocks.isEmpty()) {
+						continue;
+					}
+					result.add(block);
 				}
 				if (notExistentBlocks.isEmpty()) {
-					if (result == null && block != null) {
-						result = ByteBuffer.allocate(block.capacity() * blocksId
-							.size());
-					}
-					if (result != null) {
-						result.put(block);
-					}
+					return Response.ok(result).type(MediaType.APPLICATION_OCTET_STREAM)
+						.build();
 				}
-			}
-			if (notExistentBlocks.isEmpty() && result != null) {
-				return Response.ok(result.array()).type(
-					MediaType.APPLICATION_OCTET_STREAM).build();
 			}
 			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
 				.entity("Blocks [" + String.join(",", notExistentBlocks.stream().map(

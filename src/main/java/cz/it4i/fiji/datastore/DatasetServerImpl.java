@@ -12,12 +12,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+
+import org.janelia.saalfeldlab.n5.DataBlock;
 
 import mpicbg.spim.data.SpimDataException;
 
@@ -48,7 +49,8 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		n5Access = null;
 	}
 
-	public ByteBuffer read(long[] gridPosition, int time, int channel, int angle,
+	public DataBlock<?> read(long[] gridPosition, int time, int channel,
+		int angle,
 		int[] resolutionLevel) throws IOException
 	{
 		return n5Access.read(gridPosition, time, channel, angle, resolutionLevel);

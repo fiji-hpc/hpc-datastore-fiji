@@ -164,7 +164,8 @@ public class N5Access {
 	 * @return readed ByteBuffer or null;
 	 * @throws IOException
 	 */
-	public ByteBuffer read(long[] gridPosition, int time, int channel, int angle,
+	public DataBlock<?> read(long[] gridPosition, int time, int channel,
+		int angle,
 		int[] resolutionLevel) throws IOException
 	{
 		String path = getPath(spimData, writer, time, channel, angle,
@@ -173,7 +174,7 @@ public class N5Access {
 			return null;
 		}
 		return writer.readBlock(path, writer.getDatasetAttributes(path),
-			gridPosition).toByteBuffer();
+			gridPosition);
 	}
 
 	public void write(long[] gridPosition, int time, int channel, int angle,
