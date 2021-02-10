@@ -19,6 +19,7 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.DataType;
 
 import mpicbg.spim.data.SpimDataException;
 
@@ -78,5 +79,9 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		catch (SpimDataException exc) {
 			throw new IOException(exc);
 		}
+	}
+
+	public DataType getType(int time, int channel, int angle, int[] level) {
+		return n5Access.getType(time, channel, angle, level);
 	}
 }

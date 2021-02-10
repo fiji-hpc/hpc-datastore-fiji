@@ -21,7 +21,6 @@ import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndp
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -40,6 +39,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.DataType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -205,6 +205,30 @@ public class DatasetServerEndpoint implements Serializable {
 				MediaType.TEXT_PLAIN).build();
 		}
 		return Response.ok().build();
+	}
+
+//@formatter:off
+	@Path("{" + UUID + "}"
+			+"/{" + R_X_PARAM + "}"
+			+"/{" + R_Y_PARAM + "}"
+			+"/{" + R_Z_PARAM +	"}"
+			+"/datatype"
+			+"/{" + TIME_PARAM + "}"
+			+"/{" + CHANNEL_PARAM + "}"
+			+"/{" + ANGLE_PARAM +		"}")
+	// @formatter:on
+	@GET
+	public Response getType(@PathParam(R_X_PARAM) int rX,
+		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
+		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
+		@PathParam(ANGLE_PARAM) int angle)
+	{
+		DataType dt = datasetServer.getType(time, channel, angle, new int[] { rX,
+			rY, rZ });
+		if (dt != null) {
+			return Response.ok(dt.toString()).build();
+		}
+		return Response.status(Status.NOT_FOUND).build();
 	}
 
 	private void extract(String blocks, List<BlockIdentification> blocksId) {

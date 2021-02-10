@@ -71,8 +71,8 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Slf4j
 public class N5Access {
 
-	public static int getSizeOfElement(DatasetAttributes datasetAttributes) {
-		switch (datasetAttributes.getDataType()) {
+	public static int getSizeOfElement(DataType dataType) {
+		switch (dataType) {
 			case UINT8:
 			case INT8:
 				return 1;
@@ -88,8 +88,7 @@ public class N5Access {
 			case FLOAT64:
 				return 8;
 			default:
-				throw new IllegalArgumentException("Datatype " + datasetAttributes
-					.getDataType() + " not supported");
+				throw new IllegalArgumentException("Datatype " + dataType + " not supported");
 		}
 	}
 
@@ -135,6 +134,23 @@ public class N5Access {
 		N5Access result = new N5Access(path);
 		result.loadFromXML(path);
 		return result;
+	}
+
+	public static DataBlock<?> constructDataBlock(long[] gridPosition,
+		InputStream inputStream, DataType dataType) throws IOException
+	{
+		DataInputStream dis = new DataInputStream(inputStream);
+		int[] size = new int[3];
+		for (int i = 0; i < 3; i++) {
+			size[i] = dis.readInt();
+		}
+
+		DataBlock<?> block = dataType.createDataBlock(size, gridPosition);
+		byte[] buffer = new byte[block.getNumElements() * getSizeOfElement(
+			dataType)];
+		readFully(inputStream, buffer);
+		block.readData(ByteBuffer.wrap(buffer));
+		return block;
 	}
 
 	public static N5Access createNew(String path, N5Description dsc)
@@ -188,21 +204,26 @@ public class N5Access {
 		writer.writeBlock(path, attributes, dataBlock);
 	}
 
-	private DataBlock<?> constructDataBlock(long[] gridPosition,
+	public DataType getType(int time, int channel, int angle,
+		int[] resolutionLevel)
+	{
+		String path = getPath(spimData, writer, time, channel, angle,
+			resolutionLevel);
+		try {
+			return writer.getDatasetAttributes(path).getDataType();
+		}
+		catch (IOException exc) {
+			log.error("getType", exc);
+			return null;
+		}
+	}
+
+	private static DataBlock<?> constructDataBlock(long[] gridPosition,
 		DatasetAttributes attributes, InputStream inputStream) throws IOException
 	{
-		DataInputStream dis = new DataInputStream(inputStream);
-		int[] size = new int[3];
-		for (int i = 0; i < 3; i++) {
-			size[i] = dis.readInt();
-		}
-		DataBlock<?> block = attributes.getDataType().createDataBlock(size,
-			gridPosition);
-		byte[] buffer = new byte[block.getNumElements() * getSizeOfElement(
-			attributes)];
-		readFully(inputStream, buffer);
-		block.readData(ByteBuffer.wrap(buffer));
-		return block;
+		DataType dataType = attributes.getDataType();
+
+		return constructDataBlock(gridPosition, inputStream, dataType);
 	}
 
 	private void loadFromXML(String path) throws SpimDataException {
@@ -515,5 +536,7 @@ public class N5Access {
 
 
 	}
+
+
 
 }

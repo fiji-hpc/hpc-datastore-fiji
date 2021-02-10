@@ -16,6 +16,7 @@ import java.util.LinkedList;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 
+
 class DataBlockInputStream extends InputStream {
 
 	private Collection<ByteBuffer> collection = new LinkedList<>();

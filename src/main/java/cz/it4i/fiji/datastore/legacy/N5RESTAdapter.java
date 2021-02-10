@@ -11,6 +11,8 @@ package cz.it4i.fiji.datastore.legacy;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -37,6 +39,10 @@ import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
 import cz.it4i.fiji.rest.RESTClientFactory;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -52,13 +58,16 @@ public class N5RESTAdapter {
 			Collectors.joining(","));
 	}
 
+	private static final Pattern PATH = Pattern.compile(
+		"setup(\\p{Digit}+)/timepoint(\\p{Digit}+)/s(\\p{Digit}+)");
+
 	private final Compression compression;
 
 	private final DatasetDTO dto;
 
 	private final DataType dataType;
 
-	private AbstractSequenceDescription<?, ?, ?> seq;
+	private final AbstractSequenceDescription<?, ?, ?> seq;
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
 		Map<Integer, ExportMipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
@@ -112,6 +121,8 @@ public class N5RESTAdapter {
 		return result;
 	}
 
+
+
 	private static double[] dimensionsasArray(VoxelDimensions voxelSize) {
 		double[] result = new double[voxelSize.numDimensions()];
 		for (int i = 0; i < result.length; i++) {
@@ -122,8 +133,7 @@ public class N5RESTAdapter {
 
 	private class N5RESTWriter implements N5Writer {
 
-		private final Pattern PATH = Pattern.compile(
-			"setup(\\p{Digit}+)/timepoint(\\p{Digit}+)/s(\\p{Digit}+)");
+
 
 		private final String url;
 
@@ -133,7 +143,8 @@ public class N5RESTAdapter {
 
 		private DatasetRegisterServiceClient registerServiceClient;
 		
-		private DatasetServerClient serverClient;
+		private Map<Integer, DatasetServerClient> level2serverClient =
+			new HashMap<>();
 
 		public N5RESTWriter(String url) {
 			this.url = url;
@@ -172,7 +183,15 @@ public class N5RESTAdapter {
 			DatasetAttributes datasetAttributes, long[] gridPosition)
 			throws IOException
 		{
-			throw new UnsupportedOperationException();
+
+			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
+				seq, pathName);
+			DatasetServerClient client = getServerClient(act.getLevelID());
+			Response response = client.readBlock(gridPosition[0], gridPosition[1],
+				gridPosition[1], act
+				.getTimepointID(), act.getChannelID(), act.getAngleID());
+			InputStream is = response.readEntity(InputStream.class);
+			return N5Access.constructDataBlock(gridPosition, is, dataType);
 		}
 
 		@Override
@@ -223,31 +242,17 @@ public class N5RESTAdapter {
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
-			DatasetServerClient client = getServerClient();
-
-			Matcher matcher = PATH.matcher(pathName);
-			if (!matcher.matches()) {
-				throw new IllegalArgumentException("path = " + pathName +
-					" not supported.");
-			}
-			int setupID = Integer.parseInt(matcher.group(1));
-			int timepointID = Integer.parseInt(matcher.group(2));
-
-			BasicViewSetup bvs = seq.getViewSetups().get(setupID);
-			int channel = 0;
-			int angle = 0;
-			if (bvs instanceof ViewSetup) {
-				ViewSetup vs = (ViewSetup) bvs;
-				channel = vs.getChannel().getId();
-				angle = vs.getAngle().getId();
-			}
+			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
+				seq, pathName);
+			DatasetServerClient client = getServerClient(act.getLevelID());
+			
 			long[] pos = dataBlock.getGridPosition();
 
 			ModifiedByteArrayOutputStream baos;
 			DataOutputStream os = new DataOutputStream(baos =
 				new ModifiedByteArrayOutputStream(
-				N5Access.getSizeOfElement(datasetAttributes) * dataBlock
-					.getNumElements() + 3 * 4));
+					N5Access.getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
+						.getNumElements() + dataBlock.getSize().length * Integer.BYTES));
 			for (int i = 0; i < dataBlock.getSize().length; i++) {
 				os.writeInt(dataBlock.getSize()[i]);
 			}
@@ -255,8 +260,8 @@ public class N5RESTAdapter {
 			os.flush();
 			log.debug("writeBlock path={},coord=[{}],bytes={}", pathName,
 				coordsAsString(dataBlock.getGridPosition()), baos.size());
-			client.writeBlock(pos[0], pos[1], pos[2], timepointID, channel, angle,
-				baos.getData());
+			client.writeBlock(pos[0], pos[1], pos[2], act.getTimepointID(), act
+				.getChannelID(), act.getAngleID(), baos.getData());
 		}
 
 		@Override
@@ -265,6 +270,8 @@ public class N5RESTAdapter {
 		{
 			throw new UnsupportedOperationException();
 		}
+
+
 
 		private synchronized DatasetRegisterServiceClient
 			getRegisterServiceClient()
@@ -276,21 +283,24 @@ public class N5RESTAdapter {
 			return registerServiceClient;
 		}
 
-		private synchronized DatasetServerClient getServerClient() {
-			if (this.serverClient == null) {
-				Response response = getRegisterServiceClient().start(uuid.toString(), 1,
-					1, 1,
-					"latest", "write",
-					10000l);
+		private synchronized DatasetServerClient getServerClient(int levelId) {
+			DatasetServerClient result = level2serverClient.get(levelId);
+			if (result == null) {
+				ResolutionLevel resolutionLevel = dto.getResolutionLevels()[levelId];
+				Response response = getRegisterServiceClient().start(uuid.toString(),
+					resolutionLevel.getResolutions()[0], resolutionLevel
+						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
+					"write", 10000l);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
-					this.serverClient = RESTClientFactory.create(uri,
+					result = RESTClientFactory.create(uri,
 						DatasetServerClient.class);
-					response = this.serverClient.confirm("write");
+					response = result.confirm("write");
 					log.debug("getServerClient> status={}", response.getStatus());
+					level2serverClient.put(levelId, result);
 				}
 			}
-			return this.serverClient;
+			return result;
 		}
 
 	}
@@ -309,6 +319,47 @@ public class N5RESTAdapter {
 
 		byte[] getData() {
 			return buf;
+		}
+	}
+
+	@EqualsAndHashCode
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	private static class AngleChannelTimepoint {
+
+		@Getter
+		final int angleID;
+
+		@Getter
+		final int channelID;
+
+		@Getter
+		final int timepointID;
+
+		@Getter
+		final int levelID;
+
+		public static AngleChannelTimepoint constructForSeqAndPath(
+			AbstractSequenceDescription<?, ?, ?> seq, String pathName)
+		{
+			Matcher matcher = PATH.matcher(pathName);
+			if (!matcher.matches()) {
+				throw new IllegalArgumentException("path = " + pathName +
+					" not supported.");
+			}
+			int setupID = Integer.parseInt(matcher.group(1));
+			int timepointID = Integer.parseInt(matcher.group(2));
+			int levelID = Integer.parseInt(matcher.group(3));
+
+			BasicViewSetup bvs = seq.getViewSetups().get(setupID);
+			int channel = 0;
+			int angle = 0;
+			if (bvs instanceof ViewSetup) {
+				ViewSetup vs = (ViewSetup) bvs;
+				channel = vs.getChannel().getId();
+				angle = vs.getAngle().getId();
+			}
+
+			return new AngleChannelTimepoint(angle, channel, timepointID, levelID);
 		}
 	}
 

@@ -20,6 +20,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -46,4 +47,29 @@ public interface DatasetServerClient {
 		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
 		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
 		@PathParam(ANGLE_PARAM) int angle, byte[] data);
+
+	//@formatter:off
+	@Path("/{" + X_PARAM + "}"
+			+"/{" + Y_PARAM + "}"
+			+"/{" +	Z_PARAM + "}"
+			+"/{" + TIME_PARAM + "}"
+			+"/{" + CHANNEL_PARAM + "}"
+			+"/{" + ANGLE_PARAM +		"}")
+	//@formatter:on
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response readBlock(@PathParam(X_PARAM) long x,
+		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
+		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
+		@PathParam(ANGLE_PARAM) int angle);
+
+	//@formatter:off
+	@Path("/datatype"
+			+"/{" + TIME_PARAM + "}"
+			+"/{" + CHANNEL_PARAM + "}"
+			+"/{" + ANGLE_PARAM +		"}")
+	// @formatter:on
+	@GET
+	public Response getType(@PathParam(TIME_PARAM) int time,
+		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle);
 }
