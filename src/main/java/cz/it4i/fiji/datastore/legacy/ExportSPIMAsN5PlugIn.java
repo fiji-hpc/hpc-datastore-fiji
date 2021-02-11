@@ -215,6 +215,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		final AfterEachPlane afterEachPlane = new AfterEachPlane() {
 
+			@SuppressWarnings("unused")
 			@Override
 			public void afterEachPlane(final boolean usedLoopBack) {
 				if (!usedLoopBack && isVirtual) {
@@ -272,13 +273,14 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		}
 	}
 
-	static String lastSPIMdata = "";
+	static String lastSPIMdata =
+		"/home/koz01/Documents/Datasets/Mouse Brain/hdf5/export.xml";
 
-	static boolean lastSetMipmapManual = false;
+	static boolean lastSetMipmapManual = true;
 
-	static String lastSubsampling = "";
+	static String lastSubsampling = "{{16,16,16}, {16,16,16}}";
 
-	static String lastChunkSizes = "";
+	static String lastChunkSizes = "{{64,64,64},{64,64,64}}";
 
 	static int lastCompressionChoice = 0;
 
