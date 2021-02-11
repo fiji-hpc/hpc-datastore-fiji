@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -232,7 +233,11 @@ public class N5RESTAdapter {
 		@Override
 		public void createGroup(String pathName) throws IOException {
 			if (!alreadyCreated) {
-				String result = getRegisterServiceClient().createEmptyDataset(dto);
+				Response response = getRegisterServiceClient().createEmptyDataset(dto);
+				String result = getText((InputStream) response.getEntity());
+				if (response.getStatus() != Status.OK.getStatusCode()) {
+					throw new BadRequestException("createGroup " + result);
+				}
 				uuid = UUID.fromString(result);
 				alreadyCreated = true;
 			}

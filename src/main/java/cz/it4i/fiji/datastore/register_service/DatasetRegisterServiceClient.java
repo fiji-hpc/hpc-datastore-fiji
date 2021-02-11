@@ -30,7 +30,7 @@ public interface DatasetRegisterServiceClient {
 	@POST
 	@Path("datasets/")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String createEmptyDataset(DatasetDTO dataset);
+	public Response createEmptyDataset(DatasetDTO dataset);
 
 	@Path("datasets" + "/{" + UUID + "}" + "/{" + R_X_PARAM + "}" + "/{" +
 		R_Y_PARAM + "}" + "/{" + R_Z_PARAM + "}" + "/{" + VERSION_PARAM + "}" +

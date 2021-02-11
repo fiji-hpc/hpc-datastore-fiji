@@ -24,6 +24,8 @@ import lombok.ToString;
 @ToString
 public class DatasetDTO {
 
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@ToString
 	public static class Resolution {
 
@@ -36,6 +38,8 @@ public class DatasetDTO {
 		String unit;
 	}
 
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@Builder
 	@ToString
 	public static class ResolutionLevel {
