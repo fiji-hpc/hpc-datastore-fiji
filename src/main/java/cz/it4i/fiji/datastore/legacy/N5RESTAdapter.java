@@ -8,10 +8,12 @@
 package cz.it4i.fiji.datastore.legacy;
 
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import net.imglib2.util.Cast;
 
@@ -188,8 +191,16 @@ public class N5RESTAdapter {
 				seq, pathName);
 			DatasetServerClient client = getServerClient(act.getLevelID());
 			Response response = client.readBlock(gridPosition[0], gridPosition[1],
-				gridPosition[1], act
-				.getTimepointID(), act.getChannelID(), act.getAngleID());
+				gridPosition[1], act.getTimepointID(), act.getChannelID(), act
+					.getAngleID());
+			if (response.getStatus() != Status.OK.getStatusCode()) {
+				log.warn("readBlock({},{},{}) - status = {}, msg = {}", pathName,
+					datasetAttributes, ("[" +
+					gridPosition[0] + ", " + gridPosition[1] + ", " + gridPosition[0] +
+						"]"), "" + response.getStatusInfo().getStatusCode(), getText(
+							(InputStream) response.getEntity()));
+				return null;
+			}
 			InputStream is = response.readEntity(InputStream.class);
 			return N5Access.constructDataBlock(gridPosition, is, dataType);
 		}
@@ -301,6 +312,11 @@ public class N5RESTAdapter {
 				}
 			}
 			return result;
+		}
+
+		private String getText(InputStream entity) {
+			return new BufferedReader(new InputStreamReader(entity)).lines().collect(
+				Collectors.joining("\n"));
 		}
 
 	}
