@@ -1,0 +1,26 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+	<id>bin</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<scope>runtime</scope>
+			<useProjectArtifact>false</useProjectArtifact>
+			<includes>
+				<include>org.apache.cxf:cxf-rt-rs-client:jar</include>
+				<include>org.apache.cxf:cxf-core:jar</include>
+				<include>org.apache.cxf:cxf-rt-frontend-jaxrs:jar</include>
+				<include>org.apache.cxf:cxf-rt-transports-http:jar</include>
+				<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar</include>
+				<include>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar</include>
+				<include>jakarta.ws.rs:jakarta.ws.rs-api:jar</include>
+			</includes>
+		</dependencySet>
+	</dependencySets>
+</assembly>

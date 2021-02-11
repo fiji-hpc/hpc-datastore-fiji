@@ -8,7 +8,8 @@
 		<version>29.2.1</version>
 		<relativePath />
 	</parent>
-	<artifactId>scijava-parallel</artifactId>
+	<groupId>cz.it4i.fiji</groupId>
+	<artifactId>hpc-datastore</artifactId>
 
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ToDO</name>
@@ -177,7 +178,7 @@
 			<exclusions>
 				<exclusion>
 					<groupId>org.jboss.slf4j</groupId>
-    				<artifactId>slf4j-jboss-logmanager</artifactId>
+					<artifactId>slf4j-jboss-logmanager</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -185,26 +186,26 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-resteasy</artifactId>
 		</dependency>
-		
-		
+
+
 
 		<dependency>
-		    <groupId>io.quarkus</groupId>
-		    <artifactId>quarkus-resteasy-jackson</artifactId>
-		    <exclusions>
-		    	<exclusion>
-				    <groupId>jakarta.activation</groupId>
-				    <artifactId>jakarta.activation-api</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>org.glassfish.jaxb</groupId>
-    				<artifactId>jaxb-runtime</artifactId>
-		    	</exclusion>
-		    </exclusions>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy-jackson</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+					<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		
-				
-		
+
+
+
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
@@ -212,61 +213,61 @@
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
-    				<artifactId>jakarta.activation-api</artifactId>
+					<artifactId>jakarta.activation-api</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>jakarta.xml.bind</groupId>
-    				<artifactId>jakarta.xml.bind-api</artifactId>
+					<artifactId>jakarta.xml.bind-api</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 
 		<dependency>
-		  <groupId>io.quarkus</groupId>
-		  <artifactId>quarkus-undertow</artifactId>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-undertow</artifactId>
 		</dependency>
-		
-				
-		
+
+
+
 		<!-- Hibernate ORM specific dependencies -->
-	    <dependency>
-	        <groupId>io.quarkus</groupId>
-	        <artifactId>quarkus-hibernate-orm</artifactId>
-	        <exclusions>
-		    	<exclusion>
-				    <groupId>jakarta.activation</groupId>
-				    <artifactId>jakarta.activation-api</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>org.glassfish.jaxb</groupId>
-    				<artifactId>txw2</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>com.sun.istack</groupId>
-        			<artifactId>istack-commons-runtime</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>org.glassfish.jaxb</groupId>
-    				<artifactId>jaxb-runtime</artifactId>
-		    	</exclusion>
-		    	<exclusion>
-		    		<groupId>jakarta.persistence</groupId>
-    				<artifactId>jakarta.persistence-api</artifactId>
-	        	</exclusion>
-		    </exclusions>
-		</dependency>
-	    
-	    <!-- Hibernate ORM specific dependencies -->
-	    <dependency>
-	        <groupId>io.quarkus</groupId>
-	        <artifactId>quarkus-hibernate-orm-panache</artifactId>
-	    </dependency>
-	    
-	    <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
 		<dependency>
-		    <groupId>io.quarkus</groupId>
-		    <artifactId>quarkus-jdbc-h2</artifactId>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-hibernate-orm</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+					<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>txw2</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.istack</groupId>
+					<artifactId>istack-commons-runtime</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.persistence</groupId>
+					<artifactId>jakarta.persistence-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Hibernate ORM specific dependencies -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-hibernate-orm-panache</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jdbc-h2</artifactId>
 		</dependency>
 
 		<dependency>
@@ -276,13 +277,13 @@
 		</dependency>
 
 		<dependency>
-		    <groupId>io.quarkus</groupId>
-		    <artifactId>quarkus-config-yaml</artifactId>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-config-yaml</artifactId>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-rt-rs-client -->
 		<dependency>
-		    <groupId>org.apache.cxf</groupId>
+			<groupId>org.apache.cxf</groupId>
 		    <artifactId>cxf-rt-rs-client</artifactId>
 		    <version>3.4.2</version>
 		</dependency>
@@ -290,13 +291,13 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-rt-rs-extension-providers -->
 		<dependency>
 		    <groupId>org.apache.cxf</groupId>
-		    <artifactId>cxf-rt-rs-extension-providers</artifactId>
-		    <version>3.4.2</version>
+			<artifactId>cxf-rt-rs-extension-providers</artifactId>
+			<version>3.4.2</version>
 		</dependency>
-		
+
 		<dependency>
-		  <groupId>com.fasterxml.jackson.jaxrs</groupId>
-		  <artifactId>jackson-jaxrs-json-provider</artifactId>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
 		</dependency>
 		
 
@@ -310,7 +311,7 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-common</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>spim_data</artifactId>
@@ -323,27 +324,27 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer_fiji</artifactId>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
 		<dependency>
-		    <groupId>com.squareup.okhttp3</groupId>
-		    <artifactId>okhttp</artifactId>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/xml-apis/xml-apis -->
-		
+
 		<dependency>
-		    <groupId>xml-apis</groupId>
-		    <artifactId>xml-apis</artifactId>
-		    <version>1.4.01</version>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
 		</dependency>
-		
-		
+
+
 		<dependency>
-	        <groupId>ch.qos.logback</groupId>
-	        <artifactId>logback-classic</artifactId>
-	    </dependency>
-		
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<plugins>
@@ -358,6 +359,25 @@
 							<goal>build</goal>
 							<goal>generate-code</goal>
 							<goal>generate-code-tests</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>src/assembly/bin.xml</descriptor>
+					</descriptors>
+					<finalName>module-assembly</finalName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
 						</goals>
 					</execution>
 				</executions>

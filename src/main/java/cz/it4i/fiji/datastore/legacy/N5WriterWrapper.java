@@ -7,10 +7,6 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.legacy;
 
-import java.io.IOException;
-
-import org.janelia.saalfeldlab.n5.DataBlock;
-import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import lombok.AllArgsConstructor;
@@ -23,14 +19,5 @@ public class N5WriterWrapper implements N5Writer {
 	@Delegate
 	private final N5Writer wrapped;
 
-
-	@Override
-	public DataBlock<?> readBlock(String pathName,
-		DatasetAttributes datasetAttributes, long[] gridPosition) throws IOException
-	{
-		DataBlock<?> result = wrapped.readBlock(pathName, datasetAttributes,
-			gridPosition);
-		return result;
-	}
 
 }
