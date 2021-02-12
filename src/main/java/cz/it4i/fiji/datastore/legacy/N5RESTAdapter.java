@@ -62,10 +62,8 @@ public class N5RESTAdapter {
 			Collectors.joining(","));
 	}
 
-	private static final Pattern PATH = Pattern.compile(
+	public static final Pattern PATH = Pattern.compile(
 		"setup(\\p{Digit}+)/timepoint(\\p{Digit}+)/s(\\p{Digit}+)");
-
-	private final Compression compression;
 
 	private final DatasetDTO dto;
 
@@ -78,7 +76,6 @@ public class N5RESTAdapter {
 		Compression compression)
 	{
 		this.seq = seq;
-		this.compression = compression;
 		int angles = 1;
 		int channels = 1;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
@@ -147,7 +144,10 @@ public class N5RESTAdapter {
 
 		private DatasetRegisterServiceClient registerServiceClient;
 		
-		private Map<Integer, DatasetServerClient> level2serverClient =
+		private final Map<Integer, DatasetServerClient> level2serverClient =
+			new HashMap<>();
+
+		private final Map<String, DatasetAttributes> path2Attributes =
 			new HashMap<>();
 
 		public N5RESTWriter(String url) {
@@ -160,26 +160,16 @@ public class N5RESTAdapter {
 		}
 
 		@Override
-		public <T> T getAttribute(String pathName, String key, Class<T> clazz)
-			throws IOException
-		{
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public DatasetAttributes getDatasetAttributes(String pathName)
-			throws IOException
-		{
-
-			Matcher matcher = PATH.matcher(pathName);
-			if (!matcher.matches()) {
-				throw new IllegalArgumentException("path = " + pathName +
-					" not supported.");
+		public void createGroup(String pathName) throws IOException {
+			if (!alreadyCreated) {
+				Response response = getRegisterServiceClient().createEmptyDataset(dto);
+				String result = getText((InputStream) response.getEntity());
+				if (response.getStatus() != Status.OK.getStatusCode()) {
+					throw new BadRequestException("createGroup " + result);
+				}
+				uuid = UUID.fromString(result);
+				alreadyCreated = true;
 			}
-			int level = Integer.parseInt(matcher.group(3));
-			return new DatasetAttributes(dto.getDimensions(), dto
-				.getResolutionLevels()[level].getBlockDimensions(), dataType,
-				compression);
 		}
 
 		@Override
@@ -187,12 +177,12 @@ public class N5RESTAdapter {
 			DatasetAttributes datasetAttributes, long[] gridPosition)
 			throws IOException
 		{
-
+		
 			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
 				seq, pathName);
 			DatasetServerClient client = getServerClient(act.getLevelID());
 			Response response = client.readBlock(gridPosition[0], gridPosition[1],
-				gridPosition[1], act.getTimepointID(), act.getChannelID(), act
+				gridPosition[2], act.getTimepointID(), act.getChannelID(), act
 					.getAngleID());
 			if (response.getStatus() != Status.OK.getStatusCode()) {
 				log.warn("readBlock({},{},{}) - status = {}, msg = {}", pathName,
@@ -204,6 +194,72 @@ public class N5RESTAdapter {
 			}
 			InputStream is = response.readEntity(InputStream.class);
 			return N5Access.constructDataBlock(gridPosition, is, dataType);
+		}
+
+		@Override
+		public <T> void writeBlock(String pathName,
+			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
+			throws IOException
+		{
+			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
+				seq, pathName);
+			DatasetServerClient client = getServerClient(act.getLevelID());
+			
+			long[] pos = dataBlock.getGridPosition();
+		
+			ModifiedByteArrayOutputStream baos;
+			DataOutputStream os = new DataOutputStream(baos =
+				new ModifiedByteArrayOutputStream(
+					N5Access.getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
+						.getNumElements() + dataBlock.getSize().length * Integer.BYTES));
+			for (int i = 0; i < dataBlock.getSize().length; i++) {
+				os.writeInt(dataBlock.getSize()[i]);
+			}
+			os.write(dataBlock.toByteBuffer().array());
+			os.flush();
+			log.debug("writeBlock path={},coord=[{}],bytes={}", pathName,
+				coordsAsString(dataBlock.getGridPosition()), baos.size());
+			client.writeBlock(pos[0], pos[1], pos[2], act.getTimepointID(), act
+				.getChannelID(), act.getAngleID(), baos.getData());
+		}
+
+		@Override
+		public DatasetAttributes getDatasetAttributes(String pathName)
+			throws IOException
+		{
+		
+			/*Matcher matcher = PATH.matcher(pathName);
+			if (!matcher.matches()) {
+				throw new IllegalArgumentException("path = " + pathName +
+					" not supported.");
+			}
+			int level = Integer.parseInt(matcher.group(3));
+			return new DatasetAttributes(dto.getDimensions(), dto
+				.getResolutionLevels()[level].getBlockDimensions(), dataType,
+				compression);
+				*/
+			return path2Attributes.get(pathName);
+		}
+
+		@Override
+		public void setDatasetAttributes(String pathName,
+			DatasetAttributes datasetAttributes) throws IOException
+		{
+			path2Attributes.put(pathName, datasetAttributes);
+		}
+
+		@Override
+		public void setAttributes(String pathName, Map<String, ?> attributes)
+			throws IOException
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <T> T getAttribute(String pathName, String key, Class<T> clazz)
+			throws IOException
+		{
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -224,26 +280,6 @@ public class N5RESTAdapter {
 		}
 
 		@Override
-		public void setAttributes(String pathName, Map<String, ?> attributes)
-			throws IOException
-		{
-			// do nothing
-		}
-
-		@Override
-		public void createGroup(String pathName) throws IOException {
-			if (!alreadyCreated) {
-				Response response = getRegisterServiceClient().createEmptyDataset(dto);
-				String result = getText((InputStream) response.getEntity());
-				if (response.getStatus() != Status.OK.getStatusCode()) {
-					throw new BadRequestException("createGroup " + result);
-				}
-				uuid = UUID.fromString(result);
-				alreadyCreated = true;
-			}
-		}
-
-		@Override
 		public boolean remove(String pathName) throws IOException {
 			throw new UnsupportedOperationException();
 		}
@@ -251,33 +287,6 @@ public class N5RESTAdapter {
 		@Override
 		public boolean remove() throws IOException {
 			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <T> void writeBlock(String pathName,
-			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
-			throws IOException
-		{
-			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
-				seq, pathName);
-			DatasetServerClient client = getServerClient(act.getLevelID());
-			
-			long[] pos = dataBlock.getGridPosition();
-
-			ModifiedByteArrayOutputStream baos;
-			DataOutputStream os = new DataOutputStream(baos =
-				new ModifiedByteArrayOutputStream(
-					N5Access.getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
-						.getNumElements() + dataBlock.getSize().length * Integer.BYTES));
-			for (int i = 0; i < dataBlock.getSize().length; i++) {
-				os.writeInt(dataBlock.getSize()[i]);
-			}
-			os.write(dataBlock.toByteBuffer().array());
-			os.flush();
-			log.debug("writeBlock path={},coord=[{}],bytes={}", pathName,
-				coordsAsString(dataBlock.getGridPosition()), baos.size());
-			client.writeBlock(pos[0], pos[1], pos[2], act.getTimepointID(), act
-				.getChannelID(), act.getAngleID(), baos.getData());
 		}
 
 		@Override
