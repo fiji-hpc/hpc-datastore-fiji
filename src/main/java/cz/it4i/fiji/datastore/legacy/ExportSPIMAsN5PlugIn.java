@@ -23,8 +23,11 @@ import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.Lz4Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
+import org.scijava.Context;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.prefs.PrefService;
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid.AfterEachPlane;
@@ -60,25 +63,43 @@ import mpicbg.spim.data.sequence.ViewSetup;
 	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
 public class ExportSPIMAsN5PlugIn implements Command {
 
+	private static final String LAST_SET_MIPMAP_MANUAL = "LAST_SET_MIPMAP_MANUAL";
+
+	private static final String LAST_COMPRESSION_DEFAULT_SETTINGS = "LAST_COMPRESSION_DEFAULT_SETTINGS";
+
+	private static final String LAST_COMPRESSION_CHOICE = "LAST_COMPRESSION_CHOICE";
+
+	private static final String LAST_CHUNK_SIZE = "LAST_CHUNK_SIZE";
+
+	private static final String LAST_SUBSAMPLING = "LAST_SUBSAMPLING";
+
+	private static final String LAST_SERVER_URL = "LAST_SERVER_URL";
+
+	private static final String LAST_SPIM_DATA = "LAST_SPIM_DATA";
+
 	public static void main(final String[] args) {
 		log.debug("main");
 		new ImageJ();
-		new ExportSPIMAsN5PlugIn().run();
+
+		ExportSPIMAsN5PlugIn plugin = new ExportSPIMAsN5PlugIn();
+		new Context().inject(plugin);
+		plugin.run();
 
 	}
+
+	@Parameter
+	private PrefService prefService;
 
 	@Override
 	public void run() {
 		if (ij.Prefs.setIJMenuBar) System.setProperty("apple.laf.useScreenMenuBar",
 			"true");
-		/*
-				SpimData spimdata = null;
-				
-		*/
+		loadPrefs();
 		// show dialog to get output paths, resolutions, subdivisions, min-max
 		// option
 		final Parameters params = new ParameterConstructor().getParameters();
 		if (params == null) return;
+		savePrefs();
 
 		final ProgressWriter progressWriter = new ProgressWriterIJ();
 		progressWriter.out().println("starting export...");
@@ -246,6 +267,34 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		progressWriter.out().println("done");
 	}
 
+	private void loadPrefs() {
+		lastSPIMdata = prefService.get(getClass(), LAST_SPIM_DATA, "");
+		lastSetMipmapManual = prefService.getBoolean(getClass(),
+			LAST_SET_MIPMAP_MANUAL, false);
+		lastSubsampling = prefService.get(getClass(), LAST_SUBSAMPLING,
+			"{{1,1,1}}");
+		lastChunkSizes = prefService.get(getClass(), LAST_CHUNK_SIZE,
+			"{{64,64,64}}");
+		lastCompressionChoice = prefService.getInt(getClass(),
+			LAST_COMPRESSION_CHOICE, 0);
+		lastCompressionDefaultSettings = prefService.getBoolean(getClass(),
+			LAST_COMPRESSION_DEFAULT_SETTINGS, true);
+		lastServerURL = prefService.get(getClass(), LAST_SERVER_URL,
+			"http://localhost:9080");
+	}
+
+	private void savePrefs() {
+		prefService.put(getClass(), LAST_SPIM_DATA, lastSPIMdata);
+		prefService.put(getClass(), LAST_SET_MIPMAP_MANUAL, lastSetMipmapManual);
+		prefService.put(getClass(), LAST_SUBSAMPLING, lastSubsampling);
+		prefService.put(getClass(), LAST_CHUNK_SIZE, lastChunkSizes);
+		prefService.put(getClass(), LAST_COMPRESSION_CHOICE,
+			lastCompressionChoice);
+		prefService.put(getClass(), LAST_COMPRESSION_DEFAULT_SETTINGS,
+			lastCompressionDefaultSettings);
+		prefService.put(getClass(), LAST_SERVER_URL, lastServerURL);
+	}
+
 	protected static class Parameters {
 
 		final boolean setMipmapManual;
@@ -273,8 +322,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		}
 	}
 
-	static String lastSPIMdata =
-		"/home/koz01/Documents/Datasets/Mouse Brain/hdf5/export.xml";
+	static String lastSPIMdata;
 
 	static boolean lastSetMipmapManual = true;
 
@@ -301,6 +349,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					"Export for BigDataViewer as XML/N5");
 
 				gd.addFileField("SPIM_data", lastSPIMdata);
+				final Object cSpimData = gd.getStringFields().lastElement();
 				gd.addCheckbox("manual_mipmap_setup", lastSetMipmapManual);
 				final Checkbox cManualMipmap = (Checkbox) gd.getCheckboxes()
 					.lastElement();
@@ -322,6 +371,12 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				gd.addStringField("Export_URL", lastServerURL, 25);
 
 				tryLoadSPIMData(lastSPIMdata);
+				if (autoChunkSizes != null && autoSubsampling != null && !cManualMipmap
+					.getState())
+				{
+					tfChunkSizes.setText(autoChunkSizes);
+					tfSubsampling.setText(autoSubsampling);
+				}
 
 				gd.addDialogListener((dialog, e) -> {
 					tryLoadSPIMData(gd.getNextString());
@@ -334,8 +389,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					
 					if (autoSubsampling != null && autoChunkSizes != null &&
 						e instanceof ItemEvent && e
-							.getID() == ItemEvent.ITEM_STATE_CHANGED && e
-								.getSource() == cManualMipmap)
+							.getID() == ItemEvent.ITEM_STATE_CHANGED && (e
+								.getSource() == cManualMipmap || e.getSource() == cSpimData))
 					{
 						final boolean useManual = cManualMipmap.getState();
 						tfSubsampling.setEnabled(useManual);
