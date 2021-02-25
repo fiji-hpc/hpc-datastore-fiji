@@ -132,10 +132,7 @@ public class N5RESTAdapter {
 		return result;
 	}
 
-	private class N5RESTWriter implements N5Writer {
-
-
-
+	private class N5RESTWriter implements N5WriterWithUUID {
 		private final String url;
 
 		private UUID uuid;
@@ -296,7 +293,15 @@ public class N5RESTAdapter {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public UUID getUUID() {
+			return uuid;
+		}
 
+		@Override
+		public void setUUID(UUID uuid) {
+			this.uuid = uuid;
+		}
 
 		private synchronized DatasetRegisterServiceClient
 			getRegisterServiceClient()
@@ -354,7 +359,7 @@ public class N5RESTAdapter {
 
 	@EqualsAndHashCode
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-	private static class AngleChannelTimepoint {
+	static class AngleChannelTimepoint {
 
 		@Getter
 		final int angleID;
