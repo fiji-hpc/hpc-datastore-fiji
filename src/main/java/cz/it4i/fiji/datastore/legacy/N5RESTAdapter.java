@@ -33,7 +33,6 @@ import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
-import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
@@ -47,7 +46,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -55,7 +54,7 @@ import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
-@Slf4j
+@Log4j2
 public class N5RESTAdapter {
 	public static String coordsAsString(long[] position) {
 		return LongStream.of(position).mapToObj(i -> "" + i).collect(
@@ -99,7 +98,7 @@ public class N5RESTAdapter {
 // @formatter:on
 	}
 
-	public N5Writer constructN5Writer(String url) {
+	public N5WriterWithUUID constructN5Writer(String url) {
 		log.debug("constructN5Writer> url={}", url);
 		return new N5RESTWriter(url);
 	}
@@ -107,6 +106,10 @@ public class N5RESTAdapter {
 
 
 
+
+	public DatasetDTO getDTO() {
+		return dto;
+	}
 
 	private ResolutionLevel[] getResolutionsLevels(
 		ExportMipmapInfo exportMipmapInfo)

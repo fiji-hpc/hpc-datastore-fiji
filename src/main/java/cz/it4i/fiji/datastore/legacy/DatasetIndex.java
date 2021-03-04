@@ -20,7 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
@@ -55,6 +57,18 @@ final class DatasetIndex {
 		loadIndex();
 	}
 
+	public DatasetDTO getDTO() {
+		return dto;
+	}
+	
+	public N5Writer getWriter(Path path, N5WriterWithUUID innerWriter) {
+		try {
+			return new N5WriterFilter(path, innerWriter);
+		}
+		catch (IOException exc) {
+			throw new RuntimeException(exc);
+		}
+	}
 
 	private synchronized UUID getUUID(Path datasetPath) {
 		return datasetPath2UUID.get(datasetPath);
@@ -62,8 +76,14 @@ final class DatasetIndex {
 
 
 	private synchronized void loadIndex() {
-		try (BufferedReader br = Files.newBufferedReader(getPath().resolve(
-			DATA_STORE_INDEX_FILE)))
+		Path filePath = getPath().resolve(DATA_STORE_INDEX_FILE);
+		try {
+			Files.createDirectories(filePath.getParent());
+		}
+		catch (IOException exc) {
+			log.error("loadIndex", exc);
+		}
+		try (BufferedReader br = Files.newBufferedReader(filePath))
 		{
 			String line;
 			while (null != (line = br.readLine())) {
@@ -131,7 +151,9 @@ final class DatasetIndex {
 			this.innerWriter = innerWriter;
 			this.datasetPath = path.toRealPath();
 			this.uuid = DatasetIndex.this.getUUID(datasetPath);
-			loadIndexOfBlocks();
+			if (uuid != null) {
+				loadIndexOfBlocks();
+			}
 		}
 
 		@Override
@@ -152,7 +174,6 @@ final class DatasetIndex {
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
-
 			BlockIdentification bi = createBlockIdentification(pathName, dataBlock);
 			if (!alreadyWritedBlocks.contains(bi)) {
 				innerWriter.writeBlock(pathName, datasetAttributes, dataBlock);
@@ -177,7 +198,7 @@ final class DatasetIndex {
 		private synchronized void registerBlock(BlockIdentification bi) {
 			alreadyWritedBlocks.add(bi);
 			try (BufferedWriter bw = Files.newBufferedWriter(getPath().resolve(uuid
-				.toString())))
+				.toString()), StandardOpenOption.APPEND))
 			{
 				bw.append(bi.toString()).append('\n');
 			}
@@ -194,6 +215,12 @@ final class DatasetIndex {
 		<T> void writeBlock(String pathName, DatasetAttributes datasetAttributes,
 			DataBlock<T> dataBlock) throws IOException;
 
+		void createDataset(final String pathName,
+			final DatasetAttributes datasetAttributes) throws IOException;
+
+		void createDataset(final String pathName, final long[] dimensions,
+			final int[] blockSize, final DataType dataType,
+			final Compression compression);
 	}
 
 	@EqualsAndHashCode

@@ -20,9 +20,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import cz.it4i.fiji.datastore.CheckUUIDVersionTS;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-@Slf4j
+@Log4j2
 @Path("/")
 public class DatasetRegisterServiceEndpoint {
 

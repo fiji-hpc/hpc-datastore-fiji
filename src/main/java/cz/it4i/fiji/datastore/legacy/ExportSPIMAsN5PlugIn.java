@@ -7,6 +7,7 @@ import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,7 @@ import bdv.spimdata.SequenceDescriptionMinimal;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -58,7 +59,7 @@ import mpicbg.spim.data.sequence.ViewSetup;
  *
  * @author Tobias Pietzsch
  */
-@Slf4j
+@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
 public class ExportSPIMAsN5PlugIn implements Command {
@@ -254,9 +255,12 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		try {
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
 				perSetupExportMipmapInfo, imgLoader, params.compression);
+			
+			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
-				params.compression, () -> adapter.constructN5Writer(params.serverURL
-					.toString()), loopbackHeuristic, afterEachPlane,
+				params.compression, () -> datasetIndex.getWriter(Paths.get(
+					lastSPIMdata), adapter.constructN5Writer(params.serverURL
+						.toString())), loopbackHeuristic, afterEachPlane,
 				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
 					0.95));
 			progressWriter.setProgress(1.0);

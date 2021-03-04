@@ -15,10 +15,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
 import cz.it4i.fiji.datastore.register_service.Dataset;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 @Path("/dbproofs")
-@Slf4j
+@Log4j2
 public class DbProofs {
 
 	

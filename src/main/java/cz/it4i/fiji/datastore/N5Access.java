@@ -49,7 +49,7 @@ import bdv.img.n5.BdvN5Format;
 import bdv.img.n5.N5ImageLoader;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -68,7 +68,7 @@ import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
-@Slf4j
+@Log4j2
 public class N5Access {
 
 	public static int getSizeOfElement(DataType dataType) {

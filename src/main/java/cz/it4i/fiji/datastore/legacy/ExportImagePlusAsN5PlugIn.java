@@ -41,7 +41,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
 import mpicbg.spim.data.sequence.Channel;
@@ -54,7 +54,7 @@ import mpicbg.spim.data.sequence.TimePoints;
  *
  * @author Tobias Pietzsch
  */
-@Slf4j
+@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export Current Image as remote XML/N5")
 public class ExportImagePlusAsN5PlugIn implements Command
