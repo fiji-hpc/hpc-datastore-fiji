@@ -18,8 +18,11 @@
 				<include>org.apache.cxf:cxf-rt-frontend-jaxrs:jar</include>
 				<include>org.apache.cxf:cxf-rt-transports-http:jar</include>
 				<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar</include>
+				<include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar</include>
 				<include>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar</include>
 				<include>jakarta.ws.rs:jakarta.ws.rs-api:jar</include>
+				<include>org.apache.logging.log4j:log4j-api:jar</include>
+				<include>org.apache.logging.log4j:log4j-core:jar</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>

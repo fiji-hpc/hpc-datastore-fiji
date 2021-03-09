@@ -83,6 +83,9 @@ final class DatasetIndex {
 		catch (IOException exc) {
 			log.error("loadIndex", exc);
 		}
+		if (!Files.exists(filePath)) {
+			return;
+		}
 		try (BufferedReader br = Files.newBufferedReader(filePath))
 		{
 			String line;
@@ -182,8 +185,11 @@ final class DatasetIndex {
 		}
 
 		private synchronized void loadIndexOfBlocks() {
-			try (BufferedReader br = Files.newBufferedReader(getPath().resolve(uuid
-				.toString())))
+			Path path = getPath().resolve(uuid.toString());
+			if (!Files.exists(path)) {
+				return;
+			}
+			try (BufferedReader br = Files.newBufferedReader(path))
 			{
 				String line;
 				while(null != (line = br.readLine())) {
@@ -198,12 +204,12 @@ final class DatasetIndex {
 		private synchronized void registerBlock(BlockIdentification bi) {
 			alreadyWritedBlocks.add(bi);
 			try (BufferedWriter bw = Files.newBufferedWriter(getPath().resolve(uuid
-				.toString()), StandardOpenOption.APPEND))
+				.toString()), StandardOpenOption.APPEND, StandardOpenOption.CREATE))
 			{
 				bw.append(bi.toString()).append('\n');
 			}
 			catch (IOException exc) {
-				log.error("Load block index");
+				log.error("Load block index", exc);
 			}
 		}
 
