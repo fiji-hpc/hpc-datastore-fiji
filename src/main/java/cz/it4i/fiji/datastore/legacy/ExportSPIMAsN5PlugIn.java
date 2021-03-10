@@ -42,7 +42,6 @@ import bdv.spimdata.SequenceDescriptionMinimal;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -59,7 +58,6 @@ import mpicbg.spim.data.sequence.ViewSetup;
  *
  * @author Tobias Pietzsch
  */
-@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
 public class ExportSPIMAsN5PlugIn implements Command {
@@ -78,8 +76,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 	private static final String LAST_SPIM_DATA = "LAST_SPIM_DATA";
 
+	@SuppressWarnings("resource")
 	public static void main(final String[] args) {
-		log.debug("main");
 		new ImageJ();
 
 		ExportSPIMAsN5PlugIn plugin = new ExportSPIMAsN5PlugIn();

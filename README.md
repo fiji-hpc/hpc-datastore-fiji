@@ -4,3 +4,7 @@ Run class _cz.it4i.fiji.datastore.App_. It accept these properties (passed as -D
 - dataset.version - actually supported version of dataset e.g. "latest"
 - quarkus.http.port
 - quarkus.http.host
+
+# Run client from Fiji
+Add an update site https://sites.imagej.net/Imglib2-labkit-cluster/
+Run Plugins>BigDataViewer>Export SPIM data as remote XML/N5
