@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-UPDATE_SITE=P2E-IT4Innovations
 mvn exec:java -Ddatastore.path=$1 -Ddataset.version=latest -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -Dexec.mainClass="cz.it4i.fiji.datastore.App"
