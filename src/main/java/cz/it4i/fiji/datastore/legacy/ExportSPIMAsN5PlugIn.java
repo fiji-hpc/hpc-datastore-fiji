@@ -257,8 +257,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
 				params.compression, () -> datasetIndex.getWriter(Paths.get(
-					lastSPIMdata), adapter.constructN5Writer(params.serverURL
-						.toString())), loopbackHeuristic, afterEachPlane,
+					lastSPIMdata), params.serverURL, adapter.constructN5Writer(
+						params.serverURL.toString())), loopbackHeuristic, afterEachPlane,
 				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
 					0.95));
 			progressWriter.setProgress(1.0);

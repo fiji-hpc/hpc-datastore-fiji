@@ -10,6 +10,7 @@ package cz.it4i.fiji.datastore.legacy;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +43,7 @@ final class DatasetIndex {
 	private static final Path DATA_STORE_DIRECTORY = Paths.get("hpc_datastore");
 	private static final Path DATA_STORE_INDEX_FILE = Paths.get("main.index");
 
-	private final Map<Path, UUID> datasetPath2UUID = new HashMap<>();
+	private final Map<String, UUID> datasetPath2UUID = new HashMap<>();
 
 	private final DatasetDTO dto;
 
@@ -61,17 +62,17 @@ final class DatasetIndex {
 		return dto;
 	}
 	
-	public N5Writer getWriter(Path path, N5WriterWithUUID innerWriter) {
+	public N5Writer getWriter(Path path, URL url, N5WriterWithUUID innerWriter) {
 		try {
-			return new N5WriterFilter(path, innerWriter);
+			return new N5WriterFilter(path, url, innerWriter);
 		}
 		catch (IOException exc) {
 			throw new RuntimeException(exc);
 		}
 	}
 
-	private synchronized UUID getUUID(Path datasetPath) {
-		return datasetPath2UUID.get(datasetPath);
+	private synchronized UUID getUUID(Path datasetPath, URL serverURL) {
+		return datasetPath2UUID.get(getKey(datasetPath, serverURL));
 	}
 
 
@@ -91,8 +92,7 @@ final class DatasetIndex {
 			String line;
 			while (null != (line = br.readLine())) {
 				String[] tokens = line.split("=");
-				datasetPath2UUID.put(Paths.get(tokens[0]).toRealPath(), UUID.fromString(
-					tokens[1]));
+				datasetPath2UUID.put(tokens[0], UUID.fromString(tokens[1]));
 			}
 		}
 		catch (IOException exc) {
@@ -100,12 +100,15 @@ final class DatasetIndex {
 		}
 	}
 
-	private synchronized void registerDataset(Path datasetPath, UUID uuid) {
-		datasetPath2UUID.put(datasetPath, uuid);
+	private synchronized void registerDataset(Path datasetPath, URL url,
+		UUID uuid)
+	{
+		String key = getKey(datasetPath, url);
+		datasetPath2UUID.put(key, uuid);
 		try (BufferedWriter pw = Files.newBufferedWriter(getPath().resolve(
 			DATA_STORE_INDEX_FILE),StandardOpenOption.CREATE, StandardOpenOption.APPEND))
 		{
-			pw.write(datasetPath + "=" + uuid);
+			pw.write(key + "=" + uuid);
 			pw.newLine();
 		}
 		catch (IOException exc) {
@@ -113,6 +116,10 @@ final class DatasetIndex {
 		}
 	}
 
+
+	private String getKey(Path datasetPath, URL url) {
+		return datasetPath.toAbsolutePath() + ";" + url;
+	}
 
 	private BlockIdentification createBlockIdentification(String path,
 		DataBlock<?> dataBlock)
@@ -146,14 +153,16 @@ final class DatasetIndex {
 		private final Set<BlockIdentification> alreadyWritedBlocks =
 			new HashSet<>();
 		private UUID uuid;
+		private URL serverURL;
 
 		
-		public N5WriterFilter(Path path, N5WriterWithUUID innerWriter)
+		public N5WriterFilter(Path path, URL url, N5WriterWithUUID innerWriter)
 			throws IOException
 		{
 			this.innerWriter = innerWriter;
 			this.datasetPath = path.toRealPath();
-			this.uuid = DatasetIndex.this.getUUID(datasetPath);
+			this.serverURL = url;
+			this.uuid = DatasetIndex.this.getUUID(datasetPath, this.serverURL);
 			if (uuid != null) {
 				loadIndexOfBlocks();
 			}
@@ -164,7 +173,7 @@ final class DatasetIndex {
 			if (uuid == null) {
 				innerWriter.createGroup(pathName);
 				uuid = innerWriter.getUUID();
-				DatasetIndex.this.registerDataset(datasetPath, uuid);
+				DatasetIndex.this.registerDataset(datasetPath, serverURL, uuid);
 			}
 			else {
 				innerWriter.setUUID(uuid);
