@@ -7,11 +7,17 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import javax.persistence.Entity;
+
+import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
-public class Resolution {
+@Entity
+public class Resolution extends BaseEntity {
 	
+	private static final long serialVersionUID = -7580779371232138050L;
+
 	@Getter
 	@Setter
 	private double value;

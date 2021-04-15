@@ -7,12 +7,17 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import javax.persistence.Entity;
+
 import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+@Entity
 public class ViewSetup extends BaseEntity {
 	
+	private static final long serialVersionUID = -9083652135631009033L;
+
 	@Getter
 	@Setter
 	private int index;

@@ -7,9 +7,12 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.AllArgsConstructor;
@@ -30,6 +33,9 @@ public class Dataset extends BaseEntity {
 	@Setter
 	private UUID uuid;
 
+	@Getter
+	@Setter
+
 	private ResolutionLevel resolutionLevel;
 	
 	// TODO Use Collection instead of array
@@ -37,14 +43,16 @@ public class Dataset extends BaseEntity {
 	@Getter
 	@Setter
 	private String path;
-		
+
+	@Getter
+	@Setter
 	@OneToMany
-	private DatasetVersion[] datasetVersion;
+	private Collection<DatasetVersion> datasetVersion;
 	
 	@Getter
 	@Setter
 	@OneToMany
-	private ViewSetup[] viewSetup;
+	private Collection<ViewSetup> viewSetup;
 	
 //TODO  voxelType is a org.janelia.saalfeldlab.n5.DataType
 	@Getter
@@ -83,14 +91,17 @@ public class Dataset extends BaseEntity {
 	@Setter
 	private double[] voxelResolution;
 	
+	@OneToOne
 	@Getter
 	@Setter
 	private Resolution timepointResolution;
 	
+	@OneToOne
 	@Getter
 	@Setter
 	private Resolution channelResolution;
 	
+	@OneToOne
 	@Getter
 	@Setter
 	private Resolution angleResolution;

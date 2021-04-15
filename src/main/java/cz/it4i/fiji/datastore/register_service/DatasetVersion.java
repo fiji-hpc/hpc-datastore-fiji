@@ -9,11 +9,13 @@ package cz.it4i.fiji.datastore.register_service;
 
 import java.util.Set;
 
+import javax.persistence.Entity;
+
 import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
-//@Entity
+@Entity
 public class DatasetVersion extends BaseEntity {
 
 	private static final long serialVersionUID = -8255836802533553273L;
@@ -24,5 +26,5 @@ public class DatasetVersion extends BaseEntity {
 
 	@Getter
 	@Setter
-	private Set<String> location;
+	private String location;
 }

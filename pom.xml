@@ -87,10 +87,8 @@
 		<hibernate.version>5.4.25.Final</hibernate.version>
 		<derby.version>10.14.2.0</derby.version>
 		<deltaspike.version>1.9.4</deltaspike.version>
-
-		<project.stage>development</project.stage>
-		<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
-
+		<stage>production</stage>
+		
 
 	</properties>
 
@@ -111,26 +109,11 @@
 		</repository>
 	</distributionManagement>
 	<profiles>
-		<profile>
-			<!-- The default profile skips all tests, though you can tune it to run 
-				just unit tests based on a custom pattern -->
-			<!-- Seperate profiles are provided for running all tests, including Arquillian 
-				tests that execute in the specified container -->
-			<id>default</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<project.stage>development</project.stage>
-				<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
-			</properties>
-
-		</profile>
+		
 		<profile>
 			<id>develop</id>
 			<properties>
-				<project.stage>development</project.stage>
-				<org.apache.deltaspike.ProjectStage>Development</org.apache.deltaspike.ProjectStage>
+				<stage>development</stage>
 			</properties>
 			<build>
 				<plugins>
@@ -228,12 +211,6 @@
 			<artifactId>quarkus-undertow</artifactId>
 		</dependency>
 		
-		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
-		<dependency>
-		    <groupId>jakarta.persistence</groupId>
-		    <artifactId>jakarta.persistence-api</artifactId>
-		    <version>3.0.0</version>
-		</dependency>
 				
 		
 		<!-- https://mvnrepository.com/artifact/org.apache.derby/derby -->
@@ -294,28 +271,7 @@
 		
 
 		
-		<dependency>
-		    <groupId>org.apache.deltaspike.core</groupId>
-		    <artifactId>deltaspike-core-api</artifactId>
-		    <version>${deltaspike.version}</version>
-		    <scope>compile</scope>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.deltaspike.core</groupId>
-		    <artifactId>deltaspike-core-impl</artifactId>
-		    <version>${deltaspike.version}</version>
-		    <scope>runtime</scope>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.deltaspike.modules</groupId>
-		    <artifactId>deltaspike-data-module-api</artifactId>
-		    <version>${deltaspike.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.deltaspike.modules</groupId>
-		    <artifactId>deltaspike-data-module-impl</artifactId>
-		    <version>${deltaspike.version}</version>
-		</dependency>
+		
 
 		<!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
 		<dependency>
@@ -452,13 +408,11 @@
 				<filtering>false</filtering>
 			</resource>
 			<resource>
-				<directory>src/main/resources-${project.stage}</directory>
+				<directory>src/main/resources-${stage}</directory>
 				<filtering>true</filtering>
 			</resource>
 		</resources>
 	</build>
-
-	
 
 
 </project>
