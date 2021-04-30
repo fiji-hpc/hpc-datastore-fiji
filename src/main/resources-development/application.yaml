@@ -6,5 +6,7 @@ quarkus:
     jdbc:
       url: jdbc:h2:./output/myDb;create=true
   hibernate-orm:
+    log:
+      sql: true
     database:
-      generation: drop-and-create
+      generation: update
