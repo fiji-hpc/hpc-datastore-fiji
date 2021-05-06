@@ -50,18 +50,42 @@ public class DatasetRegisterServiceEndpoint {
 			+"/{" + R_X_PARAM + "}"
 			+"/{" + R_Y_PARAM + "}"
 			+"/{" + R_Z_PARAM +	"}"
-			+"/{" + VERSION_PARAM + "}"
-			+"/{" + MODE_PARAM + "}")
+			+"/{" + VERSION_PARAM + "-for-reading-only}")
 // @formatter:on
 			
 	@GET
-	public Response start(@PathParam(UUID) String uuid,
+	public Response startRead(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
 		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
-		log.debug("start> timeout = {}", timeout);
+		log.debug("start reading> timeout = {}", timeout);
+		Response resp = checkversionUUIDTS.run(uuid, version);
+		if (resp != null) {
+			return resp;
+		}
+		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
+			rY + "/" + rZ + "/" + version)).build();
+	}
+
+//@formatter:off
+	@Path("datasets"
+		  +"/{" + UUID + "}"
+			+"/{" + R_X_PARAM + "}"
+			+"/{" + R_Y_PARAM + "}"
+			+"/{" + R_Z_PARAM +	"}"
+			+"/{" + VERSION_PARAM + "-for-writing-only}")
+// @formatter:on
+
+	@GET
+	public Response startWrite(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
+		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
+		@QueryParam(TIMEOUT_PARAM) Long timeout)
+	{
+		log.debug("start writing> timeout = {}", timeout);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
 			return resp;

@@ -313,6 +313,12 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer_fiji</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>xpp3</groupId>
+    				<artifactId>xpp3</artifactId>
+    			</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
