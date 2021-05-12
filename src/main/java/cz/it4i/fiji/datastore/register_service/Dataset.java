@@ -58,10 +58,7 @@ public class Dataset extends BaseEntity {
 	@Getter
 	@Setter
 	private String voxelType;
-	
-	@Getter
-	@Setter
-	private String UUID;
+
 	
 	@Getter
 	@Setter

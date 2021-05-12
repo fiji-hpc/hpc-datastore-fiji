@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import io.quarkus.runtime.Quarkus;
+
 import java.net.URI;
 
 import javax.inject.Inject;
@@ -18,6 +20,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import cz.it4i.fiji.datastore.CheckUUIDVersionTS;
 import lombok.extern.log4j.Log4j2;
@@ -46,11 +49,12 @@ public class DatasetRegisterServiceEndpoint {
 
 //@formatter:off
 	@Path("datasets"
-		  +"/{" + UUID + "}"
-			+"/{" + R_X_PARAM + "}"
-			+"/{" + R_Y_PARAM + "}"
-			+"/{" + R_Z_PARAM +	"}"
-			+"/{" + VERSION_PARAM + "-for-reading-only}")
+		  + "/{" + UUID + "}"
+			+ "/{" + R_X_PARAM + "}"
+			+ "/{" + R_Y_PARAM + "}"
+			+ "/{" + R_Z_PARAM +	"}"
+			+ "/{" + VERSION_PARAM + ":[^-]+}" 
+			+ "-{" + MODE_PARAM +"}")
 // @formatter:on
 			
 	@GET
@@ -60,6 +64,13 @@ public class DatasetRegisterServiceEndpoint {
 		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
+		if (mode.equals("for-reading-only")) {
+
+		}
+		else {
+			return Response.status(Status.NOT_FOUND).entity("mode: " + mode +
+				" not supported!\n").build();
+		}
 		log.debug("start reading> timeout = {}", timeout);
 		Response resp = checkversionUUIDTS.run(uuid, version);
 		if (resp != null) {
