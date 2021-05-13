@@ -58,6 +58,10 @@ public class DatasetRegisterServiceImpl {
 		return result;
 	}
 
+	public void start(String uuid, String version, String mode) {
+//TODO
+	}
+
 	private N5Description convert(DatasetDTO dataset) {
 // @formatter:off
 		return N5Description.builder()
