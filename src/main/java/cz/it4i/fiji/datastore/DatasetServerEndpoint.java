@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -41,6 +42,7 @@ import javax.ws.rs.core.Response.Status;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 
+import cz.it4i.fiji.datastore.management.DataServerManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -69,7 +71,7 @@ public class DatasetServerEndpoint implements Serializable {
 	DatasetServerImpl datasetServer;
 
 	@Inject
-	CheckUUIDVersionTS checkversionUUIDTS;
+	DataServerManager dataServerManager;
 
 	// @formatter:off
 	@Path("/{" + UUID + "}"
@@ -86,17 +88,16 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(MODE_PARAM) String mode)
 	{
 		log.debug("confirm> uuid={}", uuid);
-		Response resp = checkversionUUIDTS.run(uuid, version);
-		if (resp != null) {
-			return resp;
-		}
+		java.util.UUID uuidTyped;
 		try {
-			datasetServer.init(java.util.UUID.fromString(uuid));
+			uuidTyped = java.util.UUID.fromString(uuid);
 		}
-		catch (SpimDataException | IOException exc) {
-			log.warn("init", exc);
-			return Response.serverError().entity(exc.getMessage()).type(
-				MediaType.TEXT_PLAIN).build();
+		catch (IllegalArgumentException exc) {
+			return Response.status(Status.BAD_REQUEST).encoding("uuid = " + uuid +
+				" has impropper format").build();
+		}
+		if (!dataServerManager.check(uuidTyped, version, mode)) {
+			return Response.status(Status.BAD_REQUEST).build();
 		}
 		return Response.ok().entity(String.format(
 			"Dataset UUID=%s, version=%s, level=[%d,%d,%d] ready for %s.",
@@ -229,6 +230,18 @@ public class DatasetServerEndpoint implements Serializable {
 			return Response.ok(dt.toString()).build();
 		}
 		return Response.status(Status.NOT_FOUND).build();
+	}
+
+	@PostConstruct
+	void init() {
+		try {
+			datasetServer.init(dataServerManager.getUUID(), dataServerManager
+				.getVersion(), dataServerManager.getMode());
+		}
+		catch (SpimDataException | IOException exc) {
+			log.error("init", exc);
+		}
+
 	}
 
 	private void extract(String blocks, List<BlockIdentification> blocksId) {

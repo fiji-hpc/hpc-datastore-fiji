@@ -13,6 +13,8 @@ import lombok.Setter;
 
 public class ResolutionLevel extends BaseEntity {
 	
+	private static final long serialVersionUID = -4056930322974621510L;
+
 	@Getter
 	@Setter
 	private int levelId;

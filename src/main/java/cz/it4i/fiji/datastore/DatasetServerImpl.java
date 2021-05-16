@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 
+import cz.it4i.fiji.datastore.register_service.OperationMode;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
@@ -37,10 +38,17 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	UUID uuid;
 
-	public synchronized void init(UUID aUuid) throws SpimDataException,
+	private String version;
+
+	private OperationMode mode;
+
+	public synchronized void init(UUID aUuid, String aVersion,
+		OperationMode aMode) throws SpimDataException,
 		IOException
 	{
 		uuid = aUuid;
+		version = aVersion;
+		mode = aMode;
 		initN5Access();
 	}
 
@@ -65,6 +73,10 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 
+	public DataType getType(int time, int channel, int angle, int[] level) {
+		return n5Access.getType(time, channel, angle, level);
+	}
+
 	private void initN5Access() throws IOException, SpimDataException {
 		n5Access = N5Access.loadExisting(configuration.getDatasetPath(uuid));
 	}
@@ -79,9 +91,5 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		catch (SpimDataException exc) {
 			throw new IOException(exc);
 		}
-	}
-
-	public DataType getType(int time, int channel, int angle, int[] level) {
-		return n5Access.getType(time, channel, angle, level);
 	}
 }

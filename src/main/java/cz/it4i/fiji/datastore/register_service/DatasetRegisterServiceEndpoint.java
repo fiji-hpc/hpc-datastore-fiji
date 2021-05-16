@@ -18,8 +18,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import cz.it4i.fiji.datastore.CheckUUIDVersionTS;
+import cz.it4i.fiji.datastore.DataStoreException;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -57,11 +59,25 @@ public class DatasetRegisterServiceEndpoint {
 	public Response startRead(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
-		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String mode,
+		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String modeName,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
+		OperationMode opMode = OperationMode.getByUrlPath(modeName);
 
-		datasetRegisterServiceImpl.start(uuid, version, mode);
+		if (opMode == OperationMode.NOT_SUPPORTED) {
+			return Response.status(Status.BAD_REQUEST).entity(String.format(
+				"mode (%s) not supported", modeName)).build();
+		}
+
+		try {
+			datasetRegisterServiceImpl.start(java.util.UUID.fromString(uuid), version,
+				opMode, timeout);
+		}
+		catch (DataStoreException exc) {
+			log.error("Starting server", exc);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+				"Starting throws IOException").build();
+		}
 
 		log.debug("start reading> timeout = {}", timeout);
 		Response resp = checkversionUUIDTS.run(uuid, version);

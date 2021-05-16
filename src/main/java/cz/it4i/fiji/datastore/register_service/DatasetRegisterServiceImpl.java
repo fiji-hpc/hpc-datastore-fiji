@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.register_service;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,10 @@ import org.janelia.saalfeldlab.n5.XzCompression;
 
 import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.DataStoreException;
 import cz.it4i.fiji.datastore.N5Access;
 import cz.it4i.fiji.datastore.N5Access.N5Description;
+import cz.it4i.fiji.datastore.management.DataServerManager;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
 import mpicbg.spim.data.SpimDataException;
@@ -41,6 +44,9 @@ public class DatasetRegisterServiceImpl {
 
 	@Inject
 	ApplicationConfiguration configuration;
+
+	@Inject
+	DataServerManager dataServerManager;
 
 	private Map<String, Compression> name2compression = null;
 
@@ -58,8 +64,15 @@ public class DatasetRegisterServiceImpl {
 		return result;
 	}
 
-	public void start(String uuid, String version, String mode) {
-//TODO
+	public URL start(UUID uuid, String version, OperationMode mode,
+		Long timeout) throws DataStoreException
+	{
+		try {
+			return dataServerManager.startDataServer(uuid, version, mode, timeout);
+		}
+		catch (IOException exc) {
+			throw new DataStoreException(exc);
+		}
 	}
 
 	private N5Description convert(DatasetDTO dataset) {

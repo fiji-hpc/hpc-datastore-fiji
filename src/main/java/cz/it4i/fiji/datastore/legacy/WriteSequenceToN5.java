@@ -33,7 +33,6 @@ import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,6 @@ import java.util.stream.Collectors;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.img.cell.Cell;
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.type.NativeType;
@@ -74,7 +72,6 @@ import bdv.export.ProgressWriterNull;
 import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.n5.N5ImageLoader;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
@@ -86,7 +83,6 @@ import mpicbg.spim.data.sequence.ViewId;
  * @author Tobias Pietzsch
  * @author John Bogovic
  */
-@Log4j2
 public class WriteSequenceToN5
 {
 
