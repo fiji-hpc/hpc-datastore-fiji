@@ -47,6 +47,8 @@ public class DataServerManager {
 				.append("java")
 				.append("-cp").append(System.getProperty("java.class.path"))
 				.append("-Dquarkus.http.port=" + port)
+				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:./output-"+port+"/myDb;create=true")
+				.append("-Ddatastore.path=" + System.getProperty("datastore.path"))
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
 				.append("-D" + PROPERTY_VERSION + "=" + version)
 				.append("-D"+ PROPERTY_MODE +"=" + mode);
@@ -58,13 +60,6 @@ public class DataServerManager {
 		pb.command(commandAsList);
 		Process p = pb.start();
 		String result = String.format("http://%s:%d/", getHostName(), port);
-		try {
-			p.waitFor();
-
-		}
-		catch (InterruptedException exc) {
-			p.destroyForcibly();
-		}
 		return new URL(result);
 	}
 
