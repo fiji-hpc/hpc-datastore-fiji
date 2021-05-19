@@ -64,11 +64,11 @@ public class DatasetRegisterServiceImpl {
 		return result;
 	}
 
-	public URL start(UUID uuid, String version, OperationMode mode,
+	public URL start(UUID uuid, int[] r, String version, OperationMode mode,
 		Long timeout) throws DataStoreException
 	{
 		try {
-			return dataServerManager.startDataServer(uuid, version, mode, timeout);
+			return dataServerManager.startDataServer(uuid, r, version, mode, timeout);
 		}
 		catch (IOException exc) {
 			throw new DataStoreException(exc);

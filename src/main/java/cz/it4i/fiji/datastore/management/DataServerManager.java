@@ -12,10 +12,12 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -31,11 +33,14 @@ public class DataServerManager {
 
 	private static String PROPERTY_UUID = "fiji.hpc.data_store.uuid";
 
+	private static String PROPERTY_RESOLUTION = "fiji.hpc.data_store.resolution";
+
 	private static String PROPERTY_VERSION = "fiji.hpc.data_store.version";
 
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
-	public URL startDataServer(UUID uuid, String version, OperationMode mode,
+	public URL startDataServer(UUID uuid, int[] r, String version,
+		OperationMode mode,
 		Long timeout)
 		throws IOException
 	{
@@ -50,6 +55,7 @@ public class DataServerManager {
 				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:./output-"+port+"/myDb;create=true")
 				.append("-Ddatastore.path=" + System.getProperty("datastore.path"))
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
+				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))
 				.append("-D" + PROPERTY_VERSION + "=" + version)
 				.append("-D"+ PROPERTY_MODE +"=" + mode);
 		//@formatter:on
@@ -58,7 +64,7 @@ public class DataServerManager {
 		}
 		appender.append(APP_CLASS);
 		pb.command(commandAsList);
-		Process p = pb.start();
+		pb.start();
 		String result = String.format("http://%s:%d/", getHostName(), port);
 		return new URL(result);
 	}
@@ -81,6 +87,15 @@ public class DataServerManager {
 	}
 
 
+	public int[] getResolutionLevel() {
+		String[] tokens = System.getProperty(PROPERTY_RESOLUTION).split(",");
+		int[] result = new int[tokens.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = Integer.parseInt(tokens[i]);
+		}
+		return result;
+	}
+
 	public String getVersion() {
 		return System.getProperty(PROPERTY_VERSION, "");
 	}
@@ -92,7 +107,7 @@ public class DataServerManager {
 	private String getHostName() throws UnknownHostException {
 		String hostName = System.getProperty("quarkus.http.host", "localhost");
 		if (hostName.equals("0.0.0.0")) {
-			hostName = InetAddress.getLocalHost().getCanonicalHostName();
+			hostName = InetAddress.getLocalHost().getHostAddress();
 		}
 		return hostName;
 	}
@@ -105,11 +120,7 @@ public class DataServerManager {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		new DataServerManager().startDataServer(UUID.randomUUID(), "latest",
-			OperationMode.READ, null);
-		log.info("free port {}", findRandomOpenPortOnAllLocalInterfaces());
-	}
+
 
 	@AllArgsConstructor
 	private static class ListAppender<T> {

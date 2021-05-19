@@ -42,13 +42,16 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private OperationMode mode;
 
-	public synchronized void init(UUID aUuid, String aVersion,
+	private int[] resolutionLevel;
+
+	public synchronized void init(UUID aUuid, int[] resolution, String aVersion,
 		OperationMode aMode) throws SpimDataException,
 		IOException
 	{
 		uuid = aUuid;
 		version = aVersion;
 		mode = aMode;
+		resolutionLevel = resolution;
 		initN5Access();
 	}
 
@@ -59,14 +62,13 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	public DataBlock<?> read(long[] gridPosition, int time, int channel,
-		int angle,
-		int[] resolutionLevel) throws IOException
+		int angle) throws IOException
 	{
 		return n5Access.read(gridPosition, time, channel, angle, resolutionLevel);
 	}
 
 	public void write(long[] gridPosition, int time, int channel, int angle,
-		int[] resolutionLevel, InputStream inputStream) throws IOException
+		InputStream inputStream) throws IOException
 	{
 		n5Access.write(gridPosition, time, channel, angle, resolutionLevel,
 			inputStream);

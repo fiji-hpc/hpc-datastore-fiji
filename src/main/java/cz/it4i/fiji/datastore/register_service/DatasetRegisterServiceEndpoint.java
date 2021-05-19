@@ -7,7 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -68,24 +69,23 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.status(Status.BAD_REQUEST).entity(String.format(
 				"mode (%s) not supported", modeName)).build();
 		}
-
 		try {
-			datasetRegisterServiceImpl.start(java.util.UUID.fromString(uuid), version,
-				opMode, timeout);
+			URL serverURL = datasetRegisterServiceImpl.start(java.util.UUID
+				.fromString(uuid), new int[] { rX, rY, rZ }, version, opMode, timeout);
+			log.debug("start reading> timeout = {}", timeout);
+			Response resp = checkversionUUIDTS.run(uuid, version);
+			if (resp != null) {
+				return resp;
+			}
+			return Response.temporaryRedirect(serverURL.toURI()).build();
 		}
-		catch (DataStoreException exc) {
+		catch (DataStoreException | URISyntaxException exc) {
 			log.error("Starting server", exc);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-				"Starting throws IOException").build();
+				"Starting throws exception").build();
 		}
 
-		log.debug("start reading> timeout = {}", timeout);
-		Response resp = checkversionUUIDTS.run(uuid, version);
-		if (resp != null) {
-			return resp;
-		}
-		return Response.temporaryRedirect(URI.create("/" + uuid + "/" + rX + "/" +
-			rY + "/" + rZ + "/" + version)).build();
+
 	}
 
 	@POST

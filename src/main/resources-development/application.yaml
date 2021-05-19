@@ -1,6 +1,7 @@
 quarkus:
   http:
     port: 8080
+    host: localhost
   datasource:
     db-kind: h2
     jdbc:

@@ -105,12 +105,7 @@ public class DatasetServerEndpoint implements Serializable {
 	}
 
 //@formatter:off
-	@Path("/{" + UUID + "}"
-			+ "/{" + R_X_PARAM + "}"
-			+ "/{" + R_Y_PARAM + "}"
-			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + "}"
-			+ "/{" + X_PARAM + "}"
+	@Path("/{" + X_PARAM + "}"
 			+ "/{" + Y_PARAM + "}"
 			+ "/{" +	Z_PARAM + "}"
 			+ "/{" + TIME_PARAM + "}"
@@ -119,12 +114,10 @@ public class DatasetServerEndpoint implements Serializable {
 			+ "{" + BLOCKS_PARAM + ":/?.*}")
 	// @formatter:on
 	@GET
-	public Response readBlock(@PathParam(R_X_PARAM) int rX,
-		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
-		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
-		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) int time,
-		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
-		@PathParam(BLOCKS_PARAM) String blocks)
+	public Response readBlock(@PathParam(X_PARAM) long x,
+		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
+		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
+		@PathParam(ANGLE_PARAM) int angle, @PathParam(BLOCKS_PARAM) String blocks)
 	{
 		try {
 			List<BlockIdentification> blocksId = new LinkedList<>();
@@ -136,7 +129,7 @@ public class DatasetServerEndpoint implements Serializable {
 				for (BlockIdentification bi : blocksId) {
 					DataBlock<?> block = datasetServer.read(new long[] {
 						bi.gridPosition[0], bi.gridPosition[1], bi.gridPosition[2] },
-						bi.time, bi.channel, bi.angle, new int[] { rX, rY, rZ });
+						bi.time, bi.channel, bi.angle);
 
 					if (block == null) {
 						notExistentBlocks.add(bi);
@@ -155,8 +148,7 @@ public class DatasetServerEndpoint implements Serializable {
 			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
 				.entity("Blocks [" + String.join(",", notExistentBlocks.stream().map(
 					Object::toString).collect(Collectors.toList())) +
-					"] not found on resolution level {rX:" + rX + ", rY:" + rY + ", rZ:" +
-					rZ + "}.").build();
+					"] .").build();
 		}
 		catch (IOException | NullPointerException exc) {
 			log.warn("read", exc);
@@ -167,12 +159,7 @@ public class DatasetServerEndpoint implements Serializable {
 	}
 
 	// @formatter:off
-	@Path("{" + UUID + "}"
-			+"/{" + R_X_PARAM + "}"
-			+"/{" + R_Y_PARAM + "}"
-			+"/{" + R_Z_PARAM +	"}"
-			+"/{" + VERSION_PARAM + "}"
-			+"/{" + X_PARAM + "}"
+	@Path("/{" + X_PARAM + "}"
 			+"/{" + Y_PARAM + "}"
 			+"/{" +	Z_PARAM + "}"
 			+"/{" + TIME_PARAM + "}"
@@ -182,11 +169,10 @@ public class DatasetServerEndpoint implements Serializable {
 	// @formatter:on
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response writeBlock(@PathParam(R_X_PARAM) int rX,
-		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
-		@PathParam(X_PARAM) long x, @PathParam(Y_PARAM) long y,
-		@PathParam(Z_PARAM) long z, @PathParam(TIME_PARAM) int time,
-		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
+	public Response writeBlock(@PathParam(X_PARAM) long x,
+		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
+		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
+		@PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
 		List<BlockIdentification> blocksId = new LinkedList<>();
@@ -197,7 +183,7 @@ public class DatasetServerEndpoint implements Serializable {
 
 			for (BlockIdentification blockId : blocksId) {
 				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
-					blockId.angle, new int[] { rX, rY, rZ }, inputStream);
+					blockId.angle, inputStream);
 			}
 		}
 		catch (IOException exc) {
@@ -236,7 +222,9 @@ public class DatasetServerEndpoint implements Serializable {
 	void init() {
 		try {
 			datasetServer.init(dataServerManager.getUUID(), dataServerManager
+				.getResolutionLevel(), dataServerManager
 				.getVersion(), dataServerManager.getMode());
+			log.info("DatasetServer initialized");
 		}
 		catch (SpimDataException | IOException exc) {
 			log.error("init", exc);
