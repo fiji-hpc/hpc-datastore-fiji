@@ -8,6 +8,8 @@
 package cz.it4i.fiji.datastore;
 
 import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -17,15 +19,12 @@ public class ApplicationConfiguration implements Serializable{
 
 	private static final long serialVersionUID = -5159325588360781467L;
 
-	public String getDatastorePath() {
-		return System.getProperty("datastore.path");
+	public Path getDatasetPath(UUID uuid) {
+		return getDatastorePath().resolve(uuid.toString());
 	}
 
-	public String getDatasetVersion() {
-		return System.getProperty("dataset.version");
-	}
 
-	public String getDatasetPath(UUID uuid) {
-		return String.format("%s/%s/export.xml", getDatastorePath(), uuid);
+	private Path getDatastorePath() {
+		return Paths.get(System.getProperty("datastore.path"));
 	}
 }

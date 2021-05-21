@@ -9,6 +9,7 @@ package cz.it4i.fiji.datastore.register_service;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +30,9 @@ import org.janelia.saalfeldlab.n5.XzCompression;
 
 import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.CreateNewDatasetTS;
+import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
 import cz.it4i.fiji.datastore.DataStoreException;
-import cz.it4i.fiji.datastore.N5Access;
-import cz.it4i.fiji.datastore.N5Access.N5Description;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
@@ -58,9 +59,10 @@ public class DatasetRegisterServiceImpl {
 		SpimDataException
 	{
 		UUID result = UUID.randomUUID();
-		String path = configuration.getDatasetPath(result);
-		N5Access.createNew(path, convert(dataset));
-		datasetDAO.persist(Dataset.builder().uuid(result).path(path).build());
+		Path path = configuration.getDatasetPath(result);
+		new CreateNewDatasetTS().run(path, convert(dataset));
+		datasetDAO.persist(Dataset.builder().uuid(result).path(path.toString())
+			.build());
 		return result;
 	}
 

@@ -21,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import cz.it4i.fiji.datastore.CheckUUIDVersionTS;
 import cz.it4i.fiji.datastore.DataStoreException;
 import lombok.extern.log4j.Log4j2;
 
@@ -40,9 +39,6 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String VERSION_PARAM = "versionParam";
 	public static final String MODE_PARAM = "mode";
 	public static final String TIMEOUT_PARAM = "timeout";
-
-	@Inject
-	CheckUUIDVersionTS checkversionUUIDTS;
 
 	@Inject
 	DatasetRegisterServiceImpl datasetRegisterServiceImpl;
@@ -73,10 +69,6 @@ public class DatasetRegisterServiceEndpoint {
 			URL serverURL = datasetRegisterServiceImpl.start(java.util.UUID
 				.fromString(uuid), new int[] { rX, rY, rZ }, version, opMode, timeout);
 			log.debug("start reading> timeout = {}", timeout);
-			Response resp = checkversionUUIDTS.run(uuid, version);
-			if (resp != null) {
-				return resp;
-			}
 			return Response.temporaryRedirect(serverURL.toURI()).build();
 		}
 		catch (DataStoreException | URISyntaxException exc) {
