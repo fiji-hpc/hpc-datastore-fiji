@@ -12,6 +12,7 @@ import io.quarkus.runtime.Quarkus;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -30,6 +31,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @ApplicationScoped
 class DataServerManagerImpl implements DataServerManager {
+
+	private static final int WAIT_FOR_SERVER_TIMEOUT = 200;
 
 	private static final String APP_CLASS = "cz.it4i.fiji.datastore.App";
 
@@ -69,6 +72,19 @@ class DataServerManagerImpl implements DataServerManager {
 		pb.command(commandAsList);
 		pb.start();
 		String result = String.format("http://%s:%d/", getHostName(), port);
+		while (true) {
+			try (Socket soc = new Socket(getHostName(), port)) {
+				break;
+			}
+			catch (IOException e) {
+				try {
+					Thread.sleep(WAIT_FOR_SERVER_TIMEOUT);
+				}
+				catch (InterruptedException exc) {
+					return null;
+				}
+			}
+		}
 		return new URL(result);
 	}
 
