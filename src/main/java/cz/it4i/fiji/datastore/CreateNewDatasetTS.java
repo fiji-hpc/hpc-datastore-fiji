@@ -7,10 +7,11 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -63,9 +64,9 @@ public class CreateNewDatasetTS {
 	public void run(Path path, N5Description dsc) throws IOException,
 		SpimDataException
 	{
-		Path pathToXML = path.resolve("0").resolve("export.xml");
-		Path pathToDir = Paths.get(pathToXML.toString().replaceAll("\\.xml$",
-			".n5"));
+		Path pathToXML = getXMLPath(path, 0);
+
+		Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
 		SpimData data = createNew(pathToDir, dsc.voxelType, dsc.dimensions,
 			dsc.voxelDimensions, dsc.timepoints, dsc.channels, dsc.angles,
 			dsc.compression, dsc.mipmapInfo);

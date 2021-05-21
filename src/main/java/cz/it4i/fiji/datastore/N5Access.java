@@ -61,13 +61,6 @@ public class N5Access {
 	private N5Writer writer;
 	private SpimData spimData;
 
-	public static N5Access loadExisting(Path path) throws IOException,
-		SpimDataException
-	{
-		N5Access result = new N5Access();
-		// result.loadFromXML(path);
-		return result;
-	}
 
 	public static DataBlock<?> constructDataBlock(long[] gridPosition,
 		InputStream inputStream, DataType dataType) throws IOException
@@ -88,8 +81,9 @@ public class N5Access {
 
 
 
-	private N5Access() throws IOException {
-		writer = null;
+	public N5Access(Path pathToXML, N5Writer aWriter) throws SpimDataException {
+		loadFromXML(pathToXML);
+		writer = aWriter;
 	}
 
 	/**

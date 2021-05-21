@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.management;
 
+import io.quarkus.runtime.Quarkus;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -67,6 +69,10 @@ public class DataServerManager {
 		pb.start();
 		String result = String.format("http://%s:%d/", getHostName(), port);
 		return new URL(result);
+	}
+
+	public void stopCurrentDataServer() {
+		Quarkus.asyncExit();
 	}
 
 	public boolean check(UUID uuidTyped, String version, String mode) {
