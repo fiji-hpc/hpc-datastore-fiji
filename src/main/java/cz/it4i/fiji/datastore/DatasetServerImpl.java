@@ -22,6 +22,10 @@ import java.io.Serializable;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -32,10 +36,13 @@ import javax.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
+import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import cz.it4i.fiji.datastore.register_service.OperationMode;
+import lombok.AllArgsConstructor;
+import lombok.experimental.Delegate;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
@@ -103,7 +110,19 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			createN5Writer());
 	}
 
-	@SuppressWarnings({ "null", "fallthrough" })
+	private N5Writer constructChainOfWriters() throws IOException {
+
+		N5WriterItemOfChain result = null;
+		List<Integer> versions = new LinkedList<>(getAllVersions());
+		Collections.sort(versions);
+		for (Integer i : versions) {
+			result = new N5WriterItemOfChain(new N5FSWriter(getDataPath(
+				datasetBasePath, i).toString()), result);
+		}
+		return result;
+	}
+
+	@SuppressWarnings({ "null" })
 	private N5Writer createN5Writer() throws IOException {
 		
 		switch(version) {
@@ -122,7 +141,11 @@ public class DatasetServerImpl implements Closeable, Serializable {
 				return new N5FSWriter(getDataPath(datasetBasePath, newVersion)
 					.toString());
 			case "mixedLatest":
-				unsupportedVersion();
+				if (mode == OperationMode.WRITE) {
+					illegalVersionAndModeCombination();
+				}
+				return constructChainOfWriters();
+
 			default:
 				Path result = getPathByVersionIfExists();
 				if (result == null) {
@@ -143,12 +166,27 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		int result = 0;
 		try (DirectoryStream<Path> ds = Files.newDirectoryStream(datasetBasePath)) {
 			for (Path p : (Iterable<Path>) (() -> ds.iterator())) {
-				if (!isBlockFileOrDir(p.toFile())) {
+				if (!isBlockFileDirOrVersion(p.toFile())) {
 					continue;
 				}
 				int temp = Integer.parseInt(p.getFileName().toString());
 	
 				result = max(temp, result);
+			}
+		}
+		return result;
+	}
+
+	private Collection<Integer> getAllVersions() throws IOException {
+		Collection<Integer> result = new LinkedList<>();
+		try (DirectoryStream<Path> ds = Files.newDirectoryStream(datasetBasePath)) {
+			for (Path p : (Iterable<Path>) (() -> ds.iterator())) {
+				if (!isBlockFileDirOrVersion(p.toFile())) {
+					continue;
+				}
+				Integer temp = Integer.getInteger(p.getFileName().toString());
+
+				result.add(temp);
 			}
 		}
 		return result;
@@ -182,20 +220,62 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		}
 	}
 
-	private void unsupportedVersion() {
-		throw new UnsupportedOperationException("version " + version +
-			" not supported yet");
-	}
-
 	private void versionNotFound() throws FileNotFoundException {
 		throw new FileNotFoundException("version " + version + " not found");
 	}
 
-	private static boolean isBlockFileOrDir(File file) {
+	private static boolean isBlockFileDirOrVersion(File file) {
 		return WHOLE_NUMBER_PATTERN.matcher(file.getName().toString()).matches();
 	}
 
 	private static boolean isNotBlockFileOrDir(File file) {
-		return !isBlockFileOrDir(file);
+		return !isBlockFileDirOrVersion(file);
+	}
+
+	private interface ExcludeReadWriteMethod {
+	
+		public DataBlock<?> readBlock(final String pathName,
+		final DatasetAttributes datasetAttributes, final long[] gridPosition)
+		throws IOException;
+	
+		public <T> void writeBlock(final String pathName,
+			final DatasetAttributes datasetAttributes, final DataBlock<T> dataBlock)
+			throws IOException;
+	
+	}
+
+	@AllArgsConstructor
+	private static class N5WriterItemOfChain implements N5Writer {
+
+		@Delegate(excludes = { ExcludeReadWriteMethod.class })
+		private final N5Writer innerWriter;
+
+		private final N5WriterItemOfChain next;
+
+		@Override
+		public DataBlock<?> readBlock(String pathName,
+			DatasetAttributes datasetAttributes, long[] gridPosition)
+			throws IOException
+		{
+			try {
+				return innerWriter.readBlock(pathName, datasetAttributes, gridPosition);
+			}
+			catch (IOException exc) {
+				if (next != null) {
+					return next.readBlock(pathName, datasetAttributes, gridPosition);
+				}
+				throw exc;
+			}
+		}
+
+		@Override
+		public <T> void writeBlock(String pathName,
+			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
+			throws IOException
+		{
+			throw new UnsupportedOperationException(
+				"Writting mode is not supported for version mixedLatest");
+		}
+
 	}
 }
