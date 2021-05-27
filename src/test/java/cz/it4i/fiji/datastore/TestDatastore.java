@@ -23,7 +23,6 @@ import io.restassured.specification.RequestSpecification;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -51,11 +50,6 @@ public class TestDatastore {
 			.post("/datasets").andReturn();
 		uuid = result.asString();
 		log.info("status {}", result.getStatusLine());
-	}
-
-	@AfterAll
-	void shutDown() {
-		Quarkus.waitForExit();
 	}
 
 	@Test

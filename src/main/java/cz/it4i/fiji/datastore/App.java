@@ -13,13 +13,11 @@ import io.quarkus.runtime.Quarkus;
 //TODO locking datasets for read/write - with defined timeout
 //TODO Support for timeout
 //TODO Starting  remote dataservers - use registerservice for start
-//TODO remove slf4j warning from tests
 //TODO - set proper working directory for tests - erase it after test running
 public class App {
 
 	public static void main(String[] args) {
 		Quarkus.run(args);
-		Quarkus.waitForExit();
 
 	}
 

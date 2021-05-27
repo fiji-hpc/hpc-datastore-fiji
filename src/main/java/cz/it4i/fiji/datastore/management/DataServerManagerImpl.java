@@ -47,7 +47,7 @@ class DataServerManagerImpl implements DataServerManager {
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
 	@Inject
-	private ApplicationConfiguration applicationConfiguration;
+	ApplicationConfiguration applicationConfiguration;
 
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, String version,
