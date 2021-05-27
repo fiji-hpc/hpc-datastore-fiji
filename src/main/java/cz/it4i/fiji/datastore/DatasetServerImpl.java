@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.SessionScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
@@ -43,10 +43,12 @@ import org.janelia.saalfeldlab.n5.N5Writer;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Delegate;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
+@Log4j2
 @Default
-@SessionScoped
+@ApplicationScoped
 public class DatasetServerImpl implements Closeable, Serializable {
 
 
@@ -157,6 +159,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	private void createNewVersion(Path src, Path dst) throws IOException {
+		log.info("create new version {}", dst);
 		FileUtils.copyDirectory(src.toFile(), dst.toFile(),
 			DatasetServerImpl::isNotBlockFileOrDir);
 	

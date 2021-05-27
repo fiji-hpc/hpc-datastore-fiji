@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.SessionScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -49,7 +49,7 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
 
-@SessionScoped
+@ApplicationScoped
 @Log4j2
 @Path("/")
 public class DatasetServerEndpoint implements Serializable {

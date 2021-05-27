@@ -170,7 +170,7 @@
 			<artifactId>quarkus-resteasy</artifactId>
 		</dependency>
 
-
+		
 
 		<dependency>
 			<groupId>io.quarkus</groupId>
@@ -350,7 +350,16 @@
 		    <version>2.14.0</version>
 		</dependency>
 
-
+		<dependency>
+		    <groupId>io.quarkus</groupId>
+		    <artifactId>quarkus-junit5</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>io.rest-assured</groupId>
+		    <artifactId>rest-assured</artifactId>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -388,6 +397,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 		</plugins>
 		<resources>
 			<resource>
@@ -400,6 +410,7 @@
 			</resource>
 		</resources>
 	</build>
+
 
 
 </project>
