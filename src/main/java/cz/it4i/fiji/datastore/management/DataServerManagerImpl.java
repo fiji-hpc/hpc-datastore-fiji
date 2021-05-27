@@ -95,7 +95,7 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Override
 	public void stopCurrentDataServer() {
-		Quarkus.asyncExit();
+		Quarkus.waitForExit();
 	}
 
 	@Override

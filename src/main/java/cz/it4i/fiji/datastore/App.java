@@ -9,8 +9,6 @@ package cz.it4i.fiji.datastore;
 
 import io.quarkus.runtime.Quarkus;
 
-//TODO test mixedLatest version
-//TODO read/write only mode
 //TODO correct stop
 //TODO locking datasets for read/write - with defined timeout
 //TODO Support for timeout

@@ -92,12 +92,18 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	public DataBlock<?> read(long[] gridPosition, int time, int channel,
 		int angle) throws IOException
 	{
+		if (mode != OperationMode.READ) {
+			throw new IllegalStateException("Cannot read in mode: " + mode);
+		}
 		return n5Access.read(gridPosition, time, channel, angle, resolutionLevel);
 	}
 
 	public void write(long[] gridPosition, int time, int channel, int angle,
 		InputStream inputStream) throws IOException
 	{
+		if (mode != OperationMode.WRITE) {
+			throw new IllegalStateException("Cannot write in mode: " + mode);
+		}
 		n5Access.write(gridPosition, time, channel, angle, resolutionLevel,
 			inputStream);
 	}

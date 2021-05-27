@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.config.RedirectConfig;
 import io.restassured.config.RestAssuredConfig;
@@ -22,6 +23,7 @@ import io.restassured.specification.RequestSpecification;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -49,6 +51,11 @@ public class TestDatastore {
 			.post("/datasets").andReturn();
 		uuid = result.asString();
 		log.info("status {}", result.getStatusLine());
+	}
+
+	@AfterAll
+	void shutDown() {
+		Quarkus.waitForExit();
 	}
 
 	@Test
