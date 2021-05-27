@@ -24,7 +24,7 @@ public class ApplicationConfiguration implements Serializable{
 	}
 
 
-	private Path getDatastorePath() {
+	public Path getDatastorePath() {
 		return Paths.get(System.getProperty("datastore.path", "output"));
 	}
 }

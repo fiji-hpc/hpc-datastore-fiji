@@ -23,7 +23,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -44,6 +46,9 @@ class DataServerManagerImpl implements DataServerManager {
 
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
+	@Inject
+	private ApplicationConfiguration applicationConfiguration;
+
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, String version,
 		OperationMode mode,
@@ -59,7 +64,7 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-cp").append(System.getProperty("java.class.path"))
 				.append("-Dquarkus.http.port=" + port)
 				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:./output-"+port+"/myDb;create=true")
-				.append("-Ddatastore.path=" + System.getProperty("datastore.path"))
+				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
 				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))
 				.append("-D" + PROPERTY_VERSION + "=" + version)

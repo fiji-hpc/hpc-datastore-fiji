@@ -102,7 +102,8 @@ public class TestDatastore {
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
 			"/0/0/0/0/0/0/0/1/0/0/0/0");
-		assertEquals(ContentType.BINARY.toString(), result.contentType());
+		assertEquals(ContentType.BINARY.toString(), result.contentType(),
+			"expected binary but obtained: " + result.body().asString());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(data, outputData);
 	}
