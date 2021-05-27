@@ -57,7 +57,7 @@ public class TestDatastore {
 	}
 
 	@Test
-	public void writeReadeOneBlock() {
+	public void writeReadOneBlock() {
 		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
 			"/1/1/1/new-for-writing-only?timeout=10000");
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
@@ -76,13 +76,14 @@ public class TestDatastore {
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(	ContentType.BINARY).get("/0/0/0/0/0/0");
+		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(data, outputData);
 	}
 
 	@Test
-	public void writeReadeTwoBlocks() {
+	public void writeReadTwoBlocks() {
 		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
 			"/1/1/1/new-for-writing-only?timeout=10000");
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
@@ -102,10 +103,47 @@ public class TestDatastore {
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
 			"/0/0/0/0/0/0/0/1/0/0/0/0");
+		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType(),
 			"expected binary but obtained: " + result.body().asString());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(data, outputData);
+
+
+	}
+
+	@Test
+	public void mixedLatest() {
+		String baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
+			"/1/1/1/new-for-writing-only?timeout=10000").getHeader("Location");
+		byte[] block1 = constructBlocks(1, 64);
+		with().baseUri(baseURI).contentType(ContentType.BINARY).body(block1).post(
+			"/0/0/0/0/0/0");
+		with().baseUri(baseURI).post("/stop");
+
+		baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
+			"/1/1/1/new-for-writing-only?timeout=10000").getHeader("Location");
+		byte[] block2 = constructBlocks(1, 64);
+
+		with().baseUri(baseURI).contentType(ContentType.BINARY).body(block2).post(
+			"/0/1/0/0/0/0");
+		with().baseUri(baseURI).post("/stop");
+
+		baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
+			"/1/1/1/mixedLatest-for-reading-only?timeout=10000").getHeader(
+				"Location");
+
+		byte[] sentData = new byte[block1.length + block2.length];
+		System.arraycopy(block1, 0, sentData, 0, block1.length);
+		System.arraycopy(block2, 0, sentData, block1.length, block2.length);
+
+		Response result = with().baseUri(baseURI).contentType(ContentType.BINARY)
+			.get("/0/0/0/0/0/0/0/1/0/0/0/0");
+		with().baseUri(baseURI).post("/stop");
+		assertEquals(ContentType.BINARY.toString(), result.contentType(),
+			"expected binary but obtained: " + result.body().asString());
+		byte[] outputData = result.getBody().asByteArray();
+		assertArrayEquals(sentData, outputData);
 	}
 
 	private RequestSpecification withNoFollowRedirects() {

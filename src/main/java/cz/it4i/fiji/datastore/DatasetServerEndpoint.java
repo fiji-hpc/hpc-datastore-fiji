@@ -245,7 +245,7 @@ public class DatasetServerEndpoint implements Serializable {
 		while (matcher.find()) {
 			blocksId.add(new BlockIdentification(new long[] { getLong(matcher, 1),
 				getLong(matcher, 2), getLong(matcher, 3) }, getInt(matcher, 4), getInt(
-					matcher, 4), getInt(matcher, 4)));
+					matcher, 5), getInt(matcher, 6)));
 		}
 	}
 

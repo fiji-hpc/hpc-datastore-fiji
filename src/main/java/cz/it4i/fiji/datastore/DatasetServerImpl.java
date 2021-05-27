@@ -187,7 +187,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 				if (!isBlockFileDirOrVersion(p.toFile())) {
 					continue;
 				}
-				Integer temp = Integer.getInteger(p.getFileName().toString());
+				Integer temp = Integer.valueOf(p.getFileName().toString());
 
 				result.add(temp);
 			}
@@ -260,15 +260,16 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			DatasetAttributes datasetAttributes, long[] gridPosition)
 			throws IOException
 		{
-			try {
-				return innerWriter.readBlock(pathName, datasetAttributes, gridPosition);
+			DataBlock<?> result = innerWriter.readBlock(pathName, datasetAttributes,
+				gridPosition);
+			if (result != null) {
+				return result;
 			}
-			catch (IOException exc) {
-				if (next != null) {
-					return next.readBlock(pathName, datasetAttributes, gridPosition);
-				}
-				throw exc;
+
+			if (next != null) {
+				return next.readBlock(pathName, datasetAttributes, gridPosition);
 			}
+			return null;
 		}
 
 		@Override
