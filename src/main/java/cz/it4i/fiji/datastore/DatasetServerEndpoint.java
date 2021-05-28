@@ -218,12 +218,7 @@ public class DatasetServerEndpoint implements Serializable {
 		return Response.status(Status.NOT_FOUND).build();
 	}
 
-	@POST
-	@Path("stop")
-	public Response stopDataServer() {
-		dataServerManager.stopCurrentDataServer();
-		return Response.ok().build();
-	}
+
 
 	@PostConstruct
 	void init() {

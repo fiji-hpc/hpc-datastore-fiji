@@ -12,7 +12,6 @@ import com.esotericsoftware.minlog.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 
-//TODO correct stop
 //TODO locking datasets for read/write - with defined timeout
 //TODO Support for timeout
 //TODO Starting  remote dataservers - use registerservice for start
@@ -21,7 +20,6 @@ public class App implements QuarkusApplication {
 
 	public static void main(String[] args) {
 		Quarkus.run(App.class, App::handleExit, args);
-
 	}
 
 	@Override
