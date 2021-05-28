@@ -19,10 +19,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.BeforeDestroyed;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
@@ -45,6 +49,8 @@ class DataServerManagerImpl implements DataServerManager {
 	private static String PROPERTY_VERSION = "fiji.hpc.data_store.version";
 
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
+
+	private Queue<Process> processes = new LinkedBlockingDeque<>();
 
 	@Inject
 	ApplicationConfiguration applicationConfiguration;
@@ -75,7 +81,8 @@ class DataServerManagerImpl implements DataServerManager {
 		}
 		appender.append(APP_CLASS);
 		pb.command(commandAsList);
-		pb.start();
+		Process process = pb.start();
+		processes.add(process);
 		String result = String.format("http://%s:%d/", getHostName(), port);
 		while (true) {
 			try (Socket soc = new Socket(getHostName(), port)) {
@@ -137,6 +144,19 @@ class DataServerManagerImpl implements DataServerManager {
 	public OperationMode getMode() {
 		return OperationMode.valueOf(System.getProperty(PROPERTY_MODE, ""));
 	}
+
+	/**
+	 * @param obj
+	 */
+	public void observesApplicationScopedBeforeDestroyed(
+		@Observes @BeforeDestroyed(ApplicationScoped.class) Object obj)
+	{
+		Process proc;
+		while (null != (proc = processes.poll())) {
+			proc.destroyForcibly();
+		}
+	}
+
 
 	private String getHostName() throws UnknownHostException {
 		String hostName = System.getProperty("quarkus.http.host", "localhost");

@@ -52,6 +52,10 @@ public class TestDatastore {
 		log.info("status {}", result.getStatusLine());
 	}
 
+	void shutdown() {
+		Quarkus.asyncExit();
+	}
+
 	@Test
 	public void createDataset() {
 		assertNotNull(uuid, "Dataset was not created");
