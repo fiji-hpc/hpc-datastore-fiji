@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.management;
 
+import static cz.it4i.fiji.datastore.ApplicationConfiguration.DEFAULT_PATH_PREFIX;
+
 import io.quarkus.runtime.Quarkus;
 
 import java.io.IOException;
@@ -69,7 +71,7 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("java")
 				.append("-cp").append(System.getProperty("java.class.path"))
 				.append("-Dquarkus.http.port=" + port)
-				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:./output-"+port+"/myDb;create=true")
+				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
 				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
 				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))

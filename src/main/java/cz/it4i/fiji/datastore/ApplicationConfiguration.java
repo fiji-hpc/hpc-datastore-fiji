@@ -19,12 +19,14 @@ public class ApplicationConfiguration implements Serializable{
 
 	private static final long serialVersionUID = -5159325588360781467L;
 
+	public static final String DEFAULT_PATH_PREFIX = "target/output";
+
 	public Path getDatasetPath(UUID uuid) {
 		return getDatastorePath().resolve(uuid.toString());
 	}
 
 
 	public Path getDatastorePath() {
-		return Paths.get(System.getProperty("datastore.path", "output"));
+		return Paths.get(System.getProperty("datastore.path", DEFAULT_PATH_PREFIX));
 	}
 }
