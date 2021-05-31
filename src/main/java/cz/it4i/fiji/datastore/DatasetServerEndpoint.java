@@ -104,6 +104,7 @@ public class DatasetServerEndpoint implements Serializable {
 			uuid, version, rX, rY, rZ, mode)).type(MediaType.TEXT_PLAIN).build();
 	}
 
+	@TimeoutingRequest
 //@formatter:off
 	@Path("/{" + X_PARAM + "}"
 			+ "/{" + Y_PARAM + "}"
@@ -158,6 +159,7 @@ public class DatasetServerEndpoint implements Serializable {
 
 	}
 
+	@TimeoutingRequest
 	// @formatter:off
 	@Path("/{" + X_PARAM + "}"
 			+"/{" + Y_PARAM + "}"

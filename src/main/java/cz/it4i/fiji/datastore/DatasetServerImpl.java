@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.interceptor.Interceptors;
 
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.DataBlock;
