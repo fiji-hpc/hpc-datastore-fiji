@@ -10,6 +10,9 @@ package cz.it4i.fiji.datastore;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 
+import javax.inject.Inject;
+
+import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.extern.log4j.Log4j2;
 
 //TODO locking datasets for read/write - with defined timeout
@@ -18,6 +21,9 @@ import lombok.extern.log4j.Log4j2;
 //TODO - set proper working directory for tests - erase it after test running
 @Log4j2
 public class App implements QuarkusApplication {
+
+	@Inject
+	TimeoutTimer timer;
 
 	public static void main(String[] args) {
 		Quarkus.run(App.class, App::handleExit, args);

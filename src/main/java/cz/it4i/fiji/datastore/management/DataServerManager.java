@@ -31,4 +31,6 @@ public interface DataServerManager {
 
 	OperationMode getMode();
 
+	long getServerTimeout();
+
 }

@@ -43,6 +43,7 @@ import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 
 import cz.it4i.fiji.datastore.management.DataServerManager;
+import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -66,6 +67,9 @@ public class DatasetServerEndpoint implements Serializable {
 
 	private static final Pattern URL_BLOCKS_PATTERN = Pattern.compile(
 	"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
+
+	@Inject
+	TimeoutTimer timer;
 
 	@Inject
 	DatasetServerImpl datasetServer;

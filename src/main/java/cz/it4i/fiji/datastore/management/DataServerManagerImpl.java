@@ -7,8 +7,6 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.management;
 
-import static cz.it4i.fiji.datastore.ApplicationConfiguration.DEFAULT_PATH_PREFIX;
-
 import io.quarkus.runtime.Quarkus;
 
 import java.io.IOException;
@@ -40,6 +38,9 @@ import lombok.extern.log4j.Log4j2;
 @ApplicationScoped
 class DataServerManagerImpl implements DataServerManager {
 
+	private static final String PROPERTY_DATA_STORE_TIMEOUT =
+		"fiji.hpc.data_store.timeout";
+
 	private static final int WAIT_FOR_SERVER_TIMEOUT = 200;
 
 	private static final String APP_CLASS = "cz.it4i.fiji.datastore.App";
@@ -53,6 +54,8 @@ class DataServerManagerImpl implements DataServerManager {
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
 	private Queue<Process> processes = new LinkedBlockingDeque<>();
+
+	private Long dataserverTimeout;
 
 	@Inject
 	ApplicationConfiguration applicationConfiguration;
@@ -79,7 +82,7 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-D"+ PROPERTY_MODE +"=" + mode);
 		//@formatter:on
 		if (timeout != null) {
-			appender.append("-Dfiji.hpc.data_store.timeout=" + timeout);
+			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
 		}
 		appender.append(APP_CLASS);
 		pb.command(commandAsList);
@@ -147,6 +150,7 @@ class DataServerManagerImpl implements DataServerManager {
 		return OperationMode.valueOf(System.getProperty(PROPERTY_MODE, ""));
 	}
 
+
 	/**
 	 * @param obj
 	 */
@@ -159,6 +163,15 @@ class DataServerManagerImpl implements DataServerManager {
 		}
 	}
 
+	@Override
+	public long getServerTimeout() {
+		if (dataserverTimeout == null) {
+			dataserverTimeout = Long.parseLong(System.getProperty(
+				PROPERTY_DATA_STORE_TIMEOUT,
+			"-1"));
+		}
+		return dataserverTimeout;
+	}
 
 	private String getHostName() throws UnknownHostException {
 		String hostName = System.getProperty("quarkus.http.host", "localhost");

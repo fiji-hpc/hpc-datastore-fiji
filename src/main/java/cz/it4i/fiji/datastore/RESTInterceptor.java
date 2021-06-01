@@ -7,10 +7,12 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
+import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -18,9 +20,14 @@ import lombok.extern.log4j.Log4j2;
 @Interceptor
 public class RESTInterceptor {
 
+	@Inject
+	TimeoutTimer timer;
+
+
 	@AroundInvoke
 	public Object intercept(InvocationContext ctx) throws Exception {
-		log.info("intercept: {}", ctx.getMethod());
+		log.debug("intercept: {}", ctx.getMethod());
+		timer.scheduleTimer();
 		return ctx.proceed();
 	}
 }
