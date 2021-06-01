@@ -27,11 +27,6 @@ import javax.ws.rs.core.Response;
 @Path("/")
 public interface DatasetServerClient {
 
-	// @formatter:off
-	@Path("/{" + MODE_PARAM + "}")
-	// @formatter:on
-	@GET
-	public Response confirm(@PathParam(MODE_PARAM) String mode);
 
 //@formatter:off
 	@Path("/{" + X_PARAM + "}"

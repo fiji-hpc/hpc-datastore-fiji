@@ -41,6 +41,7 @@ import cz.it4i.fiji.datastore.N5Access;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
+import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.rest.RESTClientFactory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -323,13 +324,11 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					"write", 10000l);
+					OperationMode.WRITE.getUrlPath(), 10000l);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,
 						DatasetServerClient.class);
-					response = result.confirm("write");
-					log.debug("getServerClient> status={}", response.getStatus());
 					level2serverClient.put(levelId, result);
 				}
 			}

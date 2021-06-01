@@ -12,6 +12,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+
 public enum OperationMode {
 
 		READ("for-reading-only"), WRITE("for-writing-only"), NOT_SUPPORTED("");
@@ -29,6 +31,7 @@ public enum OperationMode {
 		}
 	}
 
+	@Getter
 	private String urlPath;
 
 	private OperationMode(String urlPath) {
