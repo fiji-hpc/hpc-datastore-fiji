@@ -1,4 +1,4 @@
-#HPC datastore
+# HPC datastore
 [Google docs description](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
 
 # Start server
