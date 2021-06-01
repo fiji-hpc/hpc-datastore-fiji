@@ -16,7 +16,8 @@ import lombok.Getter;
 
 public enum OperationMode {
 
-		READ("for-reading-only"), WRITE("for-writing-only"), NOT_SUPPORTED("");
+		READ_WRITE("for-reading-writing"), READ("for-reading-only"), WRITE(
+			"for-writing-only"), NOT_SUPPORTED("");
 
 
 	private static Map<String, OperationMode> url2Mode = new HashMap<>();

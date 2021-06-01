@@ -324,7 +324,7 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					OperationMode.WRITE.getUrlPath(), 10000l);
+					OperationMode.READ_WRITE.getUrlPath(), 10000l);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,

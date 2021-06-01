@@ -24,15 +24,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.DataBlock;
@@ -54,6 +55,12 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 
 	private static final long serialVersionUID = -2060288635563742563L;
+
+	private static final Set<OperationMode> READING_MODES = EnumSet.of(
+		OperationMode.READ, OperationMode.READ_WRITE);
+
+	private static final Set<OperationMode> WRITING_MODES = EnumSet.of(
+		OperationMode.WRITE, OperationMode.READ_WRITE);
 
 	private static final Pattern WHOLE_NUMBER_PATTERN = Pattern.compile("\\d+");
 
@@ -93,7 +100,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	public DataBlock<?> read(long[] gridPosition, int time, int channel,
 		int angle) throws IOException
 	{
-		if (mode != OperationMode.READ) {
+		if (!READING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot read in mode: " + mode);
 		}
 		return n5Access.read(gridPosition, time, channel, angle, resolutionLevel);
@@ -102,7 +109,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	public void write(long[] gridPosition, int time, int channel, int angle,
 		InputStream inputStream) throws IOException
 	{
-		if (mode != OperationMode.WRITE) {
+		if (!WRITING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot write in mode: " + mode);
 		}
 		n5Access.write(gridPosition, time, channel, angle, resolutionLevel,

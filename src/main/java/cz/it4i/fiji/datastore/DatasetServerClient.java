@@ -10,7 +10,6 @@ package cz.it4i.fiji.datastore;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.ANGLE_PARAM;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.CHANNEL_PARAM;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.TIME_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.MODE_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.X_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Y_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Z_PARAM;

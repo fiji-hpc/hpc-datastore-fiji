@@ -13,15 +13,20 @@ import java.util.concurrent.Future;
 
 import net.imagej.ImageJ;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.scijava.command.CommandModule;
 
 import cz.it4i.fiji.datastore.legacy.ExportSPIMAsN5PlugIn;
 
+@Disabled
 public class Fiji {
 
-	@Test()
-	public void runCommand() throws InterruptedException, ExecutionException {
+
+	@Test
+	public void runExportSPIMAsN5PlugIn() throws InterruptedException,
+		ExecutionException
+	{
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
