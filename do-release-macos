@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #this script build required libraries and copies into Fiji installation directory
-FIJI_APP=ImageJ-linux64
+FIJI_APP=Contents/MacOS/ImageJ-macosx
 UPDATE_SITE=Imglib2-labkit-cluster
-./mvnw clean package
+#./mvnw clean package -P develop
 
-DIR=`readlink -f $1`
-OLD_DIR=`readlink -f .`
+DIR=`greadlink -f $1`
+OLD_DIR=`greadlink -f .`
 cd $DIR/jars
 cd $OLD_DIR
 cp target/hpc-datastore-*-SNAPSHOT.jar target/module-assembly-bin/lib/*.jar $DIR/jars/

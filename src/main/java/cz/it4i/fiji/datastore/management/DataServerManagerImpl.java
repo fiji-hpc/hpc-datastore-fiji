@@ -120,7 +120,10 @@ class DataServerManagerImpl implements DataServerManager {
 	@Override
 	public UUID getUUID() {
 		String uuid = System.getProperty(PROPERTY_UUID, "");
-			try {
+		if (uuid.isEmpty()) {
+			return null;
+		}
+		try {
 			return UUID.fromString(uuid);
 		}
 		catch (IllegalArgumentException exc) {
