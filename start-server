@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./mvnw exec:java -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -Dexec.mainClass="cz.it4i.fiji.datastore.App"
+./mvnw -P develop exec:java -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -Dexec.mainClass="cz.it4i.fiji.datastore.App"
