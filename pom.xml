@@ -112,6 +112,9 @@
             <properties>
                 <stage>development</stage>
             </properties>
+            <activation>
+		      <activeByDefault>true</activeByDefault>
+		    </activation>
             <build>
                 <plugins>
                     <plugin>
