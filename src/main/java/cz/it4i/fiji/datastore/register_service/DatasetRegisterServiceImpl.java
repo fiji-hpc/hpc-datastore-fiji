@@ -62,6 +62,7 @@ public class DatasetRegisterServiceImpl {
 		Path path = configuration.getDatasetPath(result);
 		new CreateNewDatasetTS().run(path, convert(datasetDTO));
 		Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
+		dataset.setUuid(result);
 		dataset.setPath(path.toString());
 		datasetDAO.persist(dataset);
 		return result;

@@ -12,7 +12,7 @@ import com.google.common.collect.Streams;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
@@ -50,9 +50,9 @@ public class DatasetAssembler {
 			.stream().map(dto -> new ResolutionLevel(dto.resolutions,
 				dto.blockDimensions));
 		
-		return Streams.zip(LongStream.iterate(1, i -> i + 1).mapToObj(i -> Long
+		return Streams.zip(IntStream.iterate(1, i -> i + 1).mapToObj(i -> Integer
 			.valueOf(i)), resLevels, (i, r) -> {
-				r.setId(i);
+				r.setLevelId(i);
 				return r;
 			}).collect(Collectors.toList());
 	}

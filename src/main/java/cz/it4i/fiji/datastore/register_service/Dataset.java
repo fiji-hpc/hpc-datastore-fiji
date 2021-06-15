@@ -10,9 +10,9 @@ package cz.it4i.fiji.datastore.register_service;
 import java.util.Collection;
 import java.util.UUID;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.AllArgsConstructor;
@@ -35,7 +35,7 @@ public class Dataset extends BaseEntity {
 
 	@Getter
 	@Setter
-	@OneToMany
+	@ElementCollection(targetClass = ResolutionLevel.class)
 	private Collection<ResolutionLevel> resolutionLevel;
 	
 	@Getter
@@ -86,17 +86,14 @@ public class Dataset extends BaseEntity {
 	@Setter
 	private double[] voxelResolution;
 	
-	@OneToOne
 	@Getter
 	@Setter
 	private Resolution timepointResolution;
 	
-	@OneToOne
 	@Getter
 	@Setter
 	private Resolution channelResolution;
 	
-	@OneToOne
 	@Getter
 	@Setter
 	private Resolution angleResolution;

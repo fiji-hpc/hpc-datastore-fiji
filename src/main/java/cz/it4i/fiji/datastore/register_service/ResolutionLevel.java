@@ -7,12 +7,13 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
-import cz.it4i.fiji.datastore.BaseEntity;
+import java.io.Serializable;
+
 import lombok.Getter;
 import lombok.Setter;
 
 
-public class ResolutionLevel extends BaseEntity {
+public class ResolutionLevel implements Serializable {
 	
 	private static final long serialVersionUID = -4056930322974621510L;
 
