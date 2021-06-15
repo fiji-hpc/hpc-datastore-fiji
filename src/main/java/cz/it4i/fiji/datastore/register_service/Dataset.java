@@ -35,11 +35,9 @@ public class Dataset extends BaseEntity {
 
 	@Getter
 	@Setter
-
-	private ResolutionLevel resolutionLevel;
+	@OneToMany
+	private Collection<ResolutionLevel> resolutionLevel;
 	
-	// TODO Use Collection instead of array
-	// TODO resolutionLevel
 	@Getter
 	@Setter
 	private String path;

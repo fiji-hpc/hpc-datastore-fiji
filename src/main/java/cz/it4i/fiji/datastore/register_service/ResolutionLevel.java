@@ -11,6 +11,7 @@ import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+
 public class ResolutionLevel extends BaseEntity {
 	
 	private static final long serialVersionUID = -4056930322974621510L;
@@ -26,4 +27,10 @@ public class ResolutionLevel extends BaseEntity {
 	@Getter
 	@Setter
 	private int[] blockDimensions;
+
+	public ResolutionLevel(int[] resolutions, int[] blockDimensions) {
+		this.resolutions = resolutions;
+		this.blockDimensions = blockDimensions;
+	}
+
 }

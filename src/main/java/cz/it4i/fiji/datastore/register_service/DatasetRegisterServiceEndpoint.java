@@ -99,4 +99,14 @@ public class DatasetRegisterServiceEndpoint {
 		}
 	}
 
+	@GET
+	@Path("datasets/{" + UUID + "}")
+	public Response queryDataset(@PathParam(UUID) String uuid) {
+		DatasetDTO result = datasetRegisterServiceImpl.query(uuid);
+		if (result == null) {
+			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+				uuid).build();
+		}
+		return Response.ok(result).build();
+	}
 }

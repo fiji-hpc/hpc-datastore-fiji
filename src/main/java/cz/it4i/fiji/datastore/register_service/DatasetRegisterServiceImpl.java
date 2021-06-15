@@ -55,14 +55,15 @@ public class DatasetRegisterServiceImpl {
 	DatasetRepository datasetDAO;
 
 	@Transactional
-	public UUID createEmptyDataset(DatasetDTO dataset) throws IOException,
+	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
 		SpimDataException
 	{
 		UUID result = UUID.randomUUID();
 		Path path = configuration.getDatasetPath(result);
-		new CreateNewDatasetTS().run(path, convert(dataset));
-		datasetDAO.persist(Dataset.builder().uuid(result).path(path.toString())
-			.build());
+		new CreateNewDatasetTS().run(path, convert(datasetDTO));
+		Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
+		dataset.setPath(path.toString());
+		datasetDAO.persist(dataset);
 		return result;
 	}
 
@@ -75,6 +76,14 @@ public class DatasetRegisterServiceImpl {
 		catch (IOException exc) {
 			throw new DataStoreException(exc);
 		}
+	}
+
+	public DatasetDTO query(String uuid) {
+		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
+		if (dataset == null) {
+			return null;
+		}
+		return DatasetAssembler.createDatatransferObject(dataset);
 	}
 
 	private N5Description convert(DatasetDTO dataset) {
