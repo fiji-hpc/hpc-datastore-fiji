@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./mvnw -P develop exec:java -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -Dexec.mainClass="cz.it4i.fiji.datastore.App"
+java -Dquarkus.datasource.jdbc.ur="jdbc:h2:$1/h2;create=true" -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -jar target/quarkus-app/quarkus-run.jar 

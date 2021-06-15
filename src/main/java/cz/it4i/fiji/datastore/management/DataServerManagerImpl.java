@@ -72,7 +72,6 @@ class DataServerManagerImpl implements DataServerManager {
 		//@formatter:off
 		ListAppender<String> appender = new ListAppender<>(commandAsList)
 				.append("java")
-				.append("-cp").append(System.getProperty("java.class.path"))
 				.append("-Dquarkus.http.port=" + port)
 				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
 				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
@@ -80,15 +79,28 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))
 				.append("-D" + PROPERTY_VERSION + "=" + version)
 				.append("-D"+ PROPERTY_MODE +"=" + mode);
-		//@formatter:on
 		if (timeout != null) {
 			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
 		}
-		appender.append(APP_CLASS);
+		
+		String classPath = System.getProperty("java.class.path");
+		if (classPath.endsWith("quarkus-run.jar")) {
+			appender
+			.append("-jar")
+			.append(classPath);
+		} else {
+			appender
+			.append("-cp")
+			.append(classPath)
+			.append(APP_CLASS);
+		}
+		//@formatter:on
+		
 		pb.command(commandAsList);
 		Process process = pb.start();
 		processes.add(process);
 		String result = String.format("http://%s:%d/", getHostName(), port);
+		log.info("waiting for server starts on {}", result);
 		while (true) {
 			try (Socket soc = new Socket(getHostName(), port)) {
 				break;

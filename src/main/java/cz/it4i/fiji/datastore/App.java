@@ -9,6 +9,7 @@ package cz.it4i.fiji.datastore;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
 import javax.inject.Inject;
 
@@ -19,6 +20,7 @@ import lombok.extern.log4j.Log4j2;
 //TODO Support for timeout
 //TODO Starting  remote dataservers - use registerservice for start
 //TODO - set proper working directory for tests - erase it after test running
+@QuarkusMain
 @Log4j2
 public class App implements QuarkusApplication {
 
