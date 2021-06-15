@@ -39,7 +39,7 @@ public interface DatasetRegisterServiceClient {
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
 			+ "/{" + VERSION_PARAM + ":[^-]+}" 
-			+ "-{" + MODE_PARAM +"}")
+			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
 	public Response start(@PathParam(UUID) String uuid,

@@ -50,7 +50,7 @@ public class DatasetRegisterServiceEndpoint {
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
 			+ "/{" + VERSION_PARAM + ":[^-]+}" 
-			+ "-{" + MODE_PARAM +"}")
+			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
 	public Response startRead(@PathParam(UUID) String uuid,

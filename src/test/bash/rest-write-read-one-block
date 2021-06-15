@@ -5,12 +5,12 @@ printf "0: %.8x" 32 | xxd -r -g0 >> input.bin
 printf "0: %.8x" 32 | xxd -r -g0 >> input.bin
 head -c 262144 /dev/urandom >> input.bin
 
-REDIRECT=`curl -X GET -w %{redirect_url}  http://localhost:8080/datasets/$UUID/1/1/1/new-for-writing-only?timeout=10000`
+REDIRECT=`curl -X GET -w %{redirect_url}  http://localhost:8080/datasets/$UUID/1/1/1/new/write?timeout=10000`
 echo $REDIRECT'0/0/0/0/0/0/'
 curl -X POST -c cookies.txt --data-binary "@input.bin" -H "Content-Type: application/octet-stream" $REDIRECT'0/0/0/0/0/0/'
 curl -X POST -b cookies.txt $REDIRECT'stop'
 
-REDIRECT=`curl -X GET -w %{redirect_url}  http://localhost:8080/datasets/$UUID/1/1/1/latest-for-reading-only?timeout=10000`
+REDIRECT=`curl -X GET -w %{redirect_url}  http://localhost:8080/datasets/$UUID/1/1/1/latest/read?timeout=10000`
 echo $REDIRECT'0/0/0/0/0/0/'
 curl -X GET -b cookies.txt $REDIRECT'0/0/0/0/0/0/' --output output.bin
 curl -X POST -b cookies.txt $REDIRECT'stop'
