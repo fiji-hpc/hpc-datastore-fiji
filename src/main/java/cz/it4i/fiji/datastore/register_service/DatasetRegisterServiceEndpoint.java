@@ -56,7 +56,7 @@ public class DatasetRegisterServiceEndpoint {
 	public Response startRead(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
-		@SuppressWarnings("unused") @PathParam(MODE_PARAM) String modeName,
+		@PathParam(MODE_PARAM) String modeName,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
 		OperationMode opMode = OperationMode.getByUrlPath(modeName);
