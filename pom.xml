@@ -80,8 +80,8 @@
         <cdi-api.version>2.0.SP1</cdi-api.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>1.10.3.Final</quarkus.platform.version>
-        <quarkus-plugin.version>1.10.3.Final</quarkus-plugin.version>
+        <quarkus.platform.version>1.13.7.Final</quarkus.platform.version>
+        <quarkus-plugin.version>1.13.7.Final</quarkus-plugin.version>
         <persistence-api.version>3.0.0</persistence-api.version>
         <hibernate.version>5.4.25.Final</hibernate.version>
         <derby.version>10.14.2.0</derby.version>
@@ -175,10 +175,6 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.jboss.spec.javax.ws.rs</groupId>
-                    <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.ws.rs</groupId>
                     <artifactId>jboss-jaxrs-api_2.3_spec</artifactId>
                 </exclusion>
                 <exclusion>
@@ -206,8 +202,8 @@
             </exclusions>
         </dependency>
 
-
-
+					
+		
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
@@ -254,10 +250,6 @@
                 <exclusion>
                     <groupId>org.glassfish.jaxb</groupId>
                     <artifactId>jaxb-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>jakarta.persistence</groupId>
-                    <artifactId>jakarta.persistence-api</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.jboss.spec.javax.xml.bind</groupId>
