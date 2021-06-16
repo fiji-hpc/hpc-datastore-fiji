@@ -105,7 +105,7 @@ public class DatasetRegisterServiceEndpoint {
 		DatasetDTO result = datasetRegisterServiceImpl.query(uuid);
 		if (result == null) {
 			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-				uuid).build();
+				uuid + " not found.").build();
 		}
 		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
