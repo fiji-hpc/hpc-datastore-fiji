@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -81,7 +83,9 @@ public class N5Access {
 
 
 
-	public N5Access(Path pathToXML, N5Writer aWriter) throws SpimDataException {
+	public N5Access(Path pathToXML, N5Writer aWriter)
+		throws SpimDataException
+	{
 		loadFromXML(pathToXML);
 		writer = aWriter;
 	}
@@ -118,6 +122,7 @@ public class N5Access {
 		DatasetAttributes attributes = writer.getDatasetAttributes(path);
 		DataBlock<?> dataBlock = constructDataBlock(gridPosition, attributes,
 			inputStream);
+		checkBlockSize(dataBlock, attributes.getBlockSize());
 		writer.writeBlock(path, attributes, dataBlock);
 	}
 
@@ -135,6 +140,39 @@ public class N5Access {
 		}
 	}
 
+	private void loadFromXML(Path path) throws SpimDataException {
+		spimData = new XmlIoSpimData().load(path.toString());
+	}
+
+
+
+	private void checkBlockSize(DataBlock<?> dataBlock, int[] blockSize) {
+		for (int i = 0; i < blockSize.length; i++) {
+			if (dataBlock.getSize()[i] < 0 || blockSize[i] < dataBlock.getSize()[i]) {
+				throw new IllegalArgumentException(String.format(
+					"Block dimension should be [%s] but is [%s]", getDimensionRange(0,
+						blockSize), getDimension(dataBlock.getSize())));
+			}
+		}
+	}
+
+
+
+	private String getDimension(int[] size) {
+		return IntStream.of(size).mapToObj(i -> "" + i).collect(Collectors.joining(
+			","));
+	}
+
+
+
+	private String getDimensionRange(final int min, int[] size) {
+		return IntStream.of(size).mapToObj(i -> min + "-" + i).collect(Collectors
+			.joining(
+			","));
+	}
+
+
+
 	private static DataBlock<?> constructDataBlock(long[] gridPosition,
 		DatasetAttributes attributes, InputStream inputStream) throws IOException
 	{
@@ -142,12 +180,6 @@ public class N5Access {
 
 		return constructDataBlock(gridPosition, inputStream, dataType);
 	}
-
-	private void loadFromXML(Path path) throws SpimDataException {
-		spimData = new XmlIoSpimData().load(path.toString());
-	}
-
-
 
 	private static String getPath(SpimData spimData, N5Writer writer, int time,
 		int channel, int angle, int[] resolutionLevel)

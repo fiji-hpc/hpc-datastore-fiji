@@ -19,10 +19,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.BeforeDestroyed;
@@ -30,6 +32,8 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -60,12 +64,25 @@ class DataServerManagerImpl implements DataServerManager {
 	@Inject
 	ApplicationConfiguration applicationConfiguration;
 
+	@Inject
+	DatasetRepository datasetRepository;
+
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, String version,
 		OperationMode mode,
 		Long timeout)
 		throws IOException
 	{
+		Optional<Dataset> dataset = datasetRepository.findByUUID(uuid);
+		if (!dataset.isPresent()) {
+			throw new IllegalArgumentException("Dataset with uuid=" + uuid +
+				" not exist on server.");
+		}
+		if (null == dataset.get().getBlockDimension(r)) {
+			throw new IllegalArgumentException("Dataset with UUID=" + uuid +
+				" has not resolution [" + IntStream.of(r).mapToObj(i -> "" + i)
+					.collect(Collectors.joining(",")) + "]");
+		}
 		Integer port = findRandomOpenPortOnAllLocalInterfaces();
 		ProcessBuilder pb = new ProcessBuilder().inheritIO();
 		List<String> commandAsList = new LinkedList<>();

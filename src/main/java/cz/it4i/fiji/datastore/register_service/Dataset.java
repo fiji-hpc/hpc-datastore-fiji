@@ -7,6 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -101,4 +102,14 @@ public class Dataset extends BaseEntity {
 	@Getter
 	@Setter
 	private String compression;
+
+	public int[] getBlockDimension(int[] resolution) {
+
+		for (ResolutionLevel resLev : getResolutionLevel()) {
+			if (Arrays.equals(resolution, resLev.getResolutions())) {
+				return resLev.getBlockDimensions();
+			}
+		}
+		return null;
+	}
 }
