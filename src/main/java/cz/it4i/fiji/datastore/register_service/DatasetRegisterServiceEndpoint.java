@@ -107,6 +107,6 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
 				uuid).build();
 		}
-		return Response.ok(result).build();
+		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
 }

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-java -Dquarkus.datasource.jdbc.ur="jdbc:h2:$1/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -jar target/quarkus-app/quarkus-run.jar 
+java -Dquarkus.datasource.jdbc.url="jdbc:h2:$1/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" -Ddatastore.path=$1 -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 -jar target/quarkus-app/quarkus-run.jar 
