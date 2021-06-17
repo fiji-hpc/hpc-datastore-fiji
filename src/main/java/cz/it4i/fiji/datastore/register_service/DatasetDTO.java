@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import lombok.AllArgsConstructor;
@@ -104,4 +106,8 @@ public class DatasetDTO {
 	@Getter
 	@Setter
 	private ResolutionLevel[] resolutionLevels;
+
+	@Getter
+	@Setter
+	private List<Integer> versions;
 }

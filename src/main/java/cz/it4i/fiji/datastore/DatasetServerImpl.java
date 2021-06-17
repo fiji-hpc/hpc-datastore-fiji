@@ -8,47 +8,34 @@
 
 package cz.it4i.fiji.datastore;
 
-import static cz.it4i.fiji.datastore.DatasetPathRoutines.getBasePath;
-import static cz.it4i.fiji.datastore.DatasetPathRoutines.getDataPath;
 import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
-import static java.lang.Math.max;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
-import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
-import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Delegate;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
-@Log4j2
 @Default
 @ApplicationScoped
 public class DatasetServerImpl implements Closeable, Serializable {
@@ -61,8 +48,6 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private static final Set<OperationMode> WRITING_MODES = EnumSet.of(
 		OperationMode.WRITE, OperationMode.READ_WRITE);
-
-	private static final Pattern WHOLE_NUMBER_PATTERN = Pattern.compile("\\d+");
 
 	N5Access n5Access;
 
@@ -77,7 +62,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private int[] resolutionLevel;
 
-	private Path datasetBasePath;
+	private DatasetFilesystemHandler datasetFilesystemHandler;
 
 	public synchronized void init(UUID aUuid, int[] resolution, String aVersion,
 		OperationMode aMode) throws SpimDataException,
@@ -87,7 +72,9 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		version = aVersion;
 		mode = aMode;
 		resolutionLevel = resolution;
-		datasetBasePath = configuration.getDatasetPath(uuid);
+		datasetFilesystemHandler = new DatasetFilesystemHandler(uuid.toString(),
+			configuration
+			.getDatasetPath(uuid));
 		initN5Access();
 	}
 
@@ -122,40 +109,34 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	private void initN5Access() throws SpimDataException, IOException {
-		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid), 0),
+		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid),
+			datasetFilesystemHandler.getLatestVersion()),
 			createN5Writer());
 	}
 
 	private N5Writer constructChainOfWriters() throws IOException {
 
 		N5WriterItemOfChain result = null;
-		List<Integer> versions = new LinkedList<>(getAllVersions());
+		List<Integer> versions = new LinkedList<>(datasetFilesystemHandler
+			.getAllVersions());
 		Collections.sort(versions);
 		for (Integer i : versions) {
-			result = new N5WriterItemOfChain(new N5FSWriter(getDataPath(
-				datasetBasePath, i).toString()), result);
+			result = new N5WriterItemOfChain(datasetFilesystemHandler.getWriter(i),
+				result);
 		}
 		return result;
 	}
 
-	@SuppressWarnings({ "null" })
 	private N5Writer createN5Writer() throws IOException {
-		
 		switch(version) {
 			case "latest":
-				return new N5FSWriter(getDataPath(datasetBasePath,
-					getLatestVersion()).toString());
+				return datasetFilesystemHandler.getWriter();
 			case "new":
 				if (mode == OperationMode.READ) {
 					illegalVersionAndModeCombination();
 				}
-				int latestVersion = getLatestVersion();
-				int newVersion = latestVersion + 1;
-				createNewVersion(getBasePath(datasetBasePath, latestVersion), getBasePath(
-					datasetBasePath,
-						newVersion));
-				return new N5FSWriter(getDataPath(datasetBasePath, newVersion)
-					.toString());
+				int newVersion = datasetFilesystemHandler.createNewVersion();
+				return datasetFilesystemHandler.getWriter(newVersion);
 			case "mixedLatest":
 				if (mode == OperationMode.WRITE) {
 					illegalVersionAndModeCombination();
@@ -163,61 +144,12 @@ public class DatasetServerImpl implements Closeable, Serializable {
 				return constructChainOfWriters();
 
 			default:
-				Path result = getPathByVersionIfExists();
+				N5Writer result = datasetFilesystemHandler.getWriter(version);
 				if (result == null) {
 					versionNotFound();
 				}
-				return new N5FSWriter(result.toString());
+				return result;
 		}
-		
-	}
-
-	private void createNewVersion(Path src, Path dst) throws IOException {
-		log.info("create new version {}", dst);
-		FileUtils.copyDirectory(src.toFile(), dst.toFile(),
-			DatasetServerImpl::isNotBlockFileOrDir);
-	
-	}
-
-	private int getLatestVersion() throws IOException {
-		int result = 0;
-		try (DirectoryStream<Path> ds = Files.newDirectoryStream(datasetBasePath)) {
-			for (Path p : (Iterable<Path>) (() -> ds.iterator())) {
-				if (!isBlockFileDirOrVersion(p.toFile())) {
-					continue;
-				}
-				int temp = Integer.parseInt(p.getFileName().toString());
-	
-				result = max(temp, result);
-			}
-		}
-		return result;
-	}
-
-	private Collection<Integer> getAllVersions() throws IOException {
-		Collection<Integer> result = new LinkedList<>();
-		try (DirectoryStream<Path> ds = Files.newDirectoryStream(datasetBasePath)) {
-			for (Path p : (Iterable<Path>) (() -> ds.iterator())) {
-				if (!isBlockFileDirOrVersion(p.toFile())) {
-					continue;
-				}
-				Integer temp = Integer.valueOf(p.getFileName().toString());
-
-				result.add(temp);
-			}
-		}
-		return result;
-	}
-
-	private Path getPathByVersionIfExists() {
-		if (!WHOLE_NUMBER_PATTERN.matcher(version).matches()) {
-			return null;
-		}
-		Path result = getDataPath(datasetBasePath, Integer.parseInt(version));
-		if (!Files.exists(result)) {
-			return null;
-		}
-		return result;
 	}
 
 	private void illegalVersionAndModeCombination() {
@@ -241,16 +173,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		throw new FileNotFoundException("version " + version + " not found");
 	}
 
-	private static boolean isBlockFileDirOrVersion(File file) {
-		return WHOLE_NUMBER_PATTERN.matcher(file.getName().toString()).matches();
-	}
-
-	private static boolean isNotBlockFileOrDir(File file) {
-		return !isBlockFileDirOrVersion(file);
-	}
-
 	private interface ExcludeReadWriteMethod {
-	
 		public DataBlock<?> readBlock(final String pathName,
 		final DatasetAttributes datasetAttributes, final long[] gridPosition)
 		throws IOException;

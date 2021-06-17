@@ -7,11 +7,18 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -37,6 +44,7 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String R_Y_PARAM = "RyParam";
 	public static final String R_Z_PARAM = "RzParam";
 	public static final String VERSION_PARAM = "versionParam";
+	public static final String VERSION_PARAMS = "versionParams";
 	public static final String MODE_PARAM = "mode";
 	public static final String TIMEOUT_PARAM = "timeout";
 
@@ -102,37 +110,87 @@ public class DatasetRegisterServiceEndpoint {
 	@GET
 	@Path("datasets/{" + UUID + "}")
 	public Response queryDataset(@PathParam(UUID) String uuid) {
-		DatasetDTO result = datasetRegisterServiceImpl.query(uuid);
-		if (result == null) {
-			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-				uuid + " not found.").build();
+		DatasetDTO result;
+		try {
+			result = datasetRegisterServiceImpl.query(uuid);
+			if (result == null) {
+				return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+					uuid + " not found.").build();
+			}
+			return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
 		}
-		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage())
+				.build();
+		}
 	}
 
+	@DELETE
+	@Path("datasets/{" + UUID + "}")
+	public Response deleteDataset(@PathParam(UUID) String uuid) {
+		try {
+			datasetRegisterServiceImpl.deleteDataset(uuid);
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
+		return Response.ok().build();
+	}
+//@formatter:off
+	@DELETE
+	@Path("datasets/{" + UUID + "}" + 
+				"/{" + VERSION_PARAM + "}"+
+			  "{" + VERSION_PARAMS + ":/?.*}")
+//@formatter:on	
+	public Response deleteDatasetVersions(@PathParam(UUID) String uuid,
+		@PathParam(VERSION_PARAM) String version,
+		@PathParam(VERSION_PARAMS) String versions)
+	{
+		List<Integer> versionList = new LinkedList<>();
+
+		versionList.add(getVersion(version));
+		versionList.addAll(extractVersions(versions).stream().filter(e -> !e
+			.isEmpty()).map(DatasetRegisterServiceEndpoint::getVersion).collect(
+				Collectors.toList()));
+		try {
+			datasetRegisterServiceImpl.deleteVersions(uuid, versionList);
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
+		return Response.ok().build();
+	}
+	
 	@GET
 	@Path("datasets/{" + UUID + "}/common-metadata")
 	public Response getCommonMetadate(@PathParam(UUID) String uuid) {
 		String result = datasetRegisterServiceImpl.getCommonMetadata(uuid);
-		if (result == null) {
-			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-				uuid + " not found.").build();
-		}
 		return Response.ok(result).type(MediaType.TEXT_PLAIN).build();
 	}
 
 	@POST
 	@Path("datasets/{" + UUID + "}/common-metadata")
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response getCommonMetadate(@PathParam(UUID) String uuid,
+	public Response setCommonMetadate(@PathParam(UUID) String uuid,
 		String commonMetadata)
 	{
-		boolean found = datasetRegisterServiceImpl.setCommonMetadata(uuid,
-			commonMetadata);
-		if (!found) {
-			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-				uuid + " not found.").build();
-		}
+		datasetRegisterServiceImpl.setCommonMetadata(uuid, commonMetadata);
 		return Response.ok().build();
+	}
+
+	private static Collection<String> extractVersions(String versions) {
+		return Arrays.asList(versions.split("/"));
+	}
+
+	private static Integer getVersion(String version) {
+		try {
+			return Integer.parseInt(version);
+		}
+		catch (NumberFormatException nfe) {
+			throw new IllegalArgumentException(version + " is not correct version");
+		}
 	}
 }

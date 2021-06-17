@@ -9,11 +9,13 @@ package cz.it4i.fiji.datastore.register_service;
 
 import com.google.common.base.Strings;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +23,9 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.NotFoundException;
 
+import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -35,12 +39,15 @@ import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
 import cz.it4i.fiji.datastore.DataStoreException;
+import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 
+@Log4j2
 @Default
 @RequestScoped
 public class DatasetRegisterServiceImpl {
@@ -51,10 +58,10 @@ public class DatasetRegisterServiceImpl {
 	@Inject
 	DataServerManager dataServerManager;
 
-	private Map<String, Compression> name2compression = null;
-
 	@Inject
 	DatasetRepository datasetDAO;
+
+	private Map<String, Compression> name2compression = null;
 
 	@Transactional
 	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
@@ -70,6 +77,42 @@ public class DatasetRegisterServiceImpl {
 		return result;
 	}
 
+	@Transactional
+	public void deleteDataset(String uuid) throws IOException {
+		Dataset dataset = getDataset(uuid);
+		log.debug("dataset with path {} is deleted", dataset.getPath());
+		datasetDAO.delete(dataset);
+		FileUtils.deleteDirectory(new File(dataset.getPath()));
+	}
+
+	public void deleteVersions(String uuid, List<Integer> versionList)
+		throws IOException
+	{
+		Dataset dataset = getDataset(uuid);
+		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(uuid, dataset
+			.getPath());
+		for (Integer version : versionList) {
+			dfs.deleteVersion(version);
+		}
+	}
+
+	public DatasetDTO query(String uuid) throws IOException {
+		Dataset dataset = getDataset(uuid);
+		return DatasetAssembler.createDatatransferObject(dataset);
+	}
+
+	public String getCommonMetadata(String uuid) {
+		Dataset dataset = getDataset(uuid);
+		return Strings.nullToEmpty(dataset.getMetadata());
+	}
+
+	@Transactional
+	public void setCommonMetadata(String uuid, String commonMetadata) {
+		Dataset dataset = getDataset(uuid);
+		dataset.setMetadata(commonMetadata);
+		datasetDAO.persist(dataset);
+	}
+
 	public URL start(UUID uuid, int[] r, String version, OperationMode mode,
 		Long timeout) throws DataStoreException
 	{
@@ -79,33 +122,6 @@ public class DatasetRegisterServiceImpl {
 		catch (IOException exc) {
 			throw new DataStoreException(exc);
 		}
-	}
-
-	public DatasetDTO query(String uuid) {
-		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
-		if (dataset == null) {
-			return null;
-		}
-		return DatasetAssembler.createDatatransferObject(dataset);
-	}
-
-	public String getCommonMetadata(String uuid) {
-		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
-		if (dataset == null) {
-			return null;
-		}
-		return Strings.nullToEmpty(dataset.getMetadata());
-	}
-
-	@Transactional
-	public boolean setCommonMetadata(String uuid, String commonMetadata) {
-		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
-		if (dataset == null) {
-			return false;
-		}
-		dataset.setMetadata(commonMetadata);
-		datasetDAO.persist(dataset);
-		return true;
 	}
 
 	private N5Description convert(DatasetDTO dataset) {
@@ -139,6 +155,14 @@ public class DatasetRegisterServiceImpl {
 	private @NonNull Compression createCompression(String compression) {
 		return getCompressionMapping().getOrDefault(compression.toUpperCase(),
 			new RawCompression());
+	}
+
+	private Dataset getDataset(String uuid) {
+		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
+		if (dataset == null) {
+			throw new NotFoundException("Dataset with uuid=" + uuid + " not found.");
+		}
+		return dataset;
 	}
 
 	private Map<String, Compression> getCompressionMapping() {
