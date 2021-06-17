@@ -8,12 +8,10 @@
 
 package cz.it4i.fiji.datastore;
 
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.MODE_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_X_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Y_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Z_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.UUID;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.VERSION_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.X_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Y_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Z_PARAM;
@@ -36,16 +34,20 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 
 import cz.it4i.fiji.datastore.management.DataServerManager;
+import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
@@ -78,35 +80,15 @@ public class DatasetServerEndpoint implements Serializable {
 	@Inject
 	DataServerManager dataServerManager;
 
-	// @formatter:off
-	@Path("/{" + UUID + "}"
-			+ "/{" + R_X_PARAM + "}"
-			+ "/{" + R_Y_PARAM + "}"
-			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + "}"
-			+ "/{" + MODE_PARAM + "}")
-	// @formatter:on
+	@Path("/")
 	@GET
-	public Response confirm(@PathParam(UUID) String uuid,
-		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
-		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
-		@PathParam(MODE_PARAM) String mode)
+	@Produces(MediaType.APPLICATION_JSON)
+	public RootResponse getStatus()
 	{
-		log.debug("confirm> uuid={}", uuid);
-		java.util.UUID uuidTyped;
-		try {
-			uuidTyped = java.util.UUID.fromString(uuid);
-		}
-		catch (IllegalArgumentException exc) {
-			return Response.status(Status.BAD_REQUEST).encoding("uuid = " + uuid +
-				" has impropper format").build();
-		}
-		if (!dataServerManager.check(uuidTyped, version, mode)) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-		return Response.ok().entity(String.format(
-			"Dataset UUID=%s, version=%s, level=[%d,%d,%d] ready for %s.",
-			uuid, version, rX, rY, rZ, mode)).type(MediaType.TEXT_PLAIN).build();
+		return RootResponse.builder().uuid(dataServerManager.getUUID()).mode(
+			dataServerManager.getMode()).version(dataServerManager.getVersion())
+			.resolutionLevel(dataServerManager.getResolutionLevel()).serverTimeout(
+				dataServerManager.getServerTimeout()).build();
 	}
 
 	@TimeoutingRequest
@@ -287,5 +269,21 @@ public class DatasetServerEndpoint implements Serializable {
 			sb.append(time).append("/").append(channel).append("/").append(angle);
 			return sb.toString();
 		}
+	}
+
+	@Getter
+	@XmlRootElement
+	@Builder
+	static class RootResponse {
+
+		private final UUID uuid;
+
+		private final String version;
+
+		private final OperationMode mode;
+
+		private final int[] resolutionLevel;
+
+		private final Long serverTimeout;
 	}
 }
