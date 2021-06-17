@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import com.google.common.base.Strings;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -85,6 +87,25 @@ public class DatasetRegisterServiceImpl {
 			return null;
 		}
 		return DatasetAssembler.createDatatransferObject(dataset);
+	}
+
+	public String getCommonMetadata(String uuid) {
+		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
+		if (dataset == null) {
+			return null;
+		}
+		return Strings.nullToEmpty(dataset.getMetadata());
+	}
+
+	@Transactional
+	public boolean setCommonMetadata(String uuid, String commonMetadata) {
+		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
+		if (dataset == null) {
+			return false;
+		}
+		dataset.setMetadata(commonMetadata);
+		datasetDAO.persist(dataset);
+		return true;
 	}
 
 	private N5Description convert(DatasetDTO dataset) {

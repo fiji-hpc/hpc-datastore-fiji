@@ -37,11 +37,10 @@ public class TimeoutTimer {
 	@PostConstruct
 	public void init() {
 		timer = new Timer();
-		log.info("Init timeout timer.");
+		log.debug("Init timeout timer.");
 		scheduleTimer();
 	}
 
-	// TODO - make reschedule asynchronous or use set next timeout
 	public void scheduleTimer() {
 		long timeout = dataServerManager.getServerTimeout();
 		if (timeout <= 0) {

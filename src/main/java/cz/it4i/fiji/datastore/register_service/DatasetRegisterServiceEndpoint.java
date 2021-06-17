@@ -109,4 +109,30 @@ public class DatasetRegisterServiceEndpoint {
 		}
 		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
+
+	@GET
+	@Path("datasets/{" + UUID + "}/common-metadata")
+	public Response getCommonMetadate(@PathParam(UUID) String uuid) {
+		String result = datasetRegisterServiceImpl.getCommonMetadata(uuid);
+		if (result == null) {
+			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+				uuid + " not found.").build();
+		}
+		return Response.ok(result).type(MediaType.TEXT_PLAIN).build();
+	}
+
+	@POST
+	@Path("datasets/{" + UUID + "}/common-metadata")
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response getCommonMetadate(@PathParam(UUID) String uuid,
+		String commonMetadata)
+	{
+		boolean found = datasetRegisterServiceImpl.setCommonMetadata(uuid,
+			commonMetadata);
+		if (!found) {
+			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+				uuid + " not found.").build();
+		}
+		return Response.ok().build();
+	}
 }
