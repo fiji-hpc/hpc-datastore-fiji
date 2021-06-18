@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -47,6 +49,9 @@ public class DatasetRegisterServiceEndpoint {
 	public static final String VERSION_PARAMS = "versionParams";
 	public static final String MODE_PARAM = "mode";
 	public static final String TIMEOUT_PARAM = "timeout";
+	private static final String RESOLUTION_PARAM = "resolutionParam";
+	private static final Pattern URL_RESOLUTIONS_PATTERN = Pattern.compile(
+		"(\\p{Digit}+)/(\\p{Digit}+)/(\\p{Digit}+)");
 
 	@Inject
 	DatasetRegisterServiceImpl datasetRegisterServiceImpl;
@@ -57,7 +62,7 @@ public class DatasetRegisterServiceEndpoint {
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + ":[^-]+}" 
+			+ "/{" + VERSION_PARAM + "}" 
 			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
@@ -84,8 +89,6 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
 				"Starting throws exception").build();
 		}
-
-
 	}
 
 	@POST
@@ -165,7 +168,7 @@ public class DatasetRegisterServiceEndpoint {
 	
 	@GET
 	@Path("datasets/{" + UUID + "}/common-metadata")
-	public Response getCommonMetadate(@PathParam(UUID) String uuid) {
+	public Response getCommonMetadata(@PathParam(UUID) String uuid) {
 		String result = datasetRegisterServiceImpl.getCommonMetadata(uuid);
 		return Response.ok(result).type(MediaType.TEXT_PLAIN).build();
 	}
@@ -173,15 +176,58 @@ public class DatasetRegisterServiceEndpoint {
 	@POST
 	@Path("datasets/{" + UUID + "}/common-metadata")
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response setCommonMetadate(@PathParam(UUID) String uuid,
+	public Response setCommonMetadata(@PathParam(UUID) String uuid,
 		String commonMetadata)
 	{
 		datasetRegisterServiceImpl.setCommonMetadata(uuid, commonMetadata);
 		return Response.ok().build();
 	}
 
+//@formatter:off
+	@Path("datasets"
+		  + "/{" + UUID + "}"
+			+ "/{" + R_X_PARAM + "}"
+			+ "/{" + R_Y_PARAM + "}"
+			+ "/{" + R_Z_PARAM +	"}"
+			+ "{" + RESOLUTION_PARAM + ":/?.*}"
+			+ "/rebuild")
+// @formatter:on
+	@GET
+	public Response rebuild(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ,
+		@PathParam(RESOLUTION_PARAM) String resolutionString)
+	{
+		List<int[]> resolutions = new LinkedList<>();
+		resolutions.add(new int[] { rX, rY, rZ });
+		extract(resolutionString, resolutions);
+		try {
+			datasetRegisterServiceImpl.rebuild(uuid, resolutions);
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
+		return Response.ok().build();
+	}
+
+	private static void extract(String resolutionString,
+		List<int[]> resolutions)
+	{
+		Matcher matcher = URL_RESOLUTIONS_PATTERN.matcher(resolutionString);
+		while (matcher.find()) {
+			resolutions.add(new int[] { getInt(matcher, 1), getInt(matcher, 2),
+				getInt(matcher, 3) });
+		}
+
+	}
+
 	private static Collection<String> extractVersions(String versions) {
 		return Arrays.asList(versions.split("/"));
+	}
+
+	private static int getInt(Matcher matcher, int i) {
+		return Integer.parseInt(matcher.group(i));
 	}
 
 	private static Integer getVersion(String version) {

@@ -64,7 +64,7 @@ public class CreateNewDatasetTS {
 	public void run(Path path, N5Description dsc) throws IOException,
 		SpimDataException
 	{
-		Path pathToXML = getXMLPath(path, 0);
+		Path pathToXML = getXMLPath(path, DatasetFilesystemHandler.INITIAL_VERSION);
 
 		Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
 		SpimData data = createNew(pathToDir, dsc.voxelType, dsc.dimensions,

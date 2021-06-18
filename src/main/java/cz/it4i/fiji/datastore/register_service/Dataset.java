@@ -9,11 +9,14 @@ package cz.it4i.fiji.datastore.register_service;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import cz.it4i.fiji.datastore.BaseEntity;
 import lombok.AllArgsConstructor;
@@ -35,10 +38,12 @@ public class Dataset extends BaseEntity {
 	private UUID uuid;
 
 	@Getter
-	@Setter
 	@ElementCollection(targetClass = ResolutionLevel.class)
 	private Collection<ResolutionLevel> resolutionLevel;
 	
+	@Transient
+	private Map<String, ResolutionLevel> resolutionLevelIndex;
+
 	@Getter
 	@Setter
 	private String path;
@@ -103,13 +108,24 @@ public class Dataset extends BaseEntity {
 	@Setter
 	private String compression;
 
-	public int[] getBlockDimension(int[] resolution) {
+	public ResolutionLevel getResolutionLevel(int[] resolution) {
+		return getResolutionLevelIndex().get(Arrays.toString(resolution));
+	}
 
-		for (ResolutionLevel resLev : getResolutionLevel()) {
-			if (Arrays.equals(resolution, resLev.getResolutions())) {
-				return resLev.getBlockDimensions();
-			}
+	public int[] getBlockDimension(int[] resolution) {
+		ResolutionLevel rl = getResolutionLevel(resolution);
+		if (rl == null) {
+			return null;
 		}
-		return null;
+		return rl.getBlockDimensions();
+	}
+
+	private Map<String, ResolutionLevel> getResolutionLevelIndex() {
+		if (resolutionLevelIndex == null) {
+			resolutionLevelIndex = resolutionLevel.stream().collect(Collectors
+				.<ResolutionLevel, String, ResolutionLevel> toMap(rl -> Arrays.toString(
+					rl.getResolutions()), rl -> rl));
+		}
+		return resolutionLevelIndex;
 	}
 }

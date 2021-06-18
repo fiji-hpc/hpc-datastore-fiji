@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,8 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 @Default
 @RequestScoped
 public class DatasetRegisterServiceImpl {
+
+	private static final int[] IDENTITY_RESOLUTION = new int[] { 1, 1, 1 };
 
 	@Inject
 	ApplicationConfiguration configuration;
@@ -134,6 +138,59 @@ public class DatasetRegisterServiceImpl {
 		catch (IOException exc) {
 			throw new DataStoreException(exc);
 		}
+	}
+
+	public void rebuild(String uuid, List<int[]> resolutions) throws IOException {
+		Dataset dataset = getDataset(uuid);
+		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels =
+			getNonIdentityResolutions(dataset, resolutions);
+		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(dataset);
+		Collection<Integer> versions = dfh.getAllVersions();
+		mergeVersions(dataset, versions);
+		int minVersion = Collections.min(versions);
+		for (int ver : versions.stream().filter(ver -> ver > minVersion).collect(
+			Collectors.toList()))
+		{
+			dfh.deleteVersion(ver);
+		}
+		dfh.makeAsInitialVersion(minVersion);
+		rebuildResolutionLevels(dataset, resolutionLevels);
+	}
+
+	@SuppressWarnings("unused")
+	private void rebuildResolutionLevels(Dataset dataset,
+		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@SuppressWarnings("unused")
+	private void mergeVersions(Dataset dataset, Collection<Integer> versions) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private List<cz.it4i.fiji.datastore.register_service.ResolutionLevel>
+		getNonIdentityResolutions(Dataset dataset, List<int[]> resolutions)
+	{
+		return resolutions.stream().map(res -> getNonIdentityResolution(dataset,
+			res)).collect(Collectors.toList());
+	}
+
+	private cz.it4i.fiji.datastore.register_service.ResolutionLevel
+		getNonIdentityResolution(Dataset dataset, int[] res)
+	{
+		if (Arrays.equals(IDENTITY_RESOLUTION, res)) {
+			throw new IllegalArgumentException("Resolution [1,1,1] cannot be used.");
+		}
+		cz.it4i.fiji.datastore.register_service.ResolutionLevel result = dataset
+			.getResolutionLevel(res);
+		if (result == null) {
+			throw new NotFoundException("Resolution " + Arrays.toString(res) +
+				" not found in dataset " + dataset.getUuid());
+		}
+		return result;
 	}
 
 	private N5Description convert(DatasetDTO dataset) {

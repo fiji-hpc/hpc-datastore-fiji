@@ -16,6 +16,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -27,7 +28,11 @@ import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+
 public class DatasetFilesystemHandler {
+
+	public static final int INITIAL_VERSION = 0;
 
 	private static final Pattern WHOLE_NUMBER_PATTERN = Pattern.compile("\\d+");
 
@@ -42,6 +47,10 @@ public class DatasetFilesystemHandler {
 
 	public DatasetFilesystemHandler(String auuid, String path) {
 		this(auuid, Paths.get(path));
+	}
+
+	public DatasetFilesystemHandler(Dataset dataset) {
+		this(dataset.getUuid().toString(), dataset.getPath());
 	}
 
 	public int createNewVersion() throws IOException {
@@ -89,6 +98,12 @@ public class DatasetFilesystemHandler {
 
 	public int getLatestVersion() throws IOException {
 		return Collections.max(getAllVersions());
+	}
+
+	public void makeAsInitialVersion(int version) throws IOException {
+		Path versionPath = getBasePath(pathOfDataset, version);
+		Path initialVersionPath = getBasePath(pathOfDataset, INITIAL_VERSION);
+		Files.move(versionPath, initialVersionPath, StandardCopyOption.ATOMIC_MOVE);
 	}
 
 	public void deleteVersion(int version) throws IOException {
