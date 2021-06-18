@@ -11,6 +11,7 @@ package cz.it4i.fiji.datastore.register_service;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Getter;
 
@@ -20,6 +21,9 @@ public enum OperationMode {
 
 
 	private static Map<String, OperationMode> url2Mode = new HashMap<>();
+
+	private static final Set<OperationMode> WRITE_MODES = EnumSet.of(WRITE,
+		READ_WRITE);
 
 	public static OperationMode getByUrlPath(String requrestedURLPath) {
 		return url2Mode.getOrDefault(requrestedURLPath, NOT_SUPPORTED);
@@ -36,6 +40,10 @@ public enum OperationMode {
 
 	private OperationMode(String urlPath) {
 		this.urlPath = urlPath;
+	}
+
+	public boolean allowsWrite() {
+		return WRITE_MODES.contains(this);
 	}
 
 }

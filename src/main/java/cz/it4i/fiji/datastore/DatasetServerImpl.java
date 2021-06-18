@@ -11,7 +11,6 @@ package cz.it4i.fiji.datastore;
 import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
 
 import java.io.Closeable;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -25,6 +24,7 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -56,7 +56,9 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	UUID uuid;
 
-	private String version;
+	private int version;
+
+	private boolean mixedVersion;
 
 	private OperationMode mode;
 
@@ -64,12 +66,13 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private DatasetFilesystemHandler datasetFilesystemHandler;
 
-	public synchronized void init(UUID aUuid, int[] resolution, String aVersion,
-		OperationMode aMode) throws SpimDataException,
+	public synchronized void init(UUID aUuid, int[] resolution, int aVersion,
+		boolean aMixedVersion, OperationMode aMode) throws SpimDataException,
 		IOException
 	{
 		uuid = aUuid;
 		version = aVersion;
+		mixedVersion = aMixedVersion;
 		mode = aMode;
 		resolutionLevel = resolution;
 		datasetFilesystemHandler = new DatasetFilesystemHandler(uuid.toString(),
@@ -121,6 +124,9 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			.getAllVersions());
 		Collections.sort(versions);
 		for (Integer i : versions) {
+			if (i > version) {
+				continue;
+			}
 			result = new N5WriterItemOfChain(datasetFilesystemHandler.getWriter(i),
 				result);
 		}
@@ -128,33 +134,14 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	private N5Writer createN5Writer() throws IOException {
-		switch(version) {
-			case "latest":
-				return datasetFilesystemHandler.getWriter();
-			case "new":
-				if (mode == OperationMode.READ) {
-					illegalVersionAndModeCombination();
-				}
-				int newVersion = datasetFilesystemHandler.createNewVersion();
-				return datasetFilesystemHandler.getWriter(newVersion);
-			case "mixedLatest":
-				if (mode == OperationMode.WRITE) {
-					illegalVersionAndModeCombination();
-				}
-				return constructChainOfWriters();
-
-			default:
-				N5Writer result = datasetFilesystemHandler.getWriter(version);
-				if (result == null) {
-					versionNotFound();
-				}
-				return result;
+		if (mixedVersion) {
+			if (mode.allowsWrite()) {
+				throw new IllegalArgumentException("Write is not possible for mixed version");
+			}
+			return constructChainOfWriters();
 		}
-	}
+		return datasetFilesystemHandler.getWriter(version);
 
-	private void illegalVersionAndModeCombination() {
-		throw new IllegalArgumentException("" + mode +
-			" mode is not valid for version " + version);
 	}
 
 	private void readObject(java.io.ObjectInputStream in) throws IOException,
@@ -169,8 +156,8 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		}
 	}
 
-	private void versionNotFound() throws FileNotFoundException {
-		throw new FileNotFoundException("version " + version + " not found");
+	public static void versionNotFound(int version) {
+		throw new NotFoundException("version " + version + " not found");
 	}
 
 	private interface ExcludeReadWriteMethod {

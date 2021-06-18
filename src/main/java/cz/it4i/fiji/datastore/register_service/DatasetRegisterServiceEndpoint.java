@@ -61,7 +61,7 @@ public class DatasetRegisterServiceEndpoint {
 			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
-	public Response startRead(@PathParam(UUID) String uuid,
+	public Response startDatasetServer(@PathParam(UUID) String uuid,
 		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
 		@PathParam(MODE_PARAM) String modeName,
@@ -74,8 +74,8 @@ public class DatasetRegisterServiceEndpoint {
 				"mode (%s) not supported", modeName)).build();
 		}
 		try {
-			URL serverURL = datasetRegisterServiceImpl.start(java.util.UUID
-				.fromString(uuid), new int[] { rX, rY, rZ }, version, opMode, timeout);
+			URL serverURL = datasetRegisterServiceImpl.start(uuid, new int[] { rX, rY,
+				rZ }, version, opMode, timeout);
 			log.debug("start reading> timeout = {}", timeout);
 			return Response.temporaryRedirect(serverURL.toURI()).build();
 		}
@@ -149,7 +149,6 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(VERSION_PARAMS) String versions)
 	{
 		List<Integer> versionList = new LinkedList<>();
-
 		versionList.add(getVersion(version));
 		versionList.addAll(extractVersions(versions).stream().filter(e -> !e
 			.isEmpty()).map(DatasetRegisterServiceEndpoint::getVersion).collect(

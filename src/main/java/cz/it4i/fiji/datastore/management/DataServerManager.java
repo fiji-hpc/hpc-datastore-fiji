@@ -16,8 +16,8 @@ import cz.it4i.fiji.datastore.register_service.OperationMode;
 
 public interface DataServerManager {
 
-	URL startDataServer(UUID uuid, int[] r, String version, OperationMode mode,
-		Long timeout) throws IOException;
+	URL startDataServer(UUID uuid, int[] r, int version, boolean mixedVersions,
+		OperationMode mode, Long timeout) throws IOException;
 
 	void stopCurrentDataServer();
 
@@ -27,10 +27,12 @@ public interface DataServerManager {
 
 	int[] getResolutionLevel();
 
-	String getVersion();
+	int getVersion();
 
 	OperationMode getMode();
 
 	long getServerTimeout();
+
+	boolean isMixedVersion();
 
 }

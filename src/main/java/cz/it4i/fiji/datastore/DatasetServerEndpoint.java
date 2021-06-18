@@ -218,7 +218,8 @@ public class DatasetServerEndpoint implements Serializable {
 			}
 			datasetServer.init(dataServerManager.getUUID(), dataServerManager
 				.getResolutionLevel(), dataServerManager
-				.getVersion(), dataServerManager.getMode());
+					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
+						.getMode());
 			log.info("DatasetServer initialized");
 		}
 		catch (SpimDataException | IOException exc) {
@@ -278,7 +279,7 @@ public class DatasetServerEndpoint implements Serializable {
 
 		private final UUID uuid;
 
-		private final String version;
+		private final int version;
 
 		private final OperationMode mode;
 

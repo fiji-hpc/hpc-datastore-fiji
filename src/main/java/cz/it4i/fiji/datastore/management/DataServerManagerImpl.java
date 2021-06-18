@@ -19,12 +19,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.BeforeDestroyed;
@@ -32,7 +30,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
-import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import lombok.AllArgsConstructor;
@@ -55,6 +52,8 @@ class DataServerManagerImpl implements DataServerManager {
 
 	private static String PROPERTY_VERSION = "fiji.hpc.data_store.version";
 
+	private static String MIXED_VERSION = "fiji.hpc.data_store.mixed_version";
+
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
 	private Queue<Process> processes = new LinkedBlockingDeque<>();
@@ -68,21 +67,12 @@ class DataServerManagerImpl implements DataServerManager {
 	DatasetRepository datasetRepository;
 
 	@Override
-	public URL startDataServer(UUID uuid, int[] r, String version,
+	public URL startDataServer(UUID uuid, int[] r, int version,
+		boolean mixedVersion,
 		OperationMode mode,
 		Long timeout)
 		throws IOException
 	{
-		Optional<Dataset> dataset = datasetRepository.findByUUID(uuid);
-		if (!dataset.isPresent()) {
-			throw new IllegalArgumentException("Dataset with uuid=" + uuid +
-				" not exist on server.");
-		}
-		if (null == dataset.get().getBlockDimension(r)) {
-			throw new IllegalArgumentException("Dataset with UUID=" + uuid +
-				" has not resolution [" + IntStream.of(r).mapToObj(i -> "" + i)
-					.collect(Collectors.joining(",")) + "]");
-		}
 		Integer port = findRandomOpenPortOnAllLocalInterfaces();
 		ProcessBuilder pb = new ProcessBuilder().inheritIO();
 		List<String> commandAsList = new LinkedList<>();
@@ -95,7 +85,8 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
 				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))
 				.append("-D" + PROPERTY_VERSION + "=" + version)
-				.append("-D"+ PROPERTY_MODE +"=" + mode);
+				.append("-D"+ PROPERTY_MODE +"=" + mode)
+				.append("-D"+ MIXED_VERSION +"=" + mixedVersion);
 		if (timeout != null) {
 			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
 		}
@@ -173,8 +164,13 @@ class DataServerManagerImpl implements DataServerManager {
 	}
 
 	@Override
-	public String getVersion() {
-		return System.getProperty(PROPERTY_VERSION, "");
+	public int getVersion() {
+		return Integer.parseInt(System.getProperty(PROPERTY_VERSION, ""));
+	}
+
+	@Override
+	public boolean isMixedVersion() {
+		return Boolean.parseBoolean(System.getProperty(MIXED_VERSION, ""));
 	}
 
 	@Override

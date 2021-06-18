@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
@@ -40,6 +42,7 @@ import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
 import cz.it4i.fiji.datastore.DataStoreException;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import cz.it4i.fiji.datastore.DatasetServerImpl;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
@@ -113,11 +116,20 @@ public class DatasetRegisterServiceImpl {
 		datasetDAO.persist(dataset);
 	}
 
-	public URL start(UUID uuid, int[] r, String version, OperationMode mode,
+	public URL start(String uuid, int[] r, String version, OperationMode mode,
 		Long timeout) throws DataStoreException
 	{
+
+		Dataset dataset = getDataset(uuid);
+		if (null == dataset.getBlockDimension(r)) {
+			throw new NotFoundException("Dataset with UUID=" + uuid +
+				" has not resolution [" + IntStream.of(r).mapToObj(i -> "" + i).collect(
+					Collectors.joining(",")) + "]");
+		}
 		try {
-			return dataServerManager.startDataServer(uuid, r, version, mode, timeout);
+			int resolvedVersion = resolveVersion(dataset, version, mode);
+			return dataServerManager.startDataServer(dataset.getUuid(), r,
+				resolvedVersion, version.equals("mixedLatest"), mode, timeout);
 		}
 		catch (IOException exc) {
 			throw new DataStoreException(exc);
@@ -175,6 +187,48 @@ public class DatasetRegisterServiceImpl {
 			name2compression.put("XZ", new XzCompression());
 		}
 		return name2compression;
+	}
+
+	private void illegalVersionAndModeCombination(String version,
+		OperationMode mode)
+	{
+		throw new IllegalArgumentException("" + mode +
+			" mode is not valid for version " + version);
+	}
+
+	private int resolveVersion(Dataset dataset, String version,
+		OperationMode mode) throws IOException
+	{
+		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(dataset
+			.getUuid().toString(), dataset.getPath());
+		switch (version) {
+			case "latest":
+				return dfs.getLatestVersion();
+			case "new":
+				if (mode == OperationMode.READ) {
+					illegalVersionAndModeCombination(version, mode);
+				}
+				return dfs.createNewVersion();
+			case "mixedLatest":
+				if (mode == OperationMode.WRITE) {
+					illegalVersionAndModeCombination(version, mode);
+				}
+				return dfs.getLatestVersion();
+			default:
+				try {
+					int result = Integer.parseInt(version);
+					if (!dfs.getAllVersions().contains(result)) {
+						DatasetServerImpl.versionNotFound(result);
+					}
+					return result;
+				}
+				catch (NumberFormatException e) {
+					throw new IllegalArgumentException("version (" + version +
+						") is not valid.");
+				}
+
+		}
+
 	}
 
 }
