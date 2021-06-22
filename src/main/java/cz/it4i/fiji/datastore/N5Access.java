@@ -183,6 +183,7 @@ public class N5Access {
 		if (downsamplingResolutionsLevels.isEmpty()) {
 			return;
 		}
+		// TODO: down sampling
 		throw new UnsupportedOperationException(
 			"Downsampling is not supported yet. Levels for downsampling" +
 				ResolutionLevel.toString(downsamplingResolutionsLevels));

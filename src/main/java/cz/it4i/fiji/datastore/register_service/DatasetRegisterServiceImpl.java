@@ -158,7 +158,7 @@ public class DatasetRegisterServiceImpl {
 	private void rebuildResolutionLevels(Dataset dataset,
 		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
 	{
-		// TODO Auto-generated method stub
+		// TODO down sampling
 	}
 
 	private void mergeVersions(Dataset dataset) throws IOException {
