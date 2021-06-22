@@ -12,8 +12,8 @@
     <artifactId>hpc-datastore</artifactId>
 
     <version>0.0.1-SNAPSHOT</version>
-    <name>ToDO</name>
-    <description>ToDO.</description>
+    <name>HPCDataStore</name>
+    <description>HPCDataStore</description>
     <url>ToDO</url>
     <inceptionYear>2020</inceptionYear>
     <organization>
@@ -63,15 +63,9 @@
     <ciManagement>
         <system>none</system>
     </ciManagement>
-    <!-- <mailingLists> <mailingList> <name>Image.sc Forum</name> <archive>ToDo</archive> 
-        </mailingList> </mailingLists> <scm> <connection>scm:git:git://github.com/fiji-hpc/scijava-parallel</connection> 
-        <developerConnection>scm:git:git@github.com:fiji-hpc/scijava-parallel</developerConnection> 
-        <tag>HEAD</tag> <url>https://github.com/fiji-hpc/scijava-parallel</url> </scm> 
-        <issueManagement> <system>GitHub Issues</system> <url>https://github.com/fiji-hpc/scijava-parallel</url> 
-        </issueManagement> <ciManagement> <system>none</system> </ciManagement> -->
-    <!-- Add usual stuff as per SciJava projects -->
     <properties>
-        <package-name>ToDo</package-name>
+        <package-name>HPCDataStore</package-name>
+        <java.version>11</java.version>
         <license.licenseName>bsd_2</license.licenseName>
         <license.copyrightOwners>SciJava developers.</license.copyrightOwners>
 
@@ -87,6 +81,11 @@
         <derby.version>10.14.2.0</derby.version>
         <deltaspike.version>1.9.4</deltaspike.version>
         <stage>production</stage>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.testSource>${java.version}</maven.compiler.testSource>
+        <maven.compiler.testTarget>${java.version}</maven.compiler.testTarget>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
     </properties>
 
     <repositories>
@@ -414,11 +413,6 @@
                     <artifactId>xpp3_min</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
 			<groupId>net.imagej</groupId>
