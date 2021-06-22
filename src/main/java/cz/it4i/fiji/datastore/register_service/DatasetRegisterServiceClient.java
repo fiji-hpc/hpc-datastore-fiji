@@ -38,7 +38,7 @@ public interface DatasetRegisterServiceClient {
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + ":[^-]+}" 
+			+ "/{" + VERSION_PARAM + "}" 
 			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
@@ -47,4 +47,8 @@ public interface DatasetRegisterServiceClient {
 		@PathParam(R_Z_PARAM) int rZ, @PathParam(VERSION_PARAM) String version,
 		@PathParam(MODE_PARAM) String mode,
 		@QueryParam(TIMEOUT_PARAM) Long timeout);
+
+	@GET
+	@Path("datasets/{" + UUID + "}")
+	public Response queryDataset(@PathParam(UUID) String uuid);
 }

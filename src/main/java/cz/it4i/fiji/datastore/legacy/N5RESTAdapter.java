@@ -307,6 +307,13 @@ public class N5RESTAdapter {
 			this.uuid = uuid;
 		}
 
+		@Override
+		public void close() {
+			for (DatasetServerClient dsc : level2serverClient.values()) {
+				dsc.stopDataServer();
+			}
+		}
+
 		private synchronized DatasetRegisterServiceClient
 			getRegisterServiceClient()
 		{
@@ -324,12 +331,19 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					OperationMode.READ_WRITE.getUrlPath(), 10000l);
+					OperationMode.READ_WRITE.getUrlPath(), null);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,
 						DatasetServerClient.class);
 					level2serverClient.put(levelId, result);
+				}
+				else {
+					log.warn("Response for url /{}/{}/{}/{}/{}/{} was: {}", uuid,
+						resolutionLevel.getResolutions()[0], resolutionLevel
+							.getResolutions()[1], resolutionLevel.getResolutions()[2],
+						"latest", OperationMode.READ_WRITE.getUrlPath(), response
+							.getStatusInfo());
 				}
 			}
 			return result;

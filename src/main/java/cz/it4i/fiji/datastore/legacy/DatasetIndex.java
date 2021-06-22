@@ -18,8 +18,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
@@ -30,6 +34,8 @@ import org.janelia.saalfeldlab.n5.N5Writer;
 import cz.it4i.fiji.datastore.legacy.N5RESTAdapter.AngleChannelTimepoint;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
+import cz.it4i.fiji.rest.RESTClientFactory;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -72,9 +78,34 @@ final class DatasetIndex {
 	}
 
 	private synchronized UUID getUUID(Path datasetPath, URL serverURL) {
-		return datasetPath2UUID.get(getKey(datasetPath, serverURL));
+		UUID result = datasetPath2UUID.get(getKey(datasetPath, serverURL));
+		if (result == null) {
+			return null;
+		}
+		DatasetRegisterServiceClient client = RESTClientFactory.create(serverURL
+			.toString(), DatasetRegisterServiceClient.class);
+		Response response = client.queryDataset(result.toString());
+		if (response.getStatus() != Status.OK.getStatusCode()) {
+			datasetPath2UUID.remove(getKey(datasetPath, serverURL));
+			saveIndex();
+			return null;
+		}
+		return result;
 	}
 
+
+	private void saveIndex() {
+		Path filePath = getPath().resolve(DATA_STORE_INDEX_FILE);
+		try (BufferedWriter bw = Files.newBufferedWriter(filePath)) {
+			for (Entry<String, UUID> entry : datasetPath2UUID.entrySet()) {
+				bw.append(entry.getKey() + "=" + entry.getValue());
+				bw.newLine();
+			}
+		}
+		catch (IOException exc) {
+			log.error("saveIndex", exc);
+		}
+	}
 
 	private synchronized void loadIndex() {
 		Path filePath = getPath().resolve(DATA_STORE_INDEX_FILE);

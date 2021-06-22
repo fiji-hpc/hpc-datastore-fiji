@@ -37,7 +37,7 @@ public interface DatasetServerClient {
 	// @formatter:on
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response writeBlock(@PathParam(X_PARAM) long x,
+	Response writeBlock(@PathParam(X_PARAM) long x,
 		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
 		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
 		@PathParam(ANGLE_PARAM) int angle, byte[] data);
@@ -52,7 +52,7 @@ public interface DatasetServerClient {
 	//@formatter:on
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response readBlock(@PathParam(X_PARAM) long x,
+	Response readBlock(@PathParam(X_PARAM) long x,
 		@PathParam(Y_PARAM) long y, @PathParam(Z_PARAM) long z,
 		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
 		@PathParam(ANGLE_PARAM) int angle);
@@ -64,6 +64,10 @@ public interface DatasetServerClient {
 			+"/{" + ANGLE_PARAM +		"}")
 	// @formatter:on
 	@GET
-	public Response getType(@PathParam(TIME_PARAM) int time,
+	Response getType(@PathParam(TIME_PARAM) int time,
 		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle);
+
+	@POST
+	@Path("/stop")
+	Response stopDataServer();
 }

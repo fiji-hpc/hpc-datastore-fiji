@@ -282,7 +282,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		lastCompressionDefaultSettings = prefService.getBoolean(getClass(),
 			LAST_COMPRESSION_DEFAULT_SETTINGS, true);
 		lastServerURL = prefService.get(getClass(), LAST_SERVER_URL,
-			"http://localhost:9080");
+			"http://localhost:8080");
 	}
 
 	private void savePrefs() {

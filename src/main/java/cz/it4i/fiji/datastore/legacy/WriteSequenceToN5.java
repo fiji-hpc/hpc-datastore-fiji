@@ -173,9 +173,6 @@ public class WriteSequenceToN5
 				.map( BasicViewSetup::getId )
 				.collect( Collectors.toList() );
 
-		N5Writer n5 = writerSupplier.get();
-
-
 
 
 		// calculate number of tasks for progressWriter
@@ -187,6 +184,7 @@ public class WriteSequenceToN5
 		int numCompletedTasks = 0;
 
 		final ExecutorService executorService = Executors.newFixedThreadPool( numCellCreatorThreads );
+		N5Writer n5 = writerSupplier.get();
 		try
 		{
 			// write image data for all views
@@ -223,6 +221,11 @@ public class WriteSequenceToN5
 		finally
 		{
 			executorService.shutdown();
+			if (n5 instanceof N5WriterWithUUID) {
+				try (N5WriterWithUUID closable = (N5WriterWithUUID) n5) {
+					// only for close without operations
+				}
+			}
 		}
 
 		progressWriter.setProgress( 1.0 );

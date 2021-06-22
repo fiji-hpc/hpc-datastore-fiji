@@ -42,6 +42,9 @@ public class DatasetAssembler {
 	}
 
 	private static Resolution createDomainObject(DatasetDTO.Resolution dto) {
+		if (dto == null) {
+			return null;
+		}
 		return new Resolution(dto.value, dto.unit);
 	}
 	
