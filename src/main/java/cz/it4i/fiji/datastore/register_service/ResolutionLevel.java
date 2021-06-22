@@ -8,6 +8,9 @@
 package cz.it4i.fiji.datastore.register_service;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +19,11 @@ import lombok.Setter;
 public class ResolutionLevel implements Serializable {
 	
 	private static final long serialVersionUID = -4056930322974621510L;
+
+	public static String toString(List<int[]> res) {
+		return res.stream().map(r -> Arrays.toString(r)).collect(Collectors.joining(
+			";"));
+	}
 
 	@Getter
 	@Setter

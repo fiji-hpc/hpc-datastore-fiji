@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.BeforeDestroyed;
@@ -30,8 +30,10 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
+import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -68,61 +70,19 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, int version,
-		boolean mixedVersion,
-		OperationMode mode,
-		Long timeout)
+		boolean mixedVersions, OperationMode mode, Long timeout) throws IOException
+	{
+		return startDataServer(uuid, Arrays.asList(r), version, mixedVersions, mode,
+			timeout);
+	}
+
+	@Override
+	public URL startDataServer(UUID uuid, List<int[]> resolutions, Long timeout)
 		throws IOException
 	{
-		Integer port = findRandomOpenPortOnAllLocalInterfaces();
-		ProcessBuilder pb = new ProcessBuilder().inheritIO();
-		List<String> commandAsList = new LinkedList<>();
-		//@formatter:off
-		ListAppender<String> appender = new ListAppender<>(commandAsList)
-				.append("java")
-				.append("-Dquarkus.http.port=" + port)
-				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
-				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
-				.append("-D" + PROPERTY_UUID + "=" + uuid)
-				.append("-D" + PROPERTY_RESOLUTION + "=" + String.join(",", Arrays.stream(r).mapToObj(i -> ""+ i).collect(Collectors.toList())))
-				.append("-D" + PROPERTY_VERSION + "=" + version)
-				.append("-D"+ PROPERTY_MODE +"=" + mode)
-				.append("-D"+ MIXED_VERSION +"=" + mixedVersion);
-		if (timeout != null) {
-			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
-		}
-		
-		String classPath = System.getProperty("java.class.path");
-		if (classPath.endsWith("quarkus-run.jar")) {
-			appender
-			.append("-jar")
-			.append(classPath);
-		} else {
-			appender
-			.append("-cp")
-			.append(classPath)
-			.append(APP_CLASS);
-		}
-		//@formatter:on
-		
-		pb.command(commandAsList);
-		Process process = pb.start();
-		processes.add(process);
-		String result = String.format("http://%s:%d/", getHostName(), port);
-		log.info("waiting for server starts on {}", result);
-		while (true) {
-			try (Socket soc = new Socket(getHostName(), port)) {
-				break;
-			}
-			catch (IOException e) {
-				try {
-					Thread.sleep(WAIT_FOR_SERVER_TIMEOUT);
-				}
-				catch (InterruptedException exc) {
-					return null;
-				}
-			}
-		}
-		return new URL(result);
+		return startDataServer(uuid, resolutions,
+			DatasetFilesystemHandler.INITIAL_VERSION, false,
+			OperationMode.WRITE_TO_OTHER_RESOLUTIONS, timeout);
 	}
 
 	@Override
@@ -154,11 +114,19 @@ class DataServerManagerImpl implements DataServerManager {
 
 
 	@Override
-	public int[] getResolutionLevel() {
-		String[] tokens = System.getProperty(PROPERTY_RESOLUTION).split(",");
-		int[] result = new int[tokens.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = Integer.parseInt(tokens[i]);
+	public List<int[]> getResolutionLevels() {
+		String[] tokens = System.getProperty(PROPERTY_RESOLUTION).split(";");
+		List<int[]> result = new LinkedList<>();
+
+		for (String token : tokens) {
+			StringTokenizer stk = new StringTokenizer(token, "[,]"); // "[,]" is the
+																																// delimeter
+			int[] resolution = new int[stk.countTokens()];
+			int i = 0;
+			while (stk.hasMoreTokens()) {
+				resolution[i++] = Integer.parseInt(stk.nextToken().trim());
+			}
+			result.add(resolution);
 		}
 		return result;
 	}
@@ -217,6 +185,62 @@ class DataServerManagerImpl implements DataServerManager {
 		}
 	}
 
+	private URL startDataServer(UUID uuid, List<int[]> resolutions, int version,
+		boolean mixedVersion, OperationMode mode, Long timeout) throws IOException
+	{
+		Integer port = findRandomOpenPortOnAllLocalInterfaces();
+		ProcessBuilder pb = new ProcessBuilder().inheritIO();
+		List<String> commandAsList = new LinkedList<>();
+		//@formatter:off
+		ListAppender<String> appender = new ListAppender<>(commandAsList)
+				.append("java")
+				.append("-Dquarkus.http.port=" + port)
+				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
+				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
+				.append("-D" + PROPERTY_UUID + "=" + uuid)
+				.append("-D" + PROPERTY_RESOLUTION + "=" + ResolutionLevel.toString(resolutions))
+				.append("-D" + PROPERTY_VERSION + "=" + version)
+				.append("-D" + PROPERTY_MODE + "=" + mode);
+		if (mixedVersion) {
+				appender.append("-D"+ MIXED_VERSION +"=" + mixedVersion);
+		}
+		if (timeout != null) {
+			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
+		}
+		
+		String classPath = System.getProperty("java.class.path");
+		if (classPath.endsWith("quarkus-run.jar")) {
+			appender
+			.append("-jar")
+			.append(classPath);
+		} else {
+			appender
+			.append("-cp")
+			.append(classPath)
+			.append(APP_CLASS);
+		}
+		//@formatter:on
+
+		pb.command(commandAsList);
+		Process process = pb.start();
+		processes.add(process);
+		String result = String.format("http://%s:%d/", getHostName(), port);
+		log.info("waiting for server starts on {}", result);
+		while (true) {
+			try (Socket soc = new Socket(getHostName(), port)) {
+				break;
+			}
+			catch (IOException e) {
+				try {
+					Thread.sleep(WAIT_FOR_SERVER_TIMEOUT);
+				}
+				catch (InterruptedException exc) {
+					return null;
+				}
+			}
+		}
+		return new URL(result);
+	}
 
 
 	@AllArgsConstructor

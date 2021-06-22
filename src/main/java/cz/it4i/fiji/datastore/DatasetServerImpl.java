@@ -62,19 +62,19 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private OperationMode mode;
 
-	private int[] resolutionLevel;
+	private List<int[]> resolutionLevels;
 
 	private DatasetFilesystemHandler datasetFilesystemHandler;
 
-	public synchronized void init(UUID aUuid, int[] resolution, int aVersion,
-		boolean aMixedVersion, OperationMode aMode) throws SpimDataException,
-		IOException
+	public synchronized void init(UUID aUuid, List<int[]> resolutions,
+		int aVersion, boolean aMixedVersion, OperationMode aMode)
+		throws SpimDataException, IOException
 	{
 		uuid = aUuid;
 		version = aVersion;
 		mixedVersion = aMixedVersion;
 		mode = aMode;
-		resolutionLevel = resolution;
+		resolutionLevels = resolutions;
 		datasetFilesystemHandler = new DatasetFilesystemHandler(uuid.toString(),
 			configuration
 			.getDatasetPath(uuid));
@@ -93,7 +93,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		if (!READING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot read in mode: " + mode);
 		}
-		return n5Access.read(gridPosition, time, channel, angle, resolutionLevel);
+		return n5Access.read(gridPosition, time, channel, angle);
 	}
 
 	public void write(long[] gridPosition, int time, int channel, int angle,
@@ -102,19 +102,18 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		if (!WRITING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot write in mode: " + mode);
 		}
-		n5Access.write(gridPosition, time, channel, angle, resolutionLevel,
-			inputStream);
+		n5Access.write(gridPosition, time, channel, angle, inputStream);
 	}
 
 
-	public DataType getType(int time, int channel, int angle, int[] level) {
-		return n5Access.getType(time, channel, angle, level);
+	public DataType getType(int time, int channel, int angle) {
+		return n5Access.getType(time, channel, angle);
 	}
 
 	private void initN5Access() throws SpimDataException, IOException {
 		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid),
-			datasetFilesystemHandler.getLatestVersion()),
-			createN5Writer());
+			datasetFilesystemHandler.getLatestVersion()), createN5Writer(),
+			resolutionLevels, mode);
 	}
 
 	private N5Writer constructChainOfWriters() throws IOException {

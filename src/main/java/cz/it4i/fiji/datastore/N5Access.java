@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +27,9 @@ import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import bdv.img.n5.BdvN5Format;
+import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceImpl;
+import cz.it4i.fiji.datastore.register_service.OperationMode;
+import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -56,13 +61,11 @@ public class N5Access {
 		}
 	}
 
-
-
-
-
 	private N5Writer writer;
 	private SpimData spimData;
-
+	private OperationMode mode;
+	private int[] resolutionLevel;
+	private List<int[]> downsamplingResolutionsLevels;
 
 	public static DataBlock<?> constructDataBlock(long[] gridPosition,
 		InputStream inputStream, DataType dataType) throws IOException
@@ -83,11 +86,37 @@ public class N5Access {
 
 
 
-	public N5Access(Path pathToXML, N5Writer aWriter)
+	public N5Access(Path pathToXML, N5Writer aWriter,
+		List<int[]> aResolutionLevels, OperationMode aMode)
 		throws SpimDataException
 	{
+		if (aMode != OperationMode.NO_ACCESS) {
+			if (aResolutionLevels.size() < 1) {
+				new IllegalArgumentException(
+					"It is requireed at least on resolution level");
+			}
+			if (aResolutionLevels.size() > 1 &&
+				aMode != OperationMode.WRITE_TO_OTHER_RESOLUTIONS)
+			{
+				new IllegalArgumentException(
+					"Multiple resolutions is available only for " +
+						OperationMode.WRITE_TO_OTHER_RESOLUTIONS);
+
+			}
+		}
 		loadFromXML(pathToXML);
 		writer = aWriter;
+		if (aMode == OperationMode.WRITE_TO_OTHER_RESOLUTIONS ||
+			aMode == OperationMode.NO_ACCESS)
+		{
+			resolutionLevel = DatasetRegisterServiceImpl.IDENTITY_RESOLUTION;
+			downsamplingResolutionsLevels = aResolutionLevels;
+		}
+		else {
+			resolutionLevel = aResolutionLevels.get(0);
+			downsamplingResolutionsLevels = Collections.emptyList();
+		}
+		mode = aMode;
 	}
 
 	/**
@@ -97,14 +126,16 @@ public class N5Access {
 	 * @param time
 	 * @param channel
 	 * @param angle
-	 * @param resolutionLevel
 	 * @return readed ByteBuffer or null;
 	 * @throws IOException
 	 */
 	public DataBlock<?> read(long[] gridPosition, int time, int channel,
-		int angle,
-		int[] resolutionLevel) throws IOException
+		int angle) throws IOException
 	{
+		if (!mode.allowsRead()) {
+			throw new IllegalStateException("Mode " + mode +
+				" does not allow reading");
+		}
 		String path = getPath(spimData, writer, time, channel, angle,
 			resolutionLevel);
 		if (path == null) {
@@ -115,8 +146,12 @@ public class N5Access {
 	}
 
 	public void write(long[] gridPosition, int time, int channel, int angle,
-		int[] resolutionLevel, InputStream inputStream) throws IOException
+		InputStream inputStream) throws IOException
 	{
+		if (!mode.allowsWrite()) {
+			throw new IllegalStateException("Mode " + mode +
+				" does not allow writing");
+		}
 		String path = getPath(spimData, writer, time, channel, angle,
 			resolutionLevel);
 		DatasetAttributes attributes = writer.getDatasetAttributes(path);
@@ -124,13 +159,14 @@ public class N5Access {
 			inputStream);
 		checkBlockSize(dataBlock, attributes.getBlockSize());
 		writer.writeBlock(path, attributes, dataBlock);
+		writeBlockToOtherResolutions(dataBlock, gridPosition, time, channel, angle);
+
 	}
 
-	public DataType getType(int time, int channel, int angle,
-		int[] resolutionLevel)
+	public DataType getType(int time, int channel, int angle)
 	{
 		String path = getPath(spimData, writer, time, channel, angle,
-			resolutionLevel);
+			DatasetRegisterServiceImpl.IDENTITY_RESOLUTION);
 		try {
 			return writer.getDatasetAttributes(path).getDataType();
 		}
@@ -140,11 +176,21 @@ public class N5Access {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private void writeBlockToOtherResolutions(DataBlock<?> dataBlock,
+		long[] gridPosition, int time, int channel, int angle)
+	{
+		if (downsamplingResolutionsLevels.isEmpty()) {
+			return;
+		}
+		throw new UnsupportedOperationException(
+			"Downsampling is not supported yet. Levels for downsampling" +
+				ResolutionLevel.toString(downsamplingResolutionsLevels));
+	}
+
 	private void loadFromXML(Path path) throws SpimDataException {
 		spimData = new XmlIoSpimData().load(path.toString());
 	}
-
-
 
 	private void checkBlockSize(DataBlock<?> dataBlock, int[] blockSize) {
 		for (int i = 0; i < blockSize.length; i++) {
@@ -156,22 +202,16 @@ public class N5Access {
 		}
 	}
 
-
-
 	private String getDimension(int[] size) {
 		return IntStream.of(size).mapToObj(i -> "" + i).collect(Collectors.joining(
 			","));
 	}
-
-
 
 	private String getDimensionRange(final int min, int[] size) {
 		return IntStream.of(size).mapToObj(i -> min + "-" + i).collect(Collectors
 			.joining(
 			","));
 	}
-
-
 
 	private static DataBlock<?> constructDataBlock(long[] gridPosition,
 		DatasetAttributes attributes, InputStream inputStream) throws IOException

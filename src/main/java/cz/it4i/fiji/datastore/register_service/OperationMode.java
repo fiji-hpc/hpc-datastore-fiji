@@ -17,12 +17,18 @@ import lombok.Getter;
 
 public enum OperationMode {
 
-		READ_WRITE("read-write"), READ("read"), WRITE("write"), NOT_SUPPORTED("");
+
+		READ_WRITE("read-write"), READ("read"), WRITE("write"),
+		WRITE_TO_OTHER_RESOLUTIONS("not-in-url"), NO_ACCESS("no-access"),
+		NOT_SUPPORTED("");
 
 
 	private static Map<String, OperationMode> url2Mode = new HashMap<>();
 
 	private static final Set<OperationMode> WRITE_MODES = EnumSet.of(WRITE,
+		READ_WRITE, WRITE_TO_OTHER_RESOLUTIONS);
+
+	private static final Set<OperationMode> READ_MODES = EnumSet.of(READ,
 		READ_WRITE);
 
 	public static OperationMode getByUrlPath(String requrestedURLPath) {
@@ -31,6 +37,9 @@ public enum OperationMode {
 
 	static {
 		for (OperationMode i : EnumSet.allOf(OperationMode.class)) {
+			if (i == WRITE_TO_OTHER_RESOLUTIONS) {
+				continue;
+			}
 			url2Mode.put(i.urlPath, i);
 		}
 	}
@@ -46,4 +55,7 @@ public enum OperationMode {
 		return WRITE_MODES.contains(this);
 	}
 
+	public boolean allowsRead() {
+		return READ_MODES.contains(this);
+	}
 }

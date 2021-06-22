@@ -42,7 +42,6 @@ import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
-import cz.it4i.fiji.datastore.DataStoreException;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
 import cz.it4i.fiji.datastore.management.DataServerManager;
@@ -57,7 +56,7 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 @RequestScoped
 public class DatasetRegisterServiceImpl {
 
-	private static final int[] IDENTITY_RESOLUTION = new int[] { 1, 1, 1 };
+	public static final int[] IDENTITY_RESOLUTION = new int[] { 1, 1, 1 };
 
 	@Inject
 	ApplicationConfiguration configuration;
@@ -121,7 +120,7 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	public URL start(String uuid, int[] r, String version, OperationMode mode,
-		Long timeout) throws DataStoreException
+		Long timeout) throws IOException
 	{
 
 		Dataset dataset = getDataset(uuid);
@@ -130,30 +129,28 @@ public class DatasetRegisterServiceImpl {
 				" has not resolution [" + IntStream.of(r).mapToObj(i -> "" + i).collect(
 					Collectors.joining(",")) + "]");
 		}
-		try {
-			int resolvedVersion = resolveVersion(dataset, version, mode);
-			return dataServerManager.startDataServer(dataset.getUuid(), r,
-				resolvedVersion, version.equals("mixedLatest"), mode, timeout);
-		}
-		catch (IOException exc) {
-			throw new DataStoreException(exc);
-		}
+		int resolvedVersion = resolveVersion(dataset, version, mode);
+		return dataServerManager.startDataServer(dataset.getUuid(), r,
+			resolvedVersion, version.equals("mixedLatest"), mode, timeout);
+	}
+
+	public URL start(String uuid, List<int[]> resolutions, Long timeout)
+		throws IOException
+	{
+		Dataset dataset = getDataset(uuid);
+		// called only for checking that all resolutions exists
+		getNonIdentityResolutions(dataset, resolutions);
+		mergeVersions(dataset);
+		return dataServerManager.startDataServer(dataset.getUuid(), resolutions,
+			timeout);
+
 	}
 
 	public void rebuild(String uuid, List<int[]> resolutions) throws IOException {
 		Dataset dataset = getDataset(uuid);
 		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels =
 			getNonIdentityResolutions(dataset, resolutions);
-		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(dataset);
-		Collection<Integer> versions = dfh.getAllVersions();
-		mergeVersions(dataset, versions);
-		int minVersion = Collections.min(versions);
-		for (int ver : versions.stream().filter(ver -> ver > minVersion).collect(
-			Collectors.toList()))
-		{
-			dfh.deleteVersion(ver);
-		}
-		dfh.makeAsInitialVersion(minVersion);
+		mergeVersions(dataset);
 		rebuildResolutionLevels(dataset, resolutionLevels);
 	}
 
@@ -162,12 +159,18 @@ public class DatasetRegisterServiceImpl {
 		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
 	{
 		// TODO Auto-generated method stub
-
 	}
 
-	@SuppressWarnings("unused")
-	private void mergeVersions(Dataset dataset, Collection<Integer> versions) {
-		// TODO Auto-generated method stub
+	private void mergeVersions(Dataset dataset) throws IOException {
+		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(dataset);
+		Collection<Integer> versions = dfh.getAllVersions();
+		int minVersion = Collections.min(versions);
+		for (int ver : versions.stream().filter(ver -> ver > minVersion).collect(
+			Collectors.toList()))
+		{
+			dfh.deleteVersion(ver);
+		}
+		dfh.makeAsInitialVersion(minVersion);
 
 	}
 

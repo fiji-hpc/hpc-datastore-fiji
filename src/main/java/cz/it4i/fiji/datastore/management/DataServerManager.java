@@ -10,6 +10,7 @@ package cz.it4i.fiji.datastore.management;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.UUID;
 
 import cz.it4i.fiji.datastore.register_service.OperationMode;
@@ -19,13 +20,17 @@ public interface DataServerManager {
 	URL startDataServer(UUID uuid, int[] r, int version, boolean mixedVersions,
 		OperationMode mode, Long timeout) throws IOException;
 
+	URL startDataServer(UUID uuid, List<int[]> resolutions, Long timeout)
+		throws IOException;
+
+
 	void stopCurrentDataServer();
 
 	boolean check(UUID uuidTyped, String version, String mode);
 
 	UUID getUUID();
 
-	int[] getResolutionLevel();
+	List<int[]> getResolutionLevels();
 
 	int getVersion();
 

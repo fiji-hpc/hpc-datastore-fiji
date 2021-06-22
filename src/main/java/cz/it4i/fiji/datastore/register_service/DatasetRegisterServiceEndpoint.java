@@ -30,7 +30,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import cz.it4i.fiji.datastore.DataStoreException;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -84,11 +83,68 @@ public class DatasetRegisterServiceEndpoint {
 			log.debug("start reading> timeout = {}", timeout);
 			return Response.temporaryRedirect(serverURL.toURI()).build();
 		}
-		catch (DataStoreException | URISyntaxException exc) {
+		catch (IOException | URISyntaxException exc) {
 			log.error("Starting server", exc);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
 				"Starting throws exception").build();
 		}
+	}
+
+
+//@formatter:off
+	@Path("datasets"
+		  + "/{" + UUID + "}"
+			+ "/{" + R_X_PARAM + "}"
+			+ "/{" + R_Y_PARAM + "}"
+			+ "/{" + R_Z_PARAM +	"}"
+			+ "/{" + RESOLUTION_PARAM + ":[0-9]+/[0-9]+/[0-9]+/?.*}"
+			+ "/write") //TODO use write and merge with other start
+// @formatter:on
+	@GET
+	public Response startDatasetServer(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ,
+		@PathParam(RESOLUTION_PARAM) String resolutionString,
+		@QueryParam(TIMEOUT_PARAM) Long timeout)
+	{
+		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
+		try {
+			URL serverURL = datasetRegisterServiceImpl.start(uuid, resolutions,
+				timeout);
+			log.debug("start reading> timeout = {}", timeout);
+			return Response.temporaryRedirect(serverURL.toURI()).build();
+		}
+		catch (IOException | URISyntaxException exc) {
+			log.error("Starting server", exc);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+				"Starting throws exception").build();
+		}
+	}
+
+//@formatter:off
+	@Path("datasets"
+		  + "/{" + UUID + "}"
+			+ "/{" + R_X_PARAM + "}"
+			+ "/{" + R_Y_PARAM + "}"
+			+ "/{" + R_Z_PARAM +	"}"
+			+ "{" + RESOLUTION_PARAM + ":/?.*}"
+			+ "/rebuild")
+// @formatter:on
+	@GET
+	public Response rebuild(@PathParam(UUID) String uuid,
+		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
+		@PathParam(R_Z_PARAM) int rZ,
+		@PathParam(RESOLUTION_PARAM) String resolutionString)
+	{
+		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
+		try {
+			datasetRegisterServiceImpl.rebuild(uuid, resolutions);
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
+		return Response.ok().build();
 	}
 
 	@POST
@@ -183,32 +239,13 @@ public class DatasetRegisterServiceEndpoint {
 		return Response.ok().build();
 	}
 
-//@formatter:off
-	@Path("datasets"
-		  + "/{" + UUID + "}"
-			+ "/{" + R_X_PARAM + "}"
-			+ "/{" + R_Y_PARAM + "}"
-			+ "/{" + R_Z_PARAM +	"}"
-			+ "{" + RESOLUTION_PARAM + ":/?.*}"
-			+ "/rebuild")
-// @formatter:on
-	@GET
-	public Response rebuild(@PathParam(UUID) String uuid,
-		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
-		@PathParam(R_Z_PARAM) int rZ,
-		@PathParam(RESOLUTION_PARAM) String resolutionString)
+	public List<int[]> getResolutions(int rX, int rY, int rZ,
+		String resolutionString)
 	{
 		List<int[]> resolutions = new LinkedList<>();
 		resolutions.add(new int[] { rX, rY, rZ });
 		extract(resolutionString, resolutions);
-		try {
-			datasetRegisterServiceImpl.rebuild(uuid, resolutions);
-		}
-		catch (IOException exc) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
-				.getMessage()).build();
-		}
-		return Response.ok().build();
+		return resolutions;
 	}
 
 	private static void extract(String resolutionString,

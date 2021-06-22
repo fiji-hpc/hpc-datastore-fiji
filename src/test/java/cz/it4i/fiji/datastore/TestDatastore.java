@@ -67,7 +67,8 @@ public class TestDatastore {
 	public void writeReadOneBlock() {
 		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
 			"/1/1/1/new/write?timeout=10000");
-		assertEquals(307, result.getStatusCode(), "Should be redirected");
+		assertEquals(307, result.getStatusCode(), "Should be redirected but was " +
+			result.asString());
 
 		String redirectedURI = result.getHeader("Location");
 		
@@ -86,7 +87,7 @@ public class TestDatastore {
 		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType());
 		byte[] outputData = result.getBody().asByteArray();
-		assertArrayEquals(data, outputData);
+		assertArrayEquals(data, outputData, "Result was: " + result.asString());
 	}
 
 	@Test

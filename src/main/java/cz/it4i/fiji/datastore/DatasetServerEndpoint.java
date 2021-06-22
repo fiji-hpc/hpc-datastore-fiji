@@ -8,10 +8,6 @@
 
 package cz.it4i.fiji.datastore;
 
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_X_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Y_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.R_Z_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.UUID;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.X_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Y_PARAM;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Z_PARAM;
@@ -87,7 +83,7 @@ public class DatasetServerEndpoint implements Serializable {
 	{
 		return RootResponse.builder().uuid(dataServerManager.getUUID()).mode(
 			dataServerManager.getMode()).version(dataServerManager.getVersion())
-			.resolutionLevel(dataServerManager.getResolutionLevel()).serverTimeout(
+			.resolutionLevels(dataServerManager.getResolutionLevels()).serverTimeout(
 				dataServerManager.getServerTimeout()).build();
 	}
 
@@ -184,30 +180,21 @@ public class DatasetServerEndpoint implements Serializable {
 	}
 
 //@formatter:off
-	@Path("{" + UUID + "}"
-			+"/{" + R_X_PARAM + "}"
-			+"/{" + R_Y_PARAM + "}"
-			+"/{" + R_Z_PARAM +	"}"
-			+"/datatype"
+	@Path("/datatype"
 			+"/{" + TIME_PARAM + "}"
 			+"/{" + CHANNEL_PARAM + "}"
 			+"/{" + ANGLE_PARAM +		"}")
 	// @formatter:on
 	@GET
-	public Response getType(@PathParam(R_X_PARAM) int rX,
-		@PathParam(R_Y_PARAM) int rY, @PathParam(R_Z_PARAM) int rZ,
-		@PathParam(TIME_PARAM) int time, @PathParam(CHANNEL_PARAM) int channel,
-		@PathParam(ANGLE_PARAM) int angle)
+	public Response getType(@PathParam(TIME_PARAM) int time,
+		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle)
 	{
-		DataType dt = datasetServer.getType(time, channel, angle, new int[] { rX,
-			rY, rZ });
+		DataType dt = datasetServer.getType(time, channel, angle);
 		if (dt != null) {
 			return Response.ok(dt.toString()).build();
 		}
 		return Response.status(Status.NOT_FOUND).build();
 	}
-
-
 
 	@PostConstruct
 	void init() {
@@ -217,7 +204,7 @@ public class DatasetServerEndpoint implements Serializable {
 				return;
 			}
 			datasetServer.init(dataServerManager.getUUID(), dataServerManager
-				.getResolutionLevel(), dataServerManager
+				.getResolutionLevels(), dataServerManager
 					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
 						.getMode());
 			log.info("DatasetServer initialized");
@@ -283,7 +270,7 @@ public class DatasetServerEndpoint implements Serializable {
 
 		private final OperationMode mode;
 
-		private final int[] resolutionLevel;
+		private final List<int[]> resolutionLevels;
 
 		private final Long serverTimeout;
 	}
