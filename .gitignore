@@ -31,6 +31,10 @@ hs_err_pid*
 /result-DemonstrateParadigm.txt
 *.bak
 
+# Idea #
+.idea/
+*.iml
+
 /output*
 
 /ObjectStore/
@@ -38,3 +42,6 @@ hs_err_pid*
 uuid.txt
 export.xml
 cookies.txt
+
+# Vim #
+.*.sw*
