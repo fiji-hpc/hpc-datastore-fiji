@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.scijava.command.CommandModule;
 
-import cz.it4i.fiji.datastore.legacy.ExportSPIMAsN5PlugIn;
+import cz.it4i.fiji.datastore.ij.ExportSPIMAsN5PlugIn;
 
 @Disabled
 public class Fiji {

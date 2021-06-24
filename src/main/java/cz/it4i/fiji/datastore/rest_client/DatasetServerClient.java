@@ -5,14 +5,11 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore;
+package cz.it4i.fiji.datastore.rest_client;
 
-import static cz.it4i.fiji.datastore.DatasetServerEndpoint.ANGLE_PARAM;
-import static cz.it4i.fiji.datastore.DatasetServerEndpoint.CHANNEL_PARAM;
-import static cz.it4i.fiji.datastore.DatasetServerEndpoint.TIME_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.X_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Y_PARAM;
-import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.Z_PARAM;
+import static cz.it4i.fiji.datastore.rest_client.DatasetRegisterServiceClient.X_PARAM;
+import static cz.it4i.fiji.datastore.rest_client.DatasetRegisterServiceClient.Y_PARAM;
+import static cz.it4i.fiji.datastore.rest_client.DatasetRegisterServiceClient.Z_PARAM;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -24,8 +21,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/")
-public interface DatasetServerClient {
+interface DatasetServerClient {
 
+	static final String TIME_PARAM = "TIME";
+
+	static final String CHANNEL_PARAM = "CHANNEL";
+
+	static final String ANGLE_PARAM = "ANGLE";
+
+	static final String BLOCKS_PARAM = "BLOCKS";
 
 //@formatter:off
 	@Path("/{" + X_PARAM + "}"

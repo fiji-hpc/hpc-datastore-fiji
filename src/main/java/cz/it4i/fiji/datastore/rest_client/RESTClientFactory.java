@@ -6,7 +6,7 @@
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
 
-package cz.it4i.fiji.rest;
+package cz.it4i.fiji.datastore.rest_client;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;

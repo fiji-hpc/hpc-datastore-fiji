@@ -5,7 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore.register_service;
+package cz.it4i.fiji.datastore.rest_client;
 
 import java.util.List;
 

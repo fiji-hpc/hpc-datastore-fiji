@@ -1,5 +1,5 @@
 
-package cz.it4i.fiji.datastore.legacy;
+package cz.it4i.fiji.datastore.ij;
 
 import java.awt.Checkbox;
 import java.awt.TextField;
@@ -39,6 +39,9 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.spimdata.SequenceDescriptionMinimal;
+import cz.it4i.fiji.datastore.rest_client.DatasetIndex;
+import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
+import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;

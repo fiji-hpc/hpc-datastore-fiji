@@ -5,15 +5,17 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore.legacy;
+package cz.it4i.fiji.datastore.rest_client;
 
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -36,13 +38,7 @@ import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.export.ExportMipmapInfo;
-import cz.it4i.fiji.datastore.DatasetServerClient;
-import cz.it4i.fiji.datastore.N5Access;
-import cz.it4i.fiji.datastore.register_service.DatasetDTO;
-import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
-import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
-import cz.it4i.fiji.datastore.register_service.OperationMode;
-import cz.it4i.fiji.rest.RESTClientFactory;
+import cz.it4i.fiji.datastore.rest_client.DatasetDTO.ResolutionLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -57,6 +53,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 
 @Log4j2
 public class N5RESTAdapter {
+
 	public static String coordsAsString(long[] position) {
 		return LongStream.of(position).mapToObj(i -> "" + i).collect(
 			Collectors.joining(","));
@@ -126,7 +123,22 @@ public class N5RESTAdapter {
 		return result;
 	}
 
+	private static DataBlock<?> constructDataBlock(long[] gridPosition,
+		InputStream inputStream, DataType dataType) throws IOException
+	{
+		DataInputStream dis = new DataInputStream(inputStream);
+		int[] size = new int[3];
+		for (int i = 0; i < 3; i++) {
+			size[i] = dis.readInt();
+		}
 
+		DataBlock<?> block = dataType.createDataBlock(size, gridPosition);
+		byte[] buffer = new byte[block.getNumElements() * getSizeOfElement(
+			dataType)];
+		readFully(inputStream, buffer);
+		block.readData(ByteBuffer.wrap(buffer));
+		return block;
+	}
 
 	private static double[] dimensionsasArray(VoxelDimensions voxelSize) {
 		double[] result = new double[voxelSize.numDimensions()];
@@ -136,7 +148,44 @@ public class N5RESTAdapter {
 		return result;
 	}
 
+	private static int getSizeOfElement(DataType dataType) {
+		switch (dataType) {
+			case UINT8:
+			case INT8:
+				return 1;
+			case UINT16:
+			case INT16:
+				return 2;
+			case UINT32:
+			case INT32:
+			case FLOAT32:
+				return 4;
+			case UINT64:
+			case INT64:
+			case FLOAT64:
+				return 8;
+			default:
+				throw new IllegalArgumentException("Datatype " + dataType +
+					" not supported");
+		}
+	}
+
+	private static int readFully(InputStream in, byte[] b) throws IOException {
+		int n = 0;
+		while (n < b.length) {
+			int count = in.read(b, n, b.length - n);
+			if (count < 0) {
+				break;
+			}
+			n += count;
+		}
+		return n;
+	}
+
 	private class N5RESTWriter implements N5WriterWithUUID {
+
+		private static final String OPERATION_MODE = "read-write";
+
 		private final String url;
 
 		private UUID uuid;
@@ -194,7 +243,7 @@ public class N5RESTAdapter {
 				return null;
 			}
 			InputStream is = response.readEntity(InputStream.class);
-			return N5Access.constructDataBlock(gridPosition, is, dataType);
+			return constructDataBlock(gridPosition, is, dataType);
 		}
 
 		@Override
@@ -211,7 +260,7 @@ public class N5RESTAdapter {
 			ModifiedByteArrayOutputStream baos;
 			DataOutputStream os = new DataOutputStream(baos =
 				new ModifiedByteArrayOutputStream(
-					N5Access.getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
+					getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
 						.getNumElements() + dataBlock.getSize().length * Integer.BYTES));
 			for (int i = 0; i < dataBlock.getSize().length; i++) {
 				os.writeInt(dataBlock.getSize()[i]);
@@ -331,7 +380,7 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					OperationMode.READ_WRITE.getUrlPath(), null);
+					OPERATION_MODE, null);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,
@@ -342,7 +391,7 @@ public class N5RESTAdapter {
 					log.warn("Response for url /{}/{}/{}/{}/{}/{} was: {}", uuid,
 						resolutionLevel.getResolutions()[0], resolutionLevel
 							.getResolutions()[1], resolutionLevel.getResolutions()[2],
-						"latest", OperationMode.READ_WRITE.getUrlPath(), response
+						"latest", OPERATION_MODE, response
 							.getStatusInfo());
 				}
 			}

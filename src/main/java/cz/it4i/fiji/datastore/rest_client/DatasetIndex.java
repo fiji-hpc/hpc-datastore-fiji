@@ -5,7 +5,7 @@
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
  ******************************************************************************/
-package cz.it4i.fiji.datastore.legacy;
+package cz.it4i.fiji.datastore.rest_client;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -31,11 +31,8 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
-import cz.it4i.fiji.datastore.legacy.N5RESTAdapter.AngleChannelTimepoint;
-import cz.it4i.fiji.datastore.register_service.DatasetDTO;
-import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
-import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceClient;
-import cz.it4i.fiji.rest.RESTClientFactory;
+import cz.it4i.fiji.datastore.rest_client.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter.AngleChannelTimepoint;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -43,7 +40,7 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 
 @Log4j2
-final class DatasetIndex {
+public final class DatasetIndex {
 
 	private static final Path IMAGEJ_DIRECTORY = Paths.get(".imagej");
 	private static final Path DATA_STORE_DIRECTORY = Paths.get("hpc_datastore");

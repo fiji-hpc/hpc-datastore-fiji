@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package cz.it4i.fiji.datastore.legacy;
+package cz.it4i.fiji.datastore.rest_client;
 
 import static bdv.img.n5.BdvN5Format.getPathName;
 import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
