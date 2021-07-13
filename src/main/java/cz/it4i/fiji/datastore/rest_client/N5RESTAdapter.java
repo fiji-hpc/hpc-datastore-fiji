@@ -54,6 +54,8 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Log4j2
 public class N5RESTAdapter {
 
+	final static Long SERVER_TIMEOUT = 3600000l;
+
 	public static String coordsAsString(long[] position) {
 		return LongStream.of(position).mapToObj(i -> "" + i).collect(
 			Collectors.joining(","));
@@ -380,7 +382,7 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					OPERATION_MODE, null);
+					OPERATION_MODE, SERVER_TIMEOUT);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,
