@@ -79,6 +79,9 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 	private static final String LAST_SPIM_DATA = "LAST_SPIM_DATA";
 
+	private static final String LAST_DATASERVER_TIMEOUT =
+		"LAST_DATASERVER_TIMEOUT";
+
 	@SuppressWarnings("resource")
 	public static void main(final String[] args) {
 		new ImageJ();
@@ -114,44 +117,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		// TODO reimplement following
 		final Runnable clearCache = () -> {};
 		final boolean isVirtual = false;
-		/*final Runnable clearCache;
-		final boolean isVirtual = imp.getStack() != null && imp.getStack().isVirtual();
-		if ( isVirtual )
-		{
-			final VirtualStackImageLoader< ?, ?, ? > il;
-			switch ( imp.getType() )
-			{
-			case ImagePlus.GRAY8:
-				il = VirtualStackImageLoader.createUnsignedByteInstance( imp );
-				break;
-			case ImagePlus.GRAY16:
-				il = VirtualStackImageLoader.createUnsignedShortInstance( imp );
-				break;
-			case ImagePlus.GRAY32:
-			default:
-				il = VirtualStackImageLoader.createFloatInstance( imp );
-				break;
-			}
-			imgLoader = il;
-			clearCache = il.getCacheControl()::clearCache;
-		}
-		else
-		{
-			switch ( imp.getType() )
-			{
-			case ImagePlus.GRAY8:
-				imgLoader = ImageStackImageLoader.createUnsignedByteInstance( imp );
-				break;
-			case ImagePlus.GRAY16:
-				imgLoader = ImageStackImageLoader.createUnsignedShortInstance( imp );
-				break;
-			case ImagePlus.GRAY32:
-			default:
-				imgLoader = ImageStackImageLoader.createFloatInstance( imp );
-				break;
-			}
-			clearCache = () -> {};
-		}*/
+
 
 		ViewSetup viewSetupZero = params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered().get(0);
@@ -261,7 +227,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
 				params.compression, () -> datasetIndex.getWriter(Paths.get(
 					lastSPIMdata), params.serverURL, adapter.constructN5Writer(
-						params.serverURL.toString())), loopbackHeuristic, afterEachPlane,
+						params.serverURL.toString(), params.dataserverTimeout * 1000l)),
+				loopbackHeuristic, afterEachPlane,
 				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
 					0.95));
 			progressWriter.setProgress(1.0);
@@ -286,6 +253,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			LAST_COMPRESSION_DEFAULT_SETTINGS, true);
 		lastServerURL = prefService.get(getClass(), LAST_SERVER_URL,
 			"http://localhost:8080");
+		lastDataserverTimeout = prefService.getInt(getClass(),
+			LAST_DATASERVER_TIMEOUT, 60);
 	}
 
 	private void savePrefs() {
@@ -298,6 +267,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		prefService.put(getClass(), LAST_COMPRESSION_DEFAULT_SETTINGS,
 			lastCompressionDefaultSettings);
 		prefService.put(getClass(), LAST_SERVER_URL, lastServerURL);
+		prefService.put(getClass(), LAST_DATASERVER_TIMEOUT, lastDataserverTimeout);
 	}
 
 	protected static class Parameters {
@@ -314,9 +284,11 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		final SpimData spimData;
 
+		final int dataserverTimeout;
+
 		public Parameters(final boolean setMipmapManual, final int[][] resolutions,
 			final int[][] subdivisions, final URL serverURL,
-			final Compression compression, SpimData spimData)
+			final Compression compression, SpimData spimData, int aDataserverTimeout)
 		{
 			this.setMipmapManual = setMipmapManual;
 			this.resolutions = resolutions;
@@ -324,6 +296,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			this.serverURL = serverURL;
 			this.compression = compression;
 			this.spimData = spimData;
+			this.dataserverTimeout = aDataserverTimeout;
 		}
 	}
 
@@ -340,6 +313,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 	static boolean lastCompressionDefaultSettings = true;
 
 	static String lastServerURL = "http://localhost:9080";
+
+	static int lastDataserverTimeout = 60;
 
 	private static class ParameterConstructor {
 
@@ -374,6 +349,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 				gd.addMessage("");
 				gd.addStringField("Export_URL", lastServerURL, 25);
+				gd.addStringField("Timeout for Dataserver[s]", "" +
+					lastDataserverTimeout, 25);
 
 				tryLoadSPIMData(lastSPIMdata);
 				if (autoChunkSizes != null && autoSubsampling != null && !cManualMipmap
@@ -390,6 +367,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					gd.getNextString();
 					gd.getNextChoiceIndex();
 					gd.getNextBoolean();
+					gd.getNextString();
 					gd.getNextString();
 					
 					if (autoSubsampling != null && autoChunkSizes != null &&
@@ -424,7 +402,14 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				lastCompressionChoice = gd.getNextChoiceIndex();
 				lastCompressionDefaultSettings = gd.getNextBoolean();
 				lastServerURL = gd.getNextString();
-
+				String timeoutValue = gd.getNextString();
+				try {
+					lastDataserverTimeout = Integer.parseInt(timeoutValue);
+				}
+				catch (NumberFormatException x) {
+					IJ.showMessage("Cannot parse lastTimeout " + timeoutValue);
+					continue;
+				}
 				// parse mipmap resolutions and cell sizes
 				final int[][] resolutions = PluginHelper.parseResolutionsString(
 					lastSubsampling);
@@ -483,7 +468,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				if (compression == null) return null;
 
 				return new Parameters(lastSetMipmapManual, resolutions, subdivisions,
-					serverURL, compression, SPIMData);
+					serverURL, compression, SPIMData, lastDataserverTimeout);
 			}
 		}
 

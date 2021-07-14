@@ -54,7 +54,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 @Log4j2
 public class N5RESTAdapter {
 
-	final static Long SERVER_TIMEOUT = 3600000l;
+
 
 	public static String coordsAsString(long[] position) {
 		return LongStream.of(position).mapToObj(i -> "" + i).collect(
@@ -63,6 +63,8 @@ public class N5RESTAdapter {
 
 	public static final Pattern PATH = Pattern.compile(
 		"setup(\\p{Digit}+)/timepoint(\\p{Digit}+)/s(\\p{Digit}+)");
+
+	private static final long DEFAULT_DATASERVER_TIMEOUT = 60000l;
 
 	private final DatasetDTO dto;
 
@@ -99,8 +101,14 @@ public class N5RESTAdapter {
 	}
 
 	public N5WriterWithUUID constructN5Writer(String url) {
+		return constructN5Writer(url, DEFAULT_DATASERVER_TIMEOUT);
+	}
+
+	public N5WriterWithUUID constructN5Writer(String url,
+		long dataserverTimeout)
+	{
 		log.debug("constructN5Writer> url={}", url);
-		return new N5RESTWriter(url);
+		return new N5RESTWriter(url, dataserverTimeout);
 	}
 
 
@@ -202,9 +210,12 @@ public class N5RESTAdapter {
 		private final Map<String, DatasetAttributes> path2Attributes =
 			new HashMap<>();
 
-		public N5RESTWriter(String url) {
+		private long dataserverTimeout;
+
+		public N5RESTWriter(String url, long aDataserverTimeout) {
 			this.url = url;
 			this.uuid = readUUID();
+			this.dataserverTimeout = aDataserverTimeout;
 		}
 
 		private UUID readUUID() {
@@ -382,7 +393,7 @@ public class N5RESTAdapter {
 				Response response = getRegisterServiceClient().start(uuid.toString(),
 					resolutionLevel.getResolutions()[0], resolutionLevel
 						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
-					OPERATION_MODE, SERVER_TIMEOUT);
+					OPERATION_MODE, dataserverTimeout);
 				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					String uri = response.getLocation().toString();
 					result = RESTClientFactory.create(uri,
