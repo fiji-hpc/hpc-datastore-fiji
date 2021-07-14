@@ -173,7 +173,7 @@ public final class DatasetIndex {
 	}
 
 
-	private class N5WriterFilter implements N5Writer {
+	private class N5WriterFilter implements N5WriterWithUUID {
 
 		@Delegate(excludes = N5WriterExcludes.class)
 		private final N5WriterWithUUID innerWriter;
