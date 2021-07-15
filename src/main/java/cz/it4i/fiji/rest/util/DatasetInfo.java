@@ -95,7 +95,7 @@ public class DatasetInfo {
 
 		public void setDimensions(final List<Integer> fullResDims) {
 			for (int d = 0; d < 3; ++d)
-				dimensions[d] = (int)Math.ceil( (double)fullResDims.get(d) / (double)resolutions.get(d) );
+				dimensions[d] = (int)Math.floor( (double)fullResDims.get(d) / (double)resolutions.get(d) );
 		}
 
 		@Override

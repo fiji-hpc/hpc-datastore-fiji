@@ -46,7 +46,7 @@ public class ReadIntoImagePlus extends ImagePlus {
 			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
 			final int[] shortedBlockSize = new int[3];
 			for (int d = 0; d < 3; ++d) {
-				shortedBlockSize[d] = di.dimensions.get(d) % blockSize[d];
+				shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
 				if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
 			}
 			final boolean[] shortedBlockFlag = new boolean[3];
