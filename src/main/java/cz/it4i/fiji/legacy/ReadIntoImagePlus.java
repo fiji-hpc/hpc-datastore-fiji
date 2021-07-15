@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read ImagePlus")
-public class ReadIntoImagePlus extends ImagePlus {
+public class ReadIntoImagePlus extends ImagePlusDialogHandler {
 	@Parameter(type = ItemIO.OUTPUT)
 	public Dataset outDatasetImg;
 

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, headless = true)
-abstract class ImagePlus extends DynamicCommand {
+abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that needs to be supplied =========
 	@Parameter(label = "URL of a DatasetsRegisterService:", required = true, visibility = ItemVisibility.INVISIBLE)
 	public String URL;
