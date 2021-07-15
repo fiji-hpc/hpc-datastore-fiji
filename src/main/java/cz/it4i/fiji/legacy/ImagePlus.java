@@ -26,6 +26,9 @@ abstract class ImagePlus extends DynamicCommand {
 	@Parameter(label = "UUID of a dataset on that service:", required = true, visibility = ItemVisibility.INVISIBLE)
 	public String datasetID;
 
+	@Parameter(label = "Access regime:")
+	public String accessRegime;
+
 	@Parameter
 	public LogService mainLogger;
 	protected Logger myLogger;
@@ -113,9 +116,6 @@ abstract class ImagePlus extends DynamicCommand {
 	@Parameter(label = "Available versions:", choices = {""})
 	public String versionAsStr = "0";
 
-	@Parameter(label = "Access regime:", choices = {"read","write","read-write"})
-	public String accessRegime = "read";
-
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity.")
 	public int timeout = 30000;
@@ -151,9 +151,11 @@ abstract class ImagePlus extends DynamicCommand {
 			matchResLevel();
 
 			final List<String> versions = di.versions.stream().map(Object::toString).collect(Collectors.toList());
-			versions.add(0,"new");
-			versions.add("latest");
-			versions.add("mixedLatest");
+			if (accessRegime.equals("write")) versions.add(0,"new");
+			if (accessRegime.equals("read")) {
+				versions.add("latest");
+				versions.add("mixedLatest");
+			}
 			getInfo().getMutableInput("versionAsStr",String.class).setChoices(versions);
 
 			maxX = currentResLevel.dimensions[0]; //rangeSpatial will adjust potentially
