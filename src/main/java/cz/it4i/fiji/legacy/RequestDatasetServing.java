@@ -12,10 +12,12 @@ import org.scijava.plugin.Plugin;
  */
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Request Dataset Serving")
 public class RequestDatasetServing implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:",
+			description = "IPaddress:portNumber or hostname:portNumber, always without http://")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:")
+	@Parameter(label = "UUID of a dataset on that service:",
+			description = "A dataset name that one just needs to know, the Service is not listing available dataset names.")
 	public String datasetID;
 
 	@Parameter
