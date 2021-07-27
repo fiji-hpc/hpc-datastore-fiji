@@ -1,0 +1,1 @@
+run("Read Into Image", "url=192.168.3.130:9080 datasetid=8f0d0593-7f4a-4290-85b2-2890e57ba261 accessregime=read minx=0 maxx=63 miny=0 maxy=63 minz=0 maxz=63 timepoints=2 channels=0 angles=0 resolutionLevelsAsStr=[1,1,1] versionAsStr=0 timeout=30000");
