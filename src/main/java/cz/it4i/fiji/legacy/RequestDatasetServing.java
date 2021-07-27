@@ -28,6 +28,12 @@ public class RequestDatasetServing implements Command {
 
 	@Override
 	public void run() {
-		cs.run(ReadIntoImagePlus.class,true,"URL",URL,"datasetID",datasetID,"accessRegime",accessRegime);
+		if (accessRegime.equals("read-write")) {
+			System.out.println("Not implemented yet. Sorry.");
+			return;
+		}
+
+		Class<? extends Command> clazz = accessRegime.equals("read") ? ReadIntoImagePlus.class : WriteFromImagePlus.class;
+		cs.run(clazz,true,"URL",URL,"datasetID",datasetID,"accessRegime",accessRegime);
 	}
 }

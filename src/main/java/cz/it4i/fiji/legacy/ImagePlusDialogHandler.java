@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
 @Plugin(type = Command.class, headless = true)
 abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that needs to be supplied =========
-	@Parameter(label = "URL of a DatasetsRegisterService:", required = true, visibility = ItemVisibility.INVISIBLE)
+	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:", required = true, visibility = ItemVisibility.INVISIBLE)
+	@Parameter(label = "UUID of a dataset on that service:")
 	public String datasetID;
 
 	@Parameter(label = "Access regime:")
@@ -293,5 +293,16 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		if (given != expected)
 			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
 					+ "the expected block size "+expected+" px.");
+	}
+
+	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
+		if (versionAsStr.equals("new") && accessRegime.startsWith("read")) {
+			myLogger.warn("Cannot _create and write new_ version when intending to _read_ from a dataset.");
+			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
+		}
+		if (versionAsStr.contains("atest") && accessRegime.contains("write")) {
+			myLogger.warn("Cannot _read "+versionAsStr+"_ version when intending to _write_ into a dataset.");
+			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
+		}
 	}
 }
