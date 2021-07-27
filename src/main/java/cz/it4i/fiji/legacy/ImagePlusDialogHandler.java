@@ -121,6 +121,10 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public int timeout = 30000;
 
 	protected DatasetInfo di;
+
+	/** this acts as a c'tor: it is called when the dialog is initialized to retrieve dataset
+	    parameters to know how to populate/setup this dialog's choice boxes and bounds...
+	    which is why it requires 'URL' and 'datasetID' to be for sure set in advance */
 	protected void readInfo() {
 		try {
 			//logging facility
@@ -174,7 +178,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= connect and request image server =========
 	/** starts DatasetServer and returns an URL on it, or null if something has failed */
 	protected String requestDatasetServer() {
-		myLogger.info("Going to construct legacy ImageJ image as:");
+		myLogger.info("Going to deal with a legacy ImageJ image:");
 		myLogger.info("["+minX+"-"+maxX+"] x "
 				+ "["+minY+"-"+maxY+"] x "
 				+ "["+minZ+"-"+maxZ+"], that is "
@@ -183,7 +187,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+ " timepoint,channel,angle");
 		myLogger.info("  at "+currentResLevel);
 		myLogger.info("  at version "+versionAsStr);
-		myLogger.info("from dataset "+datasetID+" from "+URL);
+		myLogger.info("from dataset "+datasetID+" from "+URL+" for "+accessRegime);
 
 		final StringBuilder urlFirstGo = new StringBuilder();
 		urlFirstGo.append("http://"+URL+"/datasets/"+datasetID+"/");
@@ -225,6 +229,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	// ========= spatial bounds checking and adjusting =========
 	private final int[] spatialDimBackup = {minX,maxX,minY,maxY,minZ,maxZ};
+
 	private void rangeSpatial(int cn,int cx, int nI,int xI, int blockSize, int maxx) {
 		//shortcuts, also note cX = currentX
 		int min = spatialDimBackup[nI];
@@ -253,6 +258,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		spatialDimBackup[nI] = min;
 		spatialDimBackup[xI] = max;
 	}
+
 	protected void rangeSpatialX() {
 		if (currentResLevel == null) return;
 
@@ -261,6 +267,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		minX = spatialDimBackup[0];
 		maxX = spatialDimBackup[1];
 	}
+
 	protected void rangeSpatialY() {
 		if (currentResLevel == null) return;
 
@@ -269,6 +276,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		minY = spatialDimBackup[2];
 		maxY = spatialDimBackup[3];
 	}
+
 	protected void rangeSpatialZ() {
 		if (currentResLevel == null) return;
 		rangeSpatial(minZ,maxZ,4,5,
@@ -276,6 +284,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		minZ = spatialDimBackup[4];
 		maxZ = spatialDimBackup[5];
 	}
+
 
 	// ========= other bounds checking and adjusting =========
 	protected void rangeTPs() {

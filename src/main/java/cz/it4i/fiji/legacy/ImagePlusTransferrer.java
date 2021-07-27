@@ -17,7 +17,8 @@ import cz.it4i.fiji.legacy.util.Imglib2Types;
 
 public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
-	public <T extends NativeType<T> & RealType<T>> Dataset readWithAType() {
+	public <T extends NativeType<T> & RealType<T>>
+	Dataset readWithAType() {
 		//future return value
 		Dataset outDatasetImg = null;
 
@@ -26,10 +27,11 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			final Img<T> img = th.createPlanarImgFactory().create(maxX-minX+1,maxY-minY+1,maxZ-minZ+1);
 
 			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
-			final byte[] header = new byte[12];
 
-			//one shared read buffer to be re-used (to reduce calls to the operator 'new')
+			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
+			final byte[] header = new byte[12];
+			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header);
 
 			//the expected block sizes for sanity checking of the incoming blocks
 			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
@@ -62,10 +64,10 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						//retrieve the block header (which contains block size)
 						if (dataSrc.read(header,0,12) != 12)
 							throw new IOException("Failed reading full block header");
-						final ByteBuffer bb = ByteBuffer.wrap(header);
-						final int bx = bb.getInt();
-						final int by = bb.getInt();
-						final int bz = bb.getInt();
+						wrapperOfHeader.rewind();
+						final int bx = wrapperOfHeader.getInt();
+						final int by = wrapperOfHeader.getInt();
+						final int bz = wrapperOfHeader.getInt();
 						final int blockLength = bx*by*bz * th.nativeAndRealType.getBitsPerPixel()/8;
 
 						myLogger.info(" +- block says size: "+bx+" x "+by+" x "+bz
@@ -80,7 +82,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						if (blockLength > pxData.length)
 							pxData = new byte[blockLength];
 
-						//(eventually) read the block fully
+						//(eventually) read the buffer (aka block) fully
 						int readSoFar = 0;
 						while (readSoFar < blockLength) {
 							//wait for data in a semi-busy wait
@@ -97,7 +99,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						}
 						myLogger.info(" +- read "+readSoFar+" Bytes");
 
-						//copy the just-stored block content into the image
+						//copy the just-obtained buffer into the image block
 						th.blockIntoImgInterval(pxData, bx*by*bz, Views.interval(img,
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+bx-1, y-minY+by-1, z-minZ+bz-1}));
@@ -119,15 +121,17 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		return outDatasetImg;
 	}
 
-	public <T extends NativeType<T> & RealType<T>> void writeWithAType(final Dataset inDatasetImg) {
+
+	public <T extends NativeType<T> & RealType<T>>
+	void writeWithAType(final Dataset inDatasetImg) {
 		try {
 			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(di.voxelType);
 			final Img<T> img = th.createPlanarImgFactory().create(maxX-minX+1,maxY-minY+1,maxZ-minZ+1);
 
 			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
-			final byte[] header = new byte[12];
 
-			//one shared read buffer to be re-used (to reduce calls to the operator 'new')
+			//shared buffers to be re-used (to reduce calls to the operator 'new')
+			final byte[] header = new byte[12];
 			byte[] pxData = new byte[0];
 
 			//the expected block sizes for sanity checking of the incoming blocks
