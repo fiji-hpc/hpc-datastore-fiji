@@ -11,10 +11,12 @@ import net.imglib2.type.numeric.RealType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
 
@@ -55,7 +57,67 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	// ----------------------------------------------
 	// transfer controls
 	int fullBlockByteSize;
+	int maxOneReadTransferByteSize  = 1 << 27; //128 MB
+	int maxOneWriteTransferByteSize = 1 << 23; //8 MB
+	//NB: server fails to receive larger, consider using here HttpURLConnection.setFixedLengthStreamingMode
 
+	static class OneTransfer {
+		public OneTransfer(final String URL, final int noOfBlocks) {
+			this.URL = URL;
+			this.noOfBlocks = noOfBlocks;
+		}
+		public final String URL;
+		public final int noOfBlocks;
+	}
+	final List<OneTransfer> transferPlan = new LinkedList<>();
+
+	void setupTransferPlan(final int maxTransferByteSize) {
+		final String baseURL = requestDatasetServer();
+		final int maxBlocks = maxTransferByteSize / fullBlockByteSize;
+
+		if (maxBlocks == 0)
+			throw new IllegalStateException("Given max transfer size "+maxTransferByteSize
+					+" Bytes cannot host blocks of max size "+fullBlockByteSize+" Bytes");
+
+		transferPlan.clear();
+		StringBuilder currentURL = null;
+		int currentBlocksCnt = maxBlocks;
+
+		//iterate over the blocks and build up the request URLs
+		for (int z = minZ; z <= maxZ; z += blockSize[2])
+			for (int y = minY; y <= maxY; y += blockSize[1])
+				for (int x = minX; x <= maxX; x += blockSize[0]) {
+					//time to start a new URL?
+					if (currentBlocksCnt == maxBlocks) {
+						//save old?
+						if (currentURL != null)
+							transferPlan.add( new OneTransfer(currentURL.toString(),currentBlocksCnt) );
+
+						//start new
+						currentURL = new StringBuilder(baseURL);
+						currentBlocksCnt = 0;
+					}
+
+					currentURL.append(x/blockSize[0]+"/"
+							+ y/blockSize[1]+"/"
+							+ z/blockSize[2]+"/"
+							+ timepoints+"/"
+							+ channels+"/"
+							+ angles+"/");
+					++currentBlocksCnt;
+				}
+
+		//add also the last one
+		transferPlan.add( new OneTransfer(currentURL.toString(),currentBlocksCnt) );
+	}
+
+	void printTransferPlan() {
+		for (OneTransfer t : transferPlan)
+			myLogger.info(t.noOfBlocks+" blocks from "+t.URL);
+	}
+
+
+	// ----------------------------------------------
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
 		//future return value
@@ -67,6 +129,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 			//the expected block sizes for sanity checking of the incoming blocks
 			setupBlockSizes(th);
+			setupTransferPlan(maxOneReadTransferByteSize);
+			printTransferPlan();
 			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
@@ -173,6 +237,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 			//the expected block sizes for reporting
 			setupBlockSizes(th);
+			setupTransferPlan(maxOneWriteTransferByteSize);
+			printTransferPlan();
 			final HttpURLConnection connection = (HttpURLConnection) new URL(requestDatasetServer()).openConnection();
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
