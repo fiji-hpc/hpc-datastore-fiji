@@ -68,6 +68,11 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		}
 		public final String URL;
 		public final int noOfBlocks;
+
+		@Override
+		public String toString() {
+			return (this.noOfBlocks+" blocks from "+this.URL);
+		}
 	}
 	final List<OneTransfer> transferPlan = new LinkedList<>();
 
@@ -113,7 +118,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 	void printTransferPlan() {
 		for (OneTransfer t : transferPlan)
-			myLogger.info(t.noOfBlocks+" blocks from "+t.URL);
+			myLogger.info("Planning "+t);
 	}
 
 
@@ -150,6 +155,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						//start a new data transfer connection
 						if (remainingBlocks == 0) {
 							OneTransfer t = transferPlan.remove(0);
+							myLogger.info("=========================");
+							myLogger.info("Downloading "+t);
 							dataSrc = new URL(t.URL).openStream();
 							remainingBlocks = t.noOfBlocks;
 						}
@@ -270,12 +277,14 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						if (remainingBlocks == 0) {
 							//earlier connection? -> finish it up
 							if (connection != null) {
-								myLogger.info("transferring starts");
+								myLogger.info("=== transferring starts");
 								connection.getInputStream();
-								myLogger.info("transferring ends");
+								myLogger.info("=== transferring ends");
 							}
 
 							OneTransfer t = transferPlan.remove(0);
+							myLogger.info("=========================");
+							myLogger.info("Uploading "+t);
 							connection = (HttpURLConnection) new URL(t.URL).openConnection();
 							connection.setRequestMethod("POST");
 							connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
@@ -329,10 +338,10 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
 						totalData += blockLength;
 					}
-			myLogger.info("transferring "+totalData+" Bytes ("+(totalData>>20)
+			myLogger.info("=== transferring "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 			connection.getInputStream();
-			myLogger.info("transferring ends");
+			myLogger.info("=== transferring ends");
 
 		} catch (NoSuchElementException e) {
 			myLogger.error("Unrecognized voxel type: " + e.getMessage());
