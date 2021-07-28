@@ -6,7 +6,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read Into Image")
+@Plugin(type = Command.class, headless = true)
 public class ReadIntoImagePlus extends ImagePlusTransferrer implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	public Dataset outDatasetImg;
