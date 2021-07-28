@@ -20,11 +20,20 @@ public class RequestDatasetServing implements Command {
 			description = "A dataset name that one just needs to know, the Service is not listing available dataset names.")
 	public String datasetID;
 
+	@Parameter(label = "Access regime:", choices = {"read","write","read-write"})
+	public String accessRegime;
+
 	@Parameter
 	public CommandService cs;
 
 	@Override
 	public void run() {
-		cs.run(ReadIntoImagePlus.class,true,"URL",URL,"datasetID",datasetID,"accessRegime","read");
+		if (accessRegime.equals("read-write")) {
+			System.out.println("Not implemented yet. Sorry.");
+			return;
+		}
+
+		Class<? extends Command> clazz = accessRegime.equals("read") ? ReadIntoImagePlus.class : WriteFromImagePlus.class;
+		cs.run(clazz,true,"URL",URL,"datasetID",datasetID,"accessRegime",accessRegime);
 	}
 }

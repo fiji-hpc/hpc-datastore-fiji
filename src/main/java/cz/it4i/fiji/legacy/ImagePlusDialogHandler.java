@@ -18,13 +18,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, headless = true)
-abstract class ImagePlus extends DynamicCommand {
+abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that needs to be supplied =========
-	@Parameter(label = "URL of a DatasetsRegisterService:", required = true, visibility = ItemVisibility.INVISIBLE)
+	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:", required = true, visibility = ItemVisibility.INVISIBLE)
+	@Parameter(label = "UUID of a dataset on that service:")
 	public String datasetID;
+
+	@Parameter(label = "Access regime:")
+	public String accessRegime;
 
 	@Parameter
 	public LogService mainLogger;
@@ -113,14 +116,15 @@ abstract class ImagePlus extends DynamicCommand {
 	@Parameter(label = "Available versions:", choices = {""})
 	public String versionAsStr = "0";
 
-	@Parameter(label = "Access regime:", choices = {"read","write","read-write"})
-	public String accessRegime = "read";
-
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity.")
 	public int timeout = 30000;
 
 	protected DatasetInfo di;
+
+	/** this acts as a c'tor: it is called when the dialog is initialized to retrieve dataset
+	    parameters to know how to populate/setup this dialog's choice boxes and bounds...
+	    which is why it requires 'URL' and 'datasetID' to be for sure set in advance */
 	protected void readInfo() {
 		try {
 			//logging facility
@@ -151,9 +155,11 @@ abstract class ImagePlus extends DynamicCommand {
 			matchResLevel();
 
 			final List<String> versions = di.versions.stream().map(Object::toString).collect(Collectors.toList());
-			versions.add(0,"new");
-			versions.add("latest");
-			versions.add("mixedLatest");
+			if (accessRegime.equals("write")) versions.add(0,"new");
+			if (accessRegime.equals("read")) {
+				versions.add("latest");
+				versions.add("mixedLatest");
+			}
 			getInfo().getMutableInput("versionAsStr",String.class).setChoices(versions);
 
 			maxX = currentResLevel.dimensions[0]; //rangeSpatial will adjust potentially
@@ -172,7 +178,7 @@ abstract class ImagePlus extends DynamicCommand {
 	// ========= connect and request image server =========
 	/** starts DatasetServer and returns an URL on it, or null if something has failed */
 	protected String requestDatasetServer() {
-		myLogger.info("Going to construct legacy ImageJ image as:");
+		myLogger.info("Going to deal with a legacy ImageJ image:");
 		myLogger.info("["+minX+"-"+maxX+"] x "
 				+ "["+minY+"-"+maxY+"] x "
 				+ "["+minZ+"-"+maxZ+"], that is "
@@ -181,7 +187,7 @@ abstract class ImagePlus extends DynamicCommand {
 				+ " timepoint,channel,angle");
 		myLogger.info("  at "+currentResLevel);
 		myLogger.info("  at version "+versionAsStr);
-		myLogger.info("from dataset "+datasetID+" from "+URL);
+		myLogger.info("from dataset "+datasetID+" from "+URL+" for "+accessRegime);
 
 		final StringBuilder urlFirstGo = new StringBuilder();
 		urlFirstGo.append("http://"+URL+"/datasets/"+datasetID+"/");
@@ -223,6 +229,7 @@ abstract class ImagePlus extends DynamicCommand {
 
 	// ========= spatial bounds checking and adjusting =========
 	private final int[] spatialDimBackup = {minX,maxX,minY,maxY,minZ,maxZ};
+
 	private void rangeSpatial(int cn,int cx, int nI,int xI, int blockSize, int maxx) {
 		//shortcuts, also note cX = currentX
 		int min = spatialDimBackup[nI];
@@ -251,6 +258,7 @@ abstract class ImagePlus extends DynamicCommand {
 		spatialDimBackup[nI] = min;
 		spatialDimBackup[xI] = max;
 	}
+
 	protected void rangeSpatialX() {
 		if (currentResLevel == null) return;
 
@@ -259,6 +267,7 @@ abstract class ImagePlus extends DynamicCommand {
 		minX = spatialDimBackup[0];
 		maxX = spatialDimBackup[1];
 	}
+
 	protected void rangeSpatialY() {
 		if (currentResLevel == null) return;
 
@@ -267,6 +276,7 @@ abstract class ImagePlus extends DynamicCommand {
 		minY = spatialDimBackup[2];
 		maxY = spatialDimBackup[3];
 	}
+
 	protected void rangeSpatialZ() {
 		if (currentResLevel == null) return;
 		rangeSpatial(minZ,maxZ,4,5,
@@ -274,6 +284,7 @@ abstract class ImagePlus extends DynamicCommand {
 		minZ = spatialDimBackup[4];
 		maxZ = spatialDimBackup[5];
 	}
+
 
 	// ========= other bounds checking and adjusting =========
 	protected void rangeTPs() {
@@ -291,5 +302,16 @@ abstract class ImagePlus extends DynamicCommand {
 		if (given != expected)
 			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
 					+ "the expected block size "+expected+" px.");
+	}
+
+	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
+		if (versionAsStr.equals("new") && accessRegime.startsWith("read")) {
+			myLogger.warn("Cannot _create and write new_ version when intending to _read_ from a dataset.");
+			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
+		}
+		if (versionAsStr.contains("atest") && accessRegime.contains("write")) {
+			myLogger.warn("Cannot _read "+versionAsStr+"_ version when intending to _write_ into a dataset.");
+			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
+		}
 	}
 }

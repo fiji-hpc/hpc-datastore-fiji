@@ -75,8 +75,9 @@ public class Imglib2Types {
 
 	static public TypeHandler getTypeHandler(final Type<?> imglib2Type)
 	throws NoSuchElementException {
+		Class clazz = imglib2Type.getClass();
 		return SUPPORTEDCONVERSIONS
-				.stream().filter( t -> imglib2Type.equals(t.nativeAndRealType) ).findFirst()
+				.stream().filter( t -> clazz.isInstance(t.nativeAndRealType) ).findFirst()
 				.get();
 	}
 }
