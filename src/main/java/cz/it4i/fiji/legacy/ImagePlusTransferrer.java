@@ -11,9 +11,12 @@ import net.imglib2.type.numeric.RealType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.ByteBuffer;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
 
@@ -25,22 +28,101 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	// that was to say, this class is not designed to be re-entrant
 	// ('cause it needs not to be)
 
+	// ----------------------------------------------
 	// common attributes to transfers, irrespective of the transfer direction:
 	final int[] blockSize = new int[3];                  //x,y,z size of a normal/inner block
 	final int[] shortedBlockSize = new int[3];           //x,y,z size of a block in the diagonal corner
 	final boolean[] shortedBlockFlag = new boolean[3];   //aux flag to signal if a block is inner/edge for each spatial axis
 
-	private void setupBlockSizes() {
+	void setupBlockSizes(final Imglib2Types.TypeHandler<?> th) {
 		for (int d = 0; d < 3; ++d) {
 			blockSize[d] = currentResLevel.blockDimensions.get(d);
 			shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
 			if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
 		}
-		myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]);
+		fullBlockByteSize = blockSize[0]*blockSize[1]*blockSize[2] * th.nativeAndRealType.getBitsPerPixel()/8;
+
+		myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]
+				+" ("+fullBlockByteSize+" Bytes)");
 		myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
 	}
 
+	protected void checkBlockSizeAndPassOrThrow(final int given, final int expected, final char axis)
+	throws IllegalStateException {
+		if (given != expected)
+			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
+					+ "the expected block size "+expected+" px.");
+	}
 
+	// ----------------------------------------------
+	// transfer controls
+	int fullBlockByteSize;
+	int maxOneReadTransferByteSize  = 1 << 27; //128 MB
+	int maxOneWriteTransferByteSize = 1 << 23; //8 MB
+	//NB: server fails to receive larger, consider using here HttpURLConnection.setFixedLengthStreamingMode
+
+	static class OneTransfer {
+		public OneTransfer(final String URL, final int noOfBlocks) {
+			this.URL = URL;
+			this.noOfBlocks = noOfBlocks;
+		}
+		public final String URL;
+		public final int noOfBlocks;
+
+		@Override
+		public String toString() {
+			return (this.noOfBlocks+" blocks from "+this.URL);
+		}
+	}
+	final List<OneTransfer> transferPlan = new LinkedList<>();
+
+	void setupTransferPlan(final int maxTransferByteSize) {
+		final String baseURL = requestDatasetServer();
+		final int maxBlocks = maxTransferByteSize / fullBlockByteSize;
+
+		if (maxBlocks == 0)
+			throw new IllegalStateException("Given max transfer size "+maxTransferByteSize
+					+" Bytes cannot host blocks of max size "+fullBlockByteSize+" Bytes");
+
+		transferPlan.clear();
+		StringBuilder currentURL = null;
+		int currentBlocksCnt = maxBlocks;
+
+		//iterate over the blocks and build up the request URLs
+		for (int z = minZ; z <= maxZ; z += blockSize[2])
+			for (int y = minY; y <= maxY; y += blockSize[1])
+				for (int x = minX; x <= maxX; x += blockSize[0]) {
+					//time to start a new URL?
+					if (currentBlocksCnt == maxBlocks) {
+						//save old?
+						if (currentURL != null)
+							transferPlan.add( new OneTransfer(currentURL.toString(),currentBlocksCnt) );
+
+						//start new
+						currentURL = new StringBuilder(baseURL);
+						currentBlocksCnt = 0;
+					}
+
+					currentURL.append(x/blockSize[0]+"/"
+							+ y/blockSize[1]+"/"
+							+ z/blockSize[2]+"/"
+							+ timepoints+"/"
+							+ channels+"/"
+							+ angles+"/");
+					++currentBlocksCnt;
+				}
+
+		//add also the last one
+		transferPlan.add( new OneTransfer(currentURL.toString(),currentBlocksCnt) );
+	}
+
+	void printTransferPlan() {
+		for (OneTransfer t : transferPlan)
+			myLogger.info("Planning "+t);
+	}
+
+
+	// ----------------------------------------------
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
 		//future return value
@@ -50,23 +132,40 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(di.voxelType);
 			final Img<T> img = th.createPlanarImgFactory().create(maxX-minX+1,maxY-minY+1,maxZ-minZ+1);
 
-			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
+			//the expected block sizes for sanity checking of the incoming blocks
+			setupBlockSizes(th);
+			setupTransferPlan(maxOneReadTransferByteSize);
+			printTransferPlan();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
 			final byte[] header = new byte[12];
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header);
 
-			//the expected block sizes for sanity checking of the incoming blocks
-			setupBlockSizes();
-
 			long totalHeaders = 0;
 			long totalData = 0;
+
+			InputStream dataSrc = null;
+			int remainingBlocks = 0;
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
 					for (int x = minX; x <= maxX; x += blockSize[0]) {
+						//start a new data transfer connection
+						if (remainingBlocks == 0) {
+							//earlier connection? -> finish it up
+							if (dataSrc != null) dataSrc.close();
+							//NB: might close/clean-up the connection completely
+
+							OneTransfer t = transferPlan.remove(0);
+							myLogger.info("=========================");
+							myLogger.info("Downloading "+t);
+							dataSrc = new URL(t.URL).openStream();
+							remainingBlocks = t.noOfBlocks;
+						}
+						--remainingBlocks;
+
 						//calculate the expected sizes of the current block
 						shortedBlockFlag[0] = x+blockSize[0] > maxX+1;
 						shortedBlockFlag[1] = y+blockSize[1] > maxY+1;
@@ -157,28 +256,50 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 				throw new IllegalArgumentException("Connecting to a server for a type "+thServer.httpType
 						+" with a Dataset of a type "+th.httpType);
 
-			final HttpURLConnection connection = (HttpURLConnection) new URL(requestDatasetServer()).openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
-			connection.setDoOutput(true);
-			connection.connect();
-			final OutputStream dataTgt = connection.getOutputStream();
+			//the expected block sizes for reporting
+			setupBlockSizes(th);
+			setupTransferPlan(maxOneWriteTransferByteSize);
+			printTransferPlan();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
 			final byte[] header = new byte[12];
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header); //convenience wrapper to write block sizes into a byte array
 
-			//the expected block sizes for reporting
-			setupBlockSizes();
-
 			long totalHeaders = 0;
 			long totalData = 0;
+
+			HttpURLConnection connection = null;
+			OutputStream dataTgt = null;
+			int remainingBlocks = 0;
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
 					for (int x = minX; x <= maxX; x += blockSize[0]) {
+						//start a new data transfer connection
+						if (remainingBlocks == 0) {
+							//earlier connection? -> finish it up
+							if (connection != null) {
+								myLogger.info("=== transferring starts");
+								connection.getInputStream();
+								myLogger.info("=== transferring ends");
+								dataTgt.close(); //might close/clean-up the connection completely
+							}
+
+							OneTransfer t = transferPlan.remove(0);
+							myLogger.info("=========================");
+							myLogger.info("Uploading "+t);
+							connection = (HttpURLConnection) new URL(t.URL).openConnection();
+							connection.setRequestMethod("POST");
+							connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+							connection.setDoOutput(true);
+							connection.connect();
+							dataTgt = connection.getOutputStream();
+							remainingBlocks = t.noOfBlocks;
+						}
+						--remainingBlocks;
+
 						//calculate the expected sizes of the current block
 						shortedBlockFlag[0] = x+blockSize[0] > maxX+1;
 						shortedBlockFlag[1] = y+blockSize[1] > maxY+1;
@@ -222,10 +343,10 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
 						totalData += blockLength;
 					}
-			myLogger.info("transferring "+totalData+" Bytes ("+(totalData>>20)
+			myLogger.info("=== transferring "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 			connection.getInputStream();
-			myLogger.info("transferring ends");
+			myLogger.info("=== transferring ends");
 
 		} catch (NoSuchElementException e) {
 			myLogger.error("Unrecognized voxel type: " + e.getMessage());
@@ -235,5 +356,40 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			this.cancel("Problem accessing the dataset: "+e.getMessage());
 		}
 		myLogger.info("DONE writing image.");
+	}
+
+
+	// ----------------------------------------------
+	/** starts DatasetServer and returns an URL on it, or null if something has failed */
+	protected String requestDatasetServer() {
+		myLogger.info("Going to deal with a legacy ImageJ image:");
+		myLogger.info("["+minX+"-"+maxX+"] x "
+				+ "["+minY+"-"+maxY+"] x "
+				+ "["+minZ+"-"+maxZ+"], that is "
+				+ (maxX-minX+1)+" x "+(maxY-minY+1)+" x "+(maxZ-minZ+1)+" pixels,");
+		myLogger.info("  at "+timepoints+","+channels+","+angles
+				+ " timepoint,channel,angle");
+		myLogger.info("  at "+currentResLevel);
+		myLogger.info("  at version "+versionAsStr);
+		myLogger.info("from dataset "+datasetID+" from "+URL+" for "+accessRegime);
+
+		final StringBuilder urlFirstGo = new StringBuilder();
+		urlFirstGo.append("http://"+URL+"/datasets/"+datasetID+"/");
+		for (int dim=0; dim < 3; ++dim)
+			urlFirstGo.append(currentResLevel.resolutions.get(dim)+"/");
+		urlFirstGo.append(versionAsStr+"/"+accessRegime+"?timeout="+timeout);
+		myLogger.info("1: "+urlFirstGo);
+
+		try {
+			//connect to get the new URL for the blocks-server itself
+			final URLConnection connection = new URL(urlFirstGo.toString()).openConnection();
+			connection.getInputStream(); //this enables access to the redirected URL
+			final String urlSecondGo = connection.getURL().toString();
+			myLogger.info("2: "+urlSecondGo);
+			return urlSecondGo;
+		} catch (IOException e) {
+			myLogger.error(e.getMessage());
+			return null;
+		}
 	}
 }

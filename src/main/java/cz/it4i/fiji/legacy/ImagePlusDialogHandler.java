@@ -1,6 +1,5 @@
 package cz.it4i.fiji.legacy;
 
-import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.prefs.PrefService;
@@ -10,10 +9,6 @@ import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import cz.it4i.fiji.rest.util.DatasetInfo;
-
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -175,58 +170,6 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	}
 
 
-	// ========= connect and request image server =========
-	/** starts DatasetServer and returns an URL on it, or null if something has failed */
-	protected String requestDatasetServer() {
-		myLogger.info("Going to deal with a legacy ImageJ image:");
-		myLogger.info("["+minX+"-"+maxX+"] x "
-				+ "["+minY+"-"+maxY+"] x "
-				+ "["+minZ+"-"+maxZ+"], that is "
-				+ (maxX-minX+1)+" x "+(maxY-minY+1)+" x "+(maxZ-minZ+1)+" pixels,");
-		myLogger.info("  at "+timepoints+","+channels+","+angles
-				+ " timepoint,channel,angle");
-		myLogger.info("  at "+currentResLevel);
-		myLogger.info("  at version "+versionAsStr);
-		myLogger.info("from dataset "+datasetID+" from "+URL+" for "+accessRegime);
-
-		final StringBuilder urlFirstGo = new StringBuilder();
-		urlFirstGo.append("http://"+URL+"/datasets/"+datasetID+"/");
-		for (int dim=0; dim < 3; ++dim)
-			urlFirstGo.append(currentResLevel.resolutions.get(dim)+"/");
-		urlFirstGo.append(versionAsStr+"/"+accessRegime+"?timeout="+timeout);
-
-		final StringBuilder urlSecondGo = new StringBuilder();
-		try {
-			//connect to get the new URL for the blocks-server itself
-			final URLConnection connection = new URL(urlFirstGo.toString()).openConnection();
-			connection.getInputStream(); //this enables access to the redirected URL
-
-			urlSecondGo.append(connection.getURL());
-
-			//iterate over the blocks and build up the request URL
-			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
-			for (int z = minZ; z <= maxZ; z += blockSize[2])
-				for (int y = minY; y <= maxY; y += blockSize[1])
-					for (int x = minX; x <= maxX; x += blockSize[0]) {
-						urlSecondGo.append(x/blockSize[0]+"/"
-								+ y/blockSize[1]+"/"
-								+ z/blockSize[2]+"/"
-								+ timepoints+"/"
-								+ channels+"/"
-								+ angles+"/");
-					}
-
-			myLogger.info("1: "+urlFirstGo);
-			myLogger.info("2: "+urlSecondGo);
-		} catch (IOException e) {
-			myLogger.error(e.getMessage());
-			return null;
-		}
-
-		return urlSecondGo.toString();
-	}
-
-
 	// ========= spatial bounds checking and adjusting =========
 	private final int[] spatialDimBackup = {minX,maxX,minY,maxY,minZ,maxZ};
 
@@ -295,13 +238,6 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	}
 	protected void rangeAngles() {
 		angles = Math.max(0, Math.min(angles, di.angles-1));
-	}
-
-	protected void checkBlockSizeAndPassOrThrow(final int given, final int expected, final char axis)
-	throws IllegalStateException {
-		if (given != expected)
-			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
-					+ "the expected block size "+expected+" px.");
 	}
 
 	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
