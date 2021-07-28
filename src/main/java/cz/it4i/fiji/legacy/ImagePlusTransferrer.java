@@ -19,6 +19,28 @@ import cz.it4i.fiji.legacy.util.Imglib2Types;
 
 public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
+	// note: this class is bound to a dialog, and a dialog is taking care
+	// of one transfer; if there is another consequent transfer requested via
+	// the dialog, it will happen via a separate object of this class...
+	// that was to say, this class is not designed to be re-entrant
+	// ('cause it needs not to be)
+
+	// common attributes to transfers, irrespective of the transfer direction:
+	final int[] blockSize = new int[3];                  //x,y,z size of a normal/inner block
+	final int[] shortedBlockSize = new int[3];           //x,y,z size of a block in the diagonal corner
+	final boolean[] shortedBlockFlag = new boolean[3];   //aux flag to signal if a block is inner/edge for each spatial axis
+
+	private void setupBlockSizes() {
+		for (int d = 0; d < 3; ++d) {
+			blockSize[d] = currentResLevel.blockDimensions.get(d);
+			shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
+			if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
+		}
+		myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]);
+		myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
+	}
+
+
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
 		//future return value
@@ -36,15 +58,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header);
 
 			//the expected block sizes for sanity checking of the incoming blocks
-			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
-			final int[] shortedBlockSize = new int[3];
-			for (int d = 0; d < 3; ++d) {
-				shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
-				if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
-			}
-			final boolean[] shortedBlockFlag = new boolean[3];
-			myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]);
-			myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
+			setupBlockSizes();
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
@@ -108,7 +122,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					}
 
 			outDatasetImg = new DefaultDataset(this.getContext(),
-					new ImgPlus<T>(img,"Retrieved image at "+timepoints+","+channels+","+angles) );
+					new ImgPlus<>(img,"Retrieved image at "+timepoints+","+channels+","+angles) );
 			myLogger.info("Created image: \""+outDatasetImg.getName()+"\"");
 
 		} catch (NoSuchElementException e) {
@@ -148,16 +162,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			final byte[] header = new byte[12];
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header); //convenience wrapper to write block sizes into a byte array
 
-			//the expected block sizes for sanity checking of the incoming blocks
-			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
-			final int[] shortedBlockSize = new int[3];
-			for (int d = 0; d < 3; ++d) {
-				shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
-				if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
-			}
-			final boolean[] shortedBlockFlag = new boolean[3];
-			myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]);
-			myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
+			//the expected block sizes for reporting
+			setupBlockSizes();
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
