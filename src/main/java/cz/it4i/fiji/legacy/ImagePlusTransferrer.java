@@ -131,7 +131,6 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			setupBlockSizes(th);
 			setupTransferPlan(maxOneReadTransferByteSize);
 			printTransferPlan();
-			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
@@ -141,10 +140,21 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			long totalHeaders = 0;
 			long totalData = 0;
 
+			InputStream dataSrc = null;
+			int remainingBlocks = 0;
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
 					for (int x = minX; x <= maxX; x += blockSize[0]) {
+						//start a new data transfer connection
+						if (remainingBlocks == 0) {
+							OneTransfer t = transferPlan.remove(0);
+							dataSrc = new URL(t.URL).openStream();
+							remainingBlocks = t.noOfBlocks;
+						}
+						--remainingBlocks;
+
 						//calculate the expected sizes of the current block
 						shortedBlockFlag[0] = x+blockSize[0] > maxX+1;
 						shortedBlockFlag[1] = y+blockSize[1] > maxY+1;
@@ -239,12 +249,6 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			setupBlockSizes(th);
 			setupTransferPlan(maxOneWriteTransferByteSize);
 			printTransferPlan();
-			final HttpURLConnection connection = (HttpURLConnection) new URL(requestDatasetServer()).openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
-			connection.setDoOutput(true);
-			connection.connect();
-			final OutputStream dataTgt = connection.getOutputStream();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
@@ -254,10 +258,34 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			long totalHeaders = 0;
 			long totalData = 0;
 
+			HttpURLConnection connection = null;
+			OutputStream dataTgt = null;
+			int remainingBlocks = 0;
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
 					for (int x = minX; x <= maxX; x += blockSize[0]) {
+						//start a new data transfer connection
+						if (remainingBlocks == 0) {
+							//earlier connection? -> finish it up
+							if (connection != null) {
+								myLogger.info("transferring starts");
+								connection.getInputStream();
+								myLogger.info("transferring ends");
+							}
+
+							OneTransfer t = transferPlan.remove(0);
+							connection = (HttpURLConnection) new URL(t.URL).openConnection();
+							connection.setRequestMethod("POST");
+							connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+							connection.setDoOutput(true);
+							connection.connect();
+							dataTgt = connection.getOutputStream();
+							remainingBlocks = t.noOfBlocks;
+						}
+						--remainingBlocks;
+
 						//calculate the expected sizes of the current block
 						shortedBlockFlag[0] = x+blockSize[0] > maxX+1;
 						shortedBlockFlag[1] = y+blockSize[1] > maxY+1;
