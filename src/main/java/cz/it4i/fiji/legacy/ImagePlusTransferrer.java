@@ -154,6 +154,10 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					for (int x = minX; x <= maxX; x += blockSize[0]) {
 						//start a new data transfer connection
 						if (remainingBlocks == 0) {
+							//earlier connection? -> finish it up
+							if (dataSrc != null) dataSrc.close();
+							//NB: might close/clean-up the connection completely
+
 							OneTransfer t = transferPlan.remove(0);
 							myLogger.info("=========================");
 							myLogger.info("Downloading "+t);
@@ -280,6 +284,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 								myLogger.info("=== transferring starts");
 								connection.getInputStream();
 								myLogger.info("=== transferring ends");
+								dataTgt.close(); //might close/clean-up the connection completely
 							}
 
 							OneTransfer t = transferPlan.remove(0);
