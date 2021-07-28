@@ -26,18 +26,22 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	// that was to say, this class is not designed to be re-entrant
 	// ('cause it needs not to be)
 
+	// ----------------------------------------------
 	// common attributes to transfers, irrespective of the transfer direction:
 	final int[] blockSize = new int[3];                  //x,y,z size of a normal/inner block
 	final int[] shortedBlockSize = new int[3];           //x,y,z size of a block in the diagonal corner
 	final boolean[] shortedBlockFlag = new boolean[3];   //aux flag to signal if a block is inner/edge for each spatial axis
 
-	private void setupBlockSizes() {
+	void setupBlockSizes(final Imglib2Types.TypeHandler<?> th) {
 		for (int d = 0; d < 3; ++d) {
 			blockSize[d] = currentResLevel.blockDimensions.get(d);
 			shortedBlockSize[d] = currentResLevel.dimensions[d] % blockSize[d];
 			if (shortedBlockSize[d] == 0) shortedBlockSize[d] = blockSize[d];
 		}
-		myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]);
+		fullBlockByteSize = blockSize[0]*blockSize[1]*blockSize[2] * th.nativeAndRealType.getBitsPerPixel()/8;
+
+		myLogger.info("inner block sizes: "+blockSize[0]+","+blockSize[1]+","+blockSize[2]
+				+" ("+fullBlockByteSize+" Bytes)");
 		myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
 	}
 
@@ -48,6 +52,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					+ "the expected block size "+expected+" px.");
 	}
 
+	// ----------------------------------------------
+	// transfer controls
+	int fullBlockByteSize;
 
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
@@ -58,15 +65,14 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(di.voxelType);
 			final Img<T> img = th.createPlanarImgFactory().create(maxX-minX+1,maxY-minY+1,maxZ-minZ+1);
 
+			//the expected block sizes for sanity checking of the incoming blocks
+			setupBlockSizes(th);
 			final InputStream dataSrc = new URL(requestDatasetServer()).openStream();
 
 			//shared buffers to be re-used (to reduce calls to the operator 'new')
 			byte[] pxData = new byte[0];
 			final byte[] header = new byte[12];
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header);
-
-			//the expected block sizes for sanity checking of the incoming blocks
-			setupBlockSizes();
 
 			long totalHeaders = 0;
 			long totalData = 0;
@@ -165,6 +171,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 				throw new IllegalArgumentException("Connecting to a server for a type "+thServer.httpType
 						+" with a Dataset of a type "+th.httpType);
 
+			//the expected block sizes for reporting
+			setupBlockSizes(th);
 			final HttpURLConnection connection = (HttpURLConnection) new URL(requestDatasetServer()).openConnection();
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
@@ -176,9 +184,6 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			byte[] pxData = new byte[0];
 			final byte[] header = new byte[12];
 			final ByteBuffer wrapperOfHeader = ByteBuffer.wrap(header); //convenience wrapper to write block sizes into a byte array
-
-			//the expected block sizes for reporting
-			setupBlockSizes();
 
 			long totalHeaders = 0;
 			long totalData = 0;
