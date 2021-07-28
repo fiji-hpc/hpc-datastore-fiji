@@ -317,7 +317,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	}
 
 
-	// ========= connect and request image server =========
+	// ----------------------------------------------
 	/** starts DatasetServer and returns an URL on it, or null if something has failed */
 	protected String requestDatasetServer() {
 		myLogger.info("Going to deal with a legacy ImageJ image:");
@@ -336,35 +336,18 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		for (int dim=0; dim < 3; ++dim)
 			urlFirstGo.append(currentResLevel.resolutions.get(dim)+"/");
 		urlFirstGo.append(versionAsStr+"/"+accessRegime+"?timeout="+timeout);
+		myLogger.info("1: "+urlFirstGo);
 
-		final StringBuilder urlSecondGo = new StringBuilder();
 		try {
 			//connect to get the new URL for the blocks-server itself
 			final URLConnection connection = new URL(urlFirstGo.toString()).openConnection();
 			connection.getInputStream(); //this enables access to the redirected URL
-
-			urlSecondGo.append(connection.getURL());
-
-			//iterate over the blocks and build up the request URL
-			final int[] blockSize = currentResLevel.blockDimensions.stream().mapToInt(i->i).toArray();
-			for (int z = minZ; z <= maxZ; z += blockSize[2])
-				for (int y = minY; y <= maxY; y += blockSize[1])
-					for (int x = minX; x <= maxX; x += blockSize[0]) {
-						urlSecondGo.append(x/blockSize[0]+"/"
-								+ y/blockSize[1]+"/"
-								+ z/blockSize[2]+"/"
-								+ timepoints+"/"
-								+ channels+"/"
-								+ angles+"/");
-					}
-
-			myLogger.info("1: "+urlFirstGo);
+			final String urlSecondGo = connection.getURL().toString();
 			myLogger.info("2: "+urlSecondGo);
+			return urlSecondGo;
 		} catch (IOException e) {
 			myLogger.error(e.getMessage());
 			return null;
 		}
-
-		return urlSecondGo.toString();
 	}
 }
