@@ -240,13 +240,6 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		angles = Math.max(0, Math.min(angles, di.angles-1));
 	}
 
-	protected void checkBlockSizeAndPassOrThrow(final int given, final int expected, final char axis)
-	throws IllegalStateException {
-		if (given != expected)
-			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
-					+ "the expected block size "+expected+" px.");
-	}
-
 	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
 		if (versionAsStr.equals("new") && accessRegime.startsWith("read")) {
 			myLogger.warn("Cannot _create and write new_ version when intending to _read_ from a dataset.");

@@ -41,6 +41,13 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		myLogger.info(" last block sizes: "+shortedBlockSize[0]+","+shortedBlockSize[1]+","+shortedBlockSize[2]);
 	}
 
+	protected void checkBlockSizeAndPassOrThrow(final int given, final int expected, final char axis)
+	throws IllegalStateException {
+		if (given != expected)
+			throw new IllegalStateException("Got block of "+axis+"-size "+given+" px that does not match "
+					+ "the expected block size "+expected+" px.");
+	}
+
 
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
