@@ -60,6 +60,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			//the expected block sizes for sanity checking of the incoming blocks
 			setupBlockSizes();
 
+			long totalHeaders = 0;
+			long totalData = 0;
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
@@ -88,6 +91,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 						myLogger.info(" +- block says size: "+bx+" x "+by+" x "+bz
 								+ " -> "+blockLength+" Bytes");
+						totalHeaders += 12;
 
 						//check if the incoming block size fits the currently expected block size
 						checkBlockSizeAndPassOrThrow(bx,ex,'x');
@@ -114,6 +118,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							readSoFar += dataSrc.read(pxData,readSoFar,blockLength-readSoFar);
 						}
 						myLogger.info(" +- read "+readSoFar+" Bytes");
+						totalData += readSoFar;
 
 						//copy the just-obtained buffer into the image block
 						th.blockIntoImgInterval(pxData, bx*by*bz, Views.interval(img,
@@ -124,6 +129,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			outDatasetImg = new DefaultDataset(this.getContext(),
 					new ImgPlus<>(img,"Retrieved image at "+timepoints+","+channels+","+angles) );
 			myLogger.info("Created image: \""+outDatasetImg.getName()+"\"");
+			myLogger.info("Transferred "+totalData+" Bytes ("+(totalData>>20)
+					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 
 		} catch (NoSuchElementException e) {
 			myLogger.error("Unrecognized voxel type: " + e.getMessage());
@@ -165,6 +172,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			//the expected block sizes for reporting
 			setupBlockSizes();
 
+			long totalHeaders = 0;
+			long totalData = 0;
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
@@ -194,6 +204,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						} catch (IOException e) {
 							throw new IOException("Failed writing full block header",e);
 						}
+						totalHeaders += 12;
 
 						//make sure the buffer can accommodate the outgoing data
 						if (blockLength > pxData.length)
@@ -209,8 +220,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						dataTgt.write(pxData,0,blockLength);
 						//dataTgt.flush(); leave this decision on the subsystems...
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
+						totalData += blockLength;
 					}
+			myLogger.info("transferring "+totalData+" Bytes ("+(totalData>>20)
+					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 			connection.getInputStream();
+			myLogger.info("transferring ends");
 
 		} catch (NoSuchElementException e) {
 			myLogger.error("Unrecognized voxel type: " + e.getMessage());
