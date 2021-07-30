@@ -1,4 +1,4 @@
-package cz.it4i.fiji.legacy;
+package cz.it4i.fiji.legacy.common;
 
 import net.imagej.Dataset;
 import net.imagej.DefaultDataset;
