@@ -1,18 +1,15 @@
 package cz.it4i.fiji.legacy;
 
-import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.prefs.PrefService;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
 import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, headless = true)
 abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that needs to be supplied =========
 	@Parameter(label = "URL of a DatasetsRegisterService:")
