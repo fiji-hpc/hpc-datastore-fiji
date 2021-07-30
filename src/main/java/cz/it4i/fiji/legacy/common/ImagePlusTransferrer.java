@@ -106,9 +106,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					currentURL.append(x/blockSize[0]+"/"
 							+ y/blockSize[1]+"/"
 							+ z/blockSize[2]+"/"
-							+ timepoints+"/"
-							+ channels+"/"
-							+ angles+"/");
+							+ timepoint+"/"
+							+ channel+"/"
+							+ angle+"/");
 					++currentBlocksCnt;
 				}
 
@@ -226,7 +226,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					}
 
 			outDatasetImg = new DefaultDataset(this.getContext(),
-					new ImgPlus<>(img,"Retrieved image at "+timepoints+","+channels+","+angles) );
+					new ImgPlus<>(img,"Retrieved image at "+timepoint+","+channel+","+angle) );
 			myLogger.info("Created image: \""+outDatasetImg.getName()+"\"");
 			myLogger.info("Transferred "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
@@ -367,7 +367,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 				+ "["+minY+"-"+maxY+"] x "
 				+ "["+minZ+"-"+maxZ+"], that is "
 				+ (maxX-minX+1)+" x "+(maxY-minY+1)+" x "+(maxZ-minZ+1)+" pixels,");
-		myLogger.info("  at "+timepoints+","+channels+","+angles
+		myLogger.info("  at "+timepoint+","+channel+","+angle
 				+ " timepoint,channel,angle");
 		myLogger.info("  at "+currentResLevel);
 		myLogger.info("  at version "+versionAsStr);

@@ -46,15 +46,15 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	@Parameter(label="time point:", min="0", callback = "rangeTPs",
 			description="In units of the respective dataset.")
-	public int timepoints = 0;
+	public int timepoint = 0;
 
 	@Parameter(label="channel:", min="0", callback = "rangeChannels",
 			description="In units of the respective dataset.")
-	public int channels = 0;
+	public int channel = 0;
 
 	@Parameter(label="angle:", min="0", callback = "rangeAngles",
 			description="In units of the respective dataset.")
-	public int angles = 0;
+	public int angle = 0;
 
 	@Parameter(label = "Available down-resolutions:", choices = {""},
 			initializer = "readInfo", callback = "updateSpatialRanges")
@@ -228,13 +228,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	// ========= other bounds checking and adjusting =========
 	protected void rangeTPs() {
-		timepoints = Math.max(0, Math.min(timepoints, di.timepoints-1));
+		timepoint = Math.max(0, Math.min(timepoint, di.timepoints-1));
 	}
 	protected void rangeChannels() {
-		channels = Math.max(0, Math.min(channels, di.channels-1));
+		channel = Math.max(0, Math.min(channel, di.channels-1));
 	}
 	protected void rangeAngles() {
-		angles = Math.max(0, Math.min(angles, di.angles-1));
+		angle = Math.max(0, Math.min(angle, di.angles-1));
 	}
 
 	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
