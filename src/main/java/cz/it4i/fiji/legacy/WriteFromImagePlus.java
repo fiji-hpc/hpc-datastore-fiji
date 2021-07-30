@@ -16,5 +16,6 @@ public class WriteFromImagePlus extends ImagePlusTransferrer implements Command 
 		checkAccessRegimeVsDatasetVersionOrThrow();
 
 		writeWithAType(inDatasetImg);
+		myLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Write From Image"));
 	}
 }

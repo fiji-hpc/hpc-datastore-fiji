@@ -247,4 +247,28 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
 		}
 	}
+
+
+	// ========= command reporting =========
+	public String reportCurrentSettings() {
+		return "url="+URL
+				+" datasetid="+datasetID
+				+" accessregime="+accessRegime
+				+" minx="+minX
+				+" maxx="+maxX
+				+" miny="+minY
+				+" maxy="+maxY
+				+" minz="+minZ
+				+" maxz="+maxZ
+				+" timepoint="+timepoint
+				+" channel="+channel
+				+" angle="+angle
+				+" resolutionlevelsasstr=["+resolutionLevelsAsStr+"]"
+				+" versionasstr="+versionAsStr
+				+" timeout="+timeout;
+	}
+
+	public String reportAsMacroCommand(final String forThisCommand) {
+		return "run(\""+forThisCommand+"\", \""+reportCurrentSettings()+"\");";
+	}
 }
