@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 abstract class ImagePlusDialogHandler extends DynamicCommand {
-	// ========= internal parameters that needs to be supplied =========
+	// ========= internal parameters that must be set when using this command =========
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String URL;
 
@@ -30,35 +30,35 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	// ========= user-visible parameters to define subset of the original dataset =========
 	@Parameter(label="min X [px]:", min="0", callback = "rangeSpatialX")
-	public int minX = 0;
+	public int minX = -1;
 	@Parameter(label="max X [px]:", min="0", callback = "rangeSpatialX")
-	public int maxX;
+	public int maxX = -1;
 
 	@Parameter(label="min Y [px]:", min="0", callback = "rangeSpatialY")
-	public int minY = 0;
+	public int minY = -1;
 	@Parameter(label="max Y [px]:", min="0", callback = "rangeSpatialY")
-	public int maxY;
+	public int maxY = -1;
 
 	@Parameter(label="min Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int minZ = 0;
+	public int minZ = -1;
 	@Parameter(label="max Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int maxZ;
+	public int maxZ = -1;
 
 	@Parameter(label="time point:", min="0", callback = "rangeTPs",
 			description="In units of the respective dataset.")
-	public int timepoint = 0;
+	public int timepoint = -1;
 
 	@Parameter(label="channel:", min="0", callback = "rangeChannels",
 			description="In units of the respective dataset.")
-	public int channel = 0;
+	public int channel = -1;
 
 	@Parameter(label="angle:", min="0", callback = "rangeAngles",
 			description="In units of the respective dataset.")
-	public int angle = 0;
+	public int angle = -1;
 
 	@Parameter(label = "Available down-resolutions:", choices = {""},
 			initializer = "readInfo", callback = "updateSpatialRanges")
-	public String resolutionLevelsAsStr;
+	public String resolutionLevelsAsStr = null;
 	protected DatasetInfo.ResolutionLevel currentResLevel; //caches the current level info
 
 	protected void updateSpatialRanges() {
@@ -88,7 +88,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		rangeSpatialZ();
 	}
 
-	/** updates currentResLevel given the current choice in resolutionLevelsAsStr */
+	/** updates currentResLevel given the current choice in resolutionLevelsAsStr,
+	    sets currentResLevel to null when resolutionLevelsAsStr is not valid */
 	protected void matchResLevel() {
 		myLogger.info("going to match against: "+resolutionLevelsAsStr);
 		int i = 0;
@@ -106,7 +107,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	}
 
 	@Parameter(label = "Available versions:", choices = {""})
-	public String versionAsStr = "0";
+	public String versionAsStr = null;
 
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity.")
@@ -121,12 +122,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		try {
 			//logging facility
 			myLogger = mainLogger.subLogger("HPC LegacyImage", LogLevel.INFO);
+			myLogger.info("entered init with this state: "+reportCurrentSettings());
 
 			//sanity check
-			if (URL == null || datasetID == null) {
+			if (URL == null || datasetID == null || accessRegime == null) {
 				myLogger.warn("Intended to be called from macros or scripts, in which case");
-				myLogger.warn("the parameters 'URL' and 'datasetID' must be supplied.");
-				throw new IllegalArgumentException("URL or datasetID was not provided.");
+				myLogger.warn("the parameters 'URL', 'datasetID' and 'accessRegime' must be supplied.");
+				throw new IllegalArgumentException("URL, datasetID or accessRegime was not provided.");
 			}
 
 			//retrieve data
@@ -160,6 +162,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			rangeSpatialX();
 			rangeSpatialY();
 			rangeSpatialZ();
+
+			myLogger.info("leaving init with this state: "+reportCurrentSettings());
 		} catch (Exception e) {
 			myLogger.error("Problem accessing the dataset: "+e.getMessage());
 			this.cancel("Problem accessing the dataset: "+e.getMessage());
@@ -237,6 +241,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		angle = Math.max(0, Math.min(angle, di.angles-1));
 	}
 
+	// ========= remaining params checking and adjusting =========
 	protected void checkAccessRegimeVsDatasetVersionOrThrow() {
 		if (versionAsStr.equals("new") && accessRegime.startsWith("read")) {
 			myLogger.warn("Cannot _create and write new_ version when intending to _read_ from a dataset.");
@@ -245,6 +250,73 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		if (versionAsStr.contains("atest") && accessRegime.contains("write")) {
 			myLogger.warn("Cannot _read "+versionAsStr+"_ version when intending to _write_ into a dataset.");
 			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
+		}
+	}
+
+	protected boolean isVersionAmongChoices() {
+		if (versionAsStr == null) return false;
+		for (String v : getInfo().getMutableInput("versionAsStr",String.class).getChoices())
+			if (versionAsStr.equals(v)) return true;
+		return false;
+	}
+
+	protected void setParamsToCliOrPrefsOrDefaultValues() {
+		//we set here all user "external" plugin parameters except
+		//for URL,datasetID,accessRegime that were already provided and
+		//for timeout that is a general param and scijava's care is good enough for it
+
+		//NB: if an attribute still holds its class default value, which is
+		//    given to it at this object construction, it means no CLI value
+		//    for it has been provided yet, we then try to fetch one from
+		//    the Fiji internal prefs service or use some sensible default
+		//    if nothing is found in the prefs store
+		String prefVal;
+		try {
+			if (minX == -1) { //-1 is the class default value for this attrib
+				prefVal = prefService.get(this.getClass(),"minX");
+				minX = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+			if (minY == -1) {
+				prefVal = prefService.get(this.getClass(),"minY");
+				minY = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+			if (minZ == -1) {
+				prefVal = prefService.get(this.getClass(),"minZ");
+				minZ = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+			if (maxX == -1) {
+				prefVal = prefService.get(this.getClass(),"maxX");
+				maxX = prefVal != null ? Integer.parseInt(prefVal) : currentResLevel.dimensions[0];
+				//NB: rangeSpatial will adjust potentially
+			}
+			if (maxY == -1) {
+				prefVal = prefService.get(this.getClass(),"maxY");
+				maxY = prefVal != null ? Integer.parseInt(prefVal) : currentResLevel.dimensions[1];
+			}
+			if (maxZ == -1) {
+				prefVal = prefService.get(this.getClass(),"maxZ");
+				maxZ = prefVal != null ? Integer.parseInt(prefVal) : currentResLevel.dimensions[2];
+			}
+
+			if (timepoint == -1) {
+				prefVal = prefService.get(this.getClass(),"timepoint");
+				timepoint = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+			if (channel == -1) {
+				prefVal = prefService.get(this.getClass(),"channel");
+				channel = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+			if (angle == -1) {
+				prefVal = prefService.get(this.getClass(),"angle");
+				angle = prefVal != null ? Integer.parseInt(prefVal) : 0;
+			}
+
+			if (versionAsStr == null) {
+				versionAsStr = prefService.get(this.getClass(),"versionAsStr");
+				//NB: null default value forces the readInfo() to choose some existing version
+			}
+		} catch (NumberFormatException e) {
+			throw new IllegalStateException("Fiji preferences contain non-integer value for either minX,minY,minZ,maxX,maxY or maxZ",e);
 		}
 	}
 
