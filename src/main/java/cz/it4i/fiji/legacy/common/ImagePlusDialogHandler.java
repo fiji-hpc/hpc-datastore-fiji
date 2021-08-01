@@ -110,7 +110,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public String versionAsStr = null;
 
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
-			description = "Value of -1 sets timeout to infinity.")
+			description = "Value of -1 sets timeout to infinity, but that's not a good idea...")
 	public int timeout = 30000;
 
 	protected DatasetInfo di;
