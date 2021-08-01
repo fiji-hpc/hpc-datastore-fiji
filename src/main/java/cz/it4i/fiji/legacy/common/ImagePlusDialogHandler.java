@@ -136,17 +136,9 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			di = DatasetInfo.createFrom(URL, datasetID);
 			myLogger.info(di.toString());
 
-			//populate some variables
+			//set choices lists:
 			getInfo().getMutableInput("resolutionLevelsAsStr",String.class).setChoices(
 					di.resolutionLevels.stream().map(v -> v.resolutions.toString()).collect(Collectors.toList()) );
-			resolutionLevelsAsStr = prefService.get(this.getClass(),"resolutionLevelsAsStr");
-			if (resolutionLevelsAsStr == null) {
-				//no previous value is stored -> need to set some (to enable matchResLevel() to function)
-				resolutionLevelsAsStr = getInfo()
-						.getMutableInput("resolutionLevelsAsStr",String.class)
-						.getChoices().get(0);
-			}
-			matchResLevel();
 
 			final List<String> versions = di.versions.stream().map(Object::toString).collect(Collectors.toList());
 			if (accessRegime.equals("write")) versions.add(0,"new");
@@ -156,12 +148,55 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			}
 			getInfo().getMutableInput("versionAsStr",String.class).setChoices(versions);
 
-			maxX = currentResLevel.dimensions[0]; //rangeSpatial will adjust potentially
-			maxY = currentResLevel.dimensions[1];
-			maxZ = currentResLevel.dimensions[2];
+			//we want to leave this init() method with all params set to sensible values,
+			//therefore, we read their given/last/default values first and adjust them later
+
+			//nevertheless, default values of some parameters depend already on the
+			//current value of res. level -> we have to fix&set res. level prominently
+			if (resolutionLevelsAsStr == null) {
+				//class default value -> no CLI -> try prefs
+				resolutionLevelsAsStr = prefService.get(this.getClass(),"resolutionLevelsAsStr");
+			}
+			//
+			//got some res. level anyhow? and is it a valid one?
+			//NB: matchResLevel() indicates failure also when res. level is null
+			matchResLevel();
+			if (resolutionLevelsAsStr == null || currentResLevel == null) {
+				//no previous valid value -> but need to set some...
+				resolutionLevelsAsStr = getInfo()
+						.getMutableInput("resolutionLevelsAsStr",String.class)
+						.getChoices().get(0);
+				matchResLevel();
+				//NB: should work well now...
+			}
+
+			//only now we can retrieve values to the remaining params (and fix them later)
+			setParamsToCliOrPrefsOrDefaultValues();
+			myLogger.info("updated init with this state: "+reportCurrentSettings());
+
+			//fix the remaining params
 			rangeSpatialX();
 			rangeSpatialY();
 			rangeSpatialZ();
+			rangeTPs();
+			rangeChannels();
+			rangeAngles();
+
+			//make also sure versionAsStr holds already some intelligent input, there's
+			//no callback nor validator used as it seems for it impossible to hold value
+			//not available in the choices list... except now when it may possibly
+			//take (some wrong) value from CLI command or from the Fiji internal prefs
+			if (!isVersionAmongChoices()) {
+				versionAsStr = accessRegime.startsWith("read") ? "latest" : "new";
+			}
+			if (!isVersionAmongChoices())
+				throw new IllegalStateException("Failed finding symbolic version: "+versionAsStr);
+
+			//now all inputs should be okay w.r.t. to the current dataset and res. level,
+			//however, if this command is not called from CLI then the input will be
+			//overwritten from the prefs store (or their class defaults will be used if
+			//the prefs store is empty), so we save the input into the prefs store...
+			saveInputs();
 
 			myLogger.info("leaving init with this state: "+reportCurrentSettings());
 		} catch (Exception e) {
