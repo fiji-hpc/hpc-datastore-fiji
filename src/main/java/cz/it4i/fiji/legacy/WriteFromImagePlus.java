@@ -14,8 +14,10 @@ public class WriteFromImagePlus extends ImagePlusTransferrer implements Command 
 	@Override
 	public void run() {
 		checkAccessRegimeVsDatasetVersionOrThrow();
+		adjustReportingVerbosity();
 
 		writeWithAType(inDatasetImg);
-		myLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Write From Image"));
+		if (showRunCmd)
+			mainLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Write From Image"));
 	}
 }

@@ -15,8 +15,10 @@ public class ReadIntoImagePlus extends ImagePlusTransferrer implements Command {
 	@Override
 	public void run() {
 		checkAccessRegimeVsDatasetVersionOrThrow();
+		adjustReportingVerbosity();
 
 		outDatasetImg = readWithAType();
-		myLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Read Into Image"));
+		if (showRunCmd)
+			mainLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Read Into Image"));
 	}
 }

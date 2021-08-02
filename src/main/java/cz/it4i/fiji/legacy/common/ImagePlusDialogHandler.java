@@ -113,6 +113,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			description = "Value of -1 sets timeout to infinity, but that's not a good idea...")
 	public int timeout = 30000;
 
+	@Parameter(label = "Verbose reporting:", required = false,
+			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.")
+	public boolean verboseLog = false;
+
+	@Parameter(label = "Report corresponding macro command:", required = false)
+	public boolean showRunCmd = false;
+
 	protected DatasetInfo di;
 
 	/** this acts as a c'tor: it is called when the dialog is initialized to retrieve dataset
@@ -120,8 +127,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	    which is why it requires 'URL' and 'datasetID' to be for sure set in advance */
 	protected void readInfo() {
 		try {
+			//logging flags
+			if (minX == -1)
+				//if no CLI at all, use prefs, or class default (which was the verboseLog holds now)
+				verboseLog = prefService.getBoolean(this.getClass(),"verboseLog",verboseLog);
+
 			//logging facility
-			myLogger = mainLogger.subLogger("HPC LegacyImage", LogLevel.INFO);
+			myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
 			myLogger.info("entered init with this state: "+reportCurrentSettings());
 
 			//sanity check
@@ -376,6 +388,11 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	}
 
 	public String reportAsMacroCommand(final String forThisCommand) {
-		return "run(\""+forThisCommand+"\", \""+reportCurrentSettings()+"\");";
+		return "run(\""+forThisCommand+"\", \""+reportCurrentSettings()
+				+" verboselog="+verboseLog+" showruncmd="+showRunCmd+"\");";
+	}
+
+	protected void adjustReportingVerbosity() {
+		myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
 	}
 }
