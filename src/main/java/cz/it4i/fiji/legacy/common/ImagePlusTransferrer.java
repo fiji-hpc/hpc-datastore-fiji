@@ -370,7 +370,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		int tries = 0;
 		long waitTime = 20;
 
-		if (dataSrc.available() == 0 && tries < 10) {
+		while (dataSrc.available() == 0 && tries < 10) {
 			Thread.sleep(waitTime);
 			waitTime += 0.84*waitTime; //...nearly doubling-waiting time
 			++tries;
