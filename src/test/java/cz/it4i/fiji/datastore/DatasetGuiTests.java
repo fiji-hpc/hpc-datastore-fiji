@@ -51,8 +51,8 @@ even stuff living in a separate thread is killed...
 		final ImageJ myIJ = new ImageJ();
 		myIJ.ui().showUI();
 		myIJ.command().run(ReadIntoImagePlus.class,true,
-				"URL","192.168.3.130:9080",
-				"datasetID","8f0d0593-7f4a-4290-85b2-2890e57ba261",
+				"URL","localhost:8080",
+				"datasetID","c2684432-c589-4898-9727-c0601655d8d4",
 				"accessRegime","read");
 	}
 }

@@ -1,4 +1,4 @@
-package cz.it4i.fiji.legacy;
+package cz.it4i.fiji.legacy.common;
 
 import net.imagej.Dataset;
 import net.imagej.DefaultDataset;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
+import cz.it4i.fiji.legacy.util.TimeProfiling;
 
 public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
@@ -106,9 +107,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					currentURL.append(x/blockSize[0]+"/"
 							+ y/blockSize[1]+"/"
 							+ z/blockSize[2]+"/"
-							+ timepoints+"/"
-							+ channels+"/"
-							+ angles+"/");
+							+ timepoint+"/"
+							+ channel+"/"
+							+ angle+"/");
 					++currentBlocksCnt;
 				}
 
@@ -148,6 +149,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			InputStream dataSrc = null;
 			int remainingBlocks = 0;
 
+			long timeTotal = TimeProfiling.tic();
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
@@ -180,8 +183,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- I  expect  size: "+ex+" x "+ey+" x "+ez);
 
 						//retrieve the block header (which contains block size)
-						if (dataSrc.read(header,0,12) != 12)
-							throw new IOException("Failed reading full block header");
+						int readSoFar = 0;
+						while (readSoFar < 12) {
+							//make sure data is available, and read only afterwards
+							busyWaitOrThrowOnTimeOut(dataSrc);
+							readSoFar += dataSrc.read(header,readSoFar,12-readSoFar);
+						}
 						wrapperOfHeader.rewind();
 						final int bx = wrapperOfHeader.getInt();
 						final int by = wrapperOfHeader.getInt();
@@ -202,18 +209,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							pxData = new byte[blockLength];
 
 						//(eventually) read the buffer (aka block) fully
-						int readSoFar = 0;
+						readSoFar = 0;
 						while (readSoFar < blockLength) {
-							//wait for data in a semi-busy wait
-							int tries = 0;
-							if (dataSrc.available() == 0 && tries < 10) {
-								Thread.sleep(2000);
-								++tries;
-							}
-							if (dataSrc.available() == 0)
-								throw new IOException("Gave up waiting for block data after reading "
-										+ readSoFar+" Bytes");
-
+							busyWaitOrThrowOnTimeOut(dataSrc);
 							readSoFar += dataSrc.read(pxData,readSoFar,blockLength-readSoFar);
 						}
 						myLogger.info(" +- read "+readSoFar+" Bytes");
@@ -224,9 +222,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+bx-1, y-minY+by-1, z-minZ+bz-1}));
 					}
+			myLogger.info("Whole transfer took "
+					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
+					+" seconds.");
 
 			outDatasetImg = new DefaultDataset(this.getContext(),
-					new ImgPlus<>(img,"Retrieved image at "+timepoints+","+channels+","+angles) );
+					new ImgPlus<>(img,"Retrieved image at "+timepoint+","+channel+","+angle) );
 			myLogger.info("Created image: \""+outDatasetImg.getName()+"\"");
 			myLogger.info("Transferred "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
@@ -272,6 +273,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			HttpURLConnection connection = null;
 			OutputStream dataTgt = null;
 			int remainingBlocks = 0;
+
+			long timeTotal = TimeProfiling.tic();
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
@@ -343,6 +346,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
 						totalData += blockLength;
 					}
+			myLogger.info("Whole transfer took "
+					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
+					+" seconds.");
 			myLogger.info("=== transferring "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 			connection.getInputStream();
@@ -359,6 +365,21 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	}
 
 
+	private void busyWaitOrThrowOnTimeOut(final InputStream dataSrc)
+	throws IOException, InterruptedException {
+		int tries = 0;
+		long waitTime = 20;
+
+		if (dataSrc.available() == 0 && tries < 10) {
+			Thread.sleep(waitTime);
+			waitTime += 0.84*waitTime; //...nearly doubling-waiting time
+			++tries;
+		}
+		if (dataSrc.available() == 0)
+			throw new IOException("Gave up waiting for incoming data");
+	}
+
+
 	// ----------------------------------------------
 	/** starts DatasetServer and returns an URL on it, or null if something has failed */
 	protected String requestDatasetServer() {
@@ -367,7 +388,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 				+ "["+minY+"-"+maxY+"] x "
 				+ "["+minZ+"-"+maxZ+"], that is "
 				+ (maxX-minX+1)+" x "+(maxY-minY+1)+" x "+(maxZ-minZ+1)+" pixels,");
-		myLogger.info("  at "+timepoints+","+channels+","+angles
+		myLogger.info("  at "+timepoint+","+channel+","+angle
 				+ " timepoint,channel,angle");
 		myLogger.info("  at "+currentResLevel);
 		myLogger.info("  at version "+versionAsStr);

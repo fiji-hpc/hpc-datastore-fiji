@@ -5,8 +5,9 @@ import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
 
-@Plugin(type = Command.class, headless = true)
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read Into Image")
 public class ReadIntoImagePlus extends ImagePlusTransferrer implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	public Dataset outDatasetImg;
@@ -14,7 +15,10 @@ public class ReadIntoImagePlus extends ImagePlusTransferrer implements Command {
 	@Override
 	public void run() {
 		checkAccessRegimeVsDatasetVersionOrThrow();
+		adjustReportingVerbosity();
 
 		outDatasetImg = readWithAType();
+		if (showRunCmd)
+			mainLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Read Into Image"));
 	}
 }
