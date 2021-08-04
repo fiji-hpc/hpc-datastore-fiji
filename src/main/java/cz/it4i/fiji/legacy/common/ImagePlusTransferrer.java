@@ -217,6 +217,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						while (readSoFar < blockLength) {
 							busyWaitOrThrowOnTimeOut(dataSrc);
 							readSoFar += dataSrc.read(pxData,readSoFar,blockLength-readSoFar);
+							System.out.println("readSoFar = "+readSoFar); //TODO REMOVE
 						}
 						timer = TimeProfiling.tactic(timer,"reading buffer");
 						myLogger.info(" +- read "+readSoFar+" Bytes");
@@ -383,6 +384,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		long waitTime = 20;
 
 		while (dataSrc.available() == 0 && tries < 10) {
+			System.out.println("WAITING! for "+waitTime); //TODO REMOVE
 			Thread.sleep(waitTime);
 			waitTime += 0.84*waitTime; //...nearly doubling-waiting time
 			++tries;
