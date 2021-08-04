@@ -149,6 +149,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			InputStream dataSrc = null;
 			int remainingBlocks = 0;
 
+			long timer;
 			long timeTotal = TimeProfiling.tic();
 
 			//iterate over the blocks and read them in into the image
@@ -182,6 +183,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 								+ shortedBlockFlag[0]+","+shortedBlockFlag[1]+","+shortedBlockFlag[2]);
 						myLogger.info(" +- I  expect  size: "+ex+" x "+ey+" x "+ez);
 
+						timer = TimeProfiling.tic();
 						//retrieve the block header (which contains block size)
 						int readSoFar = 0;
 						while (readSoFar < 12) {
@@ -203,10 +205,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						checkBlockSizeAndPassOrThrow(bx,ex,'x');
 						checkBlockSizeAndPassOrThrow(by,ey,'y');
 						checkBlockSizeAndPassOrThrow(bz,ez,'z');
+						timer = TimeProfiling.tactic(timer,"reading header");
 
 						//make sure the buffer can accommodate the incoming data
 						if (blockLength > pxData.length)
 							pxData = new byte[blockLength];
+						timer = TimeProfiling.tactic(timer,"possible buffer resizing");
 
 						//(eventually) read the buffer (aka block) fully
 						readSoFar = 0;
@@ -214,6 +218,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							busyWaitOrThrowOnTimeOut(dataSrc);
 							readSoFar += dataSrc.read(pxData,readSoFar,blockLength-readSoFar);
 						}
+						timer = TimeProfiling.tactic(timer,"reading buffer");
 						myLogger.info(" +- read "+readSoFar+" Bytes");
 						totalData += readSoFar;
 
@@ -221,6 +226,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						th.blockIntoImgInterval(pxData, bx*by*bz, Views.interval(img,
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+bx-1, y-minY+by-1, z-minZ+bz-1}));
+						timer = TimeProfiling.tactic(timer,"writing into image");
 					}
 			myLogger.info("Whole transfer took "
 					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
@@ -274,6 +280,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			OutputStream dataTgt = null;
 			int remainingBlocks = 0;
 
+			long timer;
 			long timeTotal = TimeProfiling.tic();
 
 			//iterate over the blocks and read them in into the image
@@ -318,6 +325,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- I report size: "+ex+" x "+ey+" x "+ez
 								+ " -> "+blockLength+" Bytes");
 
+						timer = TimeProfiling.tic();
 						//write the block header (which contains block size)
 						wrapperOfHeader.rewind();
 						wrapperOfHeader.putInt(ex);
@@ -329,22 +337,26 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							throw new IOException("Failed writing full block header",e);
 						}
 						totalHeaders += 12;
+						timer = TimeProfiling.tactic(timer,"writing header");
 
 						//make sure the buffer can accommodate the outgoing data
 						if (blockLength > pxData.length)
 							pxData = new byte[blockLength];
+						timer = TimeProfiling.tactic(timer,"possible buffer resizing");
 
 						//copy the current image block into the buffer
 						th.imgIntervalIntoBlock( Views.interval(img,
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+ex-1, y-minY+ey-1, z-minZ+ez-1}),
 								ex*ey*ez, pxData);
+						timer = TimeProfiling.tactic(timer,"reading from image");
 
 						//(eventually) write the buffer (aka block) fully
 						dataTgt.write(pxData,0,blockLength);
 						//dataTgt.flush(); leave this decision on the subsystems...
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
 						totalData += blockLength;
+						timer = TimeProfiling.tactic(timer,"writing buffer");
 					}
 			myLogger.info("Whole transfer took "
 					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
