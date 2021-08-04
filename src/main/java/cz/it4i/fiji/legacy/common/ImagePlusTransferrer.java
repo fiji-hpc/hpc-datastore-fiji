@@ -180,8 +180,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- I  expect  size: "+ex+" x "+ey+" x "+ez);
 
 						//retrieve the block header (which contains block size)
-						if (dataSrc.read(header,0,12) != 12)
-							throw new IOException("Failed reading full block header");
+						int readSoFar = 0;
+						while (readSoFar < 12) {
+							//make sure data is available, and read only afterwards
+							busyWaitOrThrowOnTimeOut(dataSrc);
+							readSoFar += dataSrc.read(header,readSoFar,12-readSoFar);
+						}
 						wrapperOfHeader.rewind();
 						final int bx = wrapperOfHeader.getInt();
 						final int by = wrapperOfHeader.getInt();
@@ -202,18 +206,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							pxData = new byte[blockLength];
 
 						//(eventually) read the buffer (aka block) fully
-						int readSoFar = 0;
+						readSoFar = 0;
 						while (readSoFar < blockLength) {
-							//wait for data in a semi-busy wait
-							int tries = 0;
-							if (dataSrc.available() == 0 && tries < 10) {
-								Thread.sleep(2000);
-								++tries;
-							}
-							if (dataSrc.available() == 0)
-								throw new IOException("Gave up waiting for block data after reading "
-										+ readSoFar+" Bytes");
-
+							busyWaitOrThrowOnTimeOut(dataSrc);
 							readSoFar += dataSrc.read(pxData,readSoFar,blockLength-readSoFar);
 						}
 						myLogger.info(" +- read "+readSoFar+" Bytes");
@@ -356,6 +351,21 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			this.cancel("Problem accessing the dataset: "+e.getMessage());
 		}
 		myLogger.info("DONE writing image.");
+	}
+
+
+	private void busyWaitOrThrowOnTimeOut(final InputStream dataSrc)
+	throws IOException, InterruptedException {
+		int tries = 0;
+		long waitTime = 20;
+
+		if (dataSrc.available() == 0 && tries < 10) {
+			Thread.sleep(waitTime);
+			waitTime += 0.84*waitTime; //...nearly doubling-waiting time
+			++tries;
+		}
+		if (dataSrc.available() == 0)
+			throw new IOException("Gave up waiting for incoming data");
 	}
 
 
