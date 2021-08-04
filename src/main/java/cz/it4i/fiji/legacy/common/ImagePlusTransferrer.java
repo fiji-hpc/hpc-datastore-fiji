@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
+import cz.it4i.fiji.legacy.util.TimeProfiling;
 
 public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
@@ -148,6 +149,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			InputStream dataSrc = null;
 			int remainingBlocks = 0;
 
+			long timeTotal = TimeProfiling.tic();
+
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
 				for (int y = minY; y <= maxY; y += blockSize[1])
@@ -219,6 +222,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+bx-1, y-minY+by-1, z-minZ+bz-1}));
 					}
+			myLogger.info("Whole transfer took "
+					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
+					+" seconds.");
 
 			outDatasetImg = new DefaultDataset(this.getContext(),
 					new ImgPlus<>(img,"Retrieved image at "+timepoint+","+channel+","+angle) );
@@ -267,6 +273,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 			HttpURLConnection connection = null;
 			OutputStream dataTgt = null;
 			int remainingBlocks = 0;
+
+			long timeTotal = TimeProfiling.tic();
 
 			//iterate over the blocks and read them in into the image
 			for (int z = minZ; z <= maxZ; z += blockSize[2])
@@ -338,6 +346,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						myLogger.info(" +- wrote "+blockLength+" Bytes");
 						totalData += blockLength;
 					}
+			myLogger.info("Whole transfer took "
+					+TimeProfiling.seconds(TimeProfiling.tac(timeTotal))
+					+" seconds.");
 			myLogger.info("=== transferring "+totalData+" Bytes ("+(totalData>>20)
 					+" MB) in pixels plus "+totalHeaders+" Bytes in headers");
 			connection.getInputStream();
