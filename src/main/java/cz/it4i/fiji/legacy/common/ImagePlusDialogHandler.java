@@ -153,7 +153,10 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 					di.resolutionLevels.stream().map(v -> v.resolutions.toString()).collect(Collectors.toList()) );
 
 			final List<String> versions = di.versions.stream().map(Object::toString).collect(Collectors.toList());
-			if (accessRegime.equals("write")) versions.add(0,"new");
+			if (accessRegime.equals("write")) {
+				versions.add(0,"new");
+				versions.add("latest");
+			}
 			if (accessRegime.equals("read")) {
 				versions.add("latest");
 				versions.add("mixedLatest");
@@ -294,7 +297,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			myLogger.warn("Cannot _create and write new_ version when intending to _read_ from a dataset.");
 			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
 		}
-		if (versionAsStr.contains("atest") && accessRegime.contains("write")) {
+		if (versionAsStr.contains("mixed") && accessRegime.contains("write")) {
 			myLogger.warn("Cannot _read "+versionAsStr+"_ version when intending to _write_ into a dataset.");
 			throw new IllegalArgumentException("Wrong combination, cannot read new version of a dataset.");
 		}
