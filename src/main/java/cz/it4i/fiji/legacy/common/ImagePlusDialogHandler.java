@@ -113,7 +113,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity, but that's not a good idea...")
-	public int timeout = 30000;
+	public int timeout = -99;
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.")
@@ -130,9 +130,11 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	protected void readInfo() {
 		try {
 			//logging flags
-			if (minX == -1)
+			if (minX == -1) {
 				//if no CLI at all, use prefs, or class default (which was the verboseLog holds now)
-				verboseLog = prefService.getBoolean(this.getClass(),"verboseLog",verboseLog);
+				verboseLog = prefService.getBoolean(this.getClass(), "verboseLog", verboseLog);
+				showRunCmd = prefService.getBoolean(this.getClass(), "showRunCmd", showRunCmd);
+			}
 
 			//logging facility
 			myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
@@ -378,6 +380,10 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			if (versionAsStr == null) {
 				versionAsStr = prefService.get(this.getClass(),"versionAsStr");
 				//NB: null default value forces the readInfo() to choose some existing version
+			}
+			if (timeout == -99) {
+				prefVal = prefService.get(this.getClass(),"timeout");
+				timeout = prefVal != null ? Integer.parseInt(prefVal) : 30000;
 			}
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Fiji preferences contain non-integer value for either minX,minY,minZ,maxX,maxY or maxZ",e);
