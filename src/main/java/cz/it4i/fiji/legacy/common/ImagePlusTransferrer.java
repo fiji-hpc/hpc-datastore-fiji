@@ -79,7 +79,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 	void setupTransferPlan(final int maxTransferByteSize) {
 		final String baseURL = requestDatasetServer();
-		final int maxBlocks = maxTransferByteSize / fullBlockByteSize;
+		int maxBlocks = maxTransferByteSize / fullBlockByteSize; //to prevent from long transfers (and long URIs)
+		if (maxBlocks > 256) maxBlocks = 256;                    //to prevent from long URIs
 
 		if (maxBlocks == 0)
 			throw new IllegalStateException("Given max transfer size "+maxTransferByteSize
