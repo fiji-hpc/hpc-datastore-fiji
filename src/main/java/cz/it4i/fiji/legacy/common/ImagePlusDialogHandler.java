@@ -6,9 +6,11 @@ import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
 import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
-import cz.it4i.fiji.rest.util.DatasetInfo;
 import java.util.List;
 import java.util.stream.Collectors;
+import cz.it4i.fiji.rest.util.DatasetInfo;
+import cz.it4i.fiji.legacy.ReadIntoImagePlus;
+import cz.it4i.fiji.legacy.WriteFromImagePlus;
 
 abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that must be set when using this command =========
@@ -137,6 +139,18 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			myLogger.info("entered init with this state: "+reportCurrentSettings());
 
 			//sanity check
+			if (accessRegime == null) {
+				//if we are executed from a script, in which case users are not requested
+				//to provide the 'accessregime', we have to set it now for them...
+				if (this.getClass().isAssignableFrom(ReadIntoImagePlus.class)) {
+					accessRegime="read";
+					resolveInput("accessRegime");
+				}
+				if (this.getClass().isAssignableFrom(WriteFromImagePlus.class)) {
+					accessRegime="write";
+					resolveInput("accessRegime");
+				}
+			}
 			if (URL == null || datasetID == null || accessRegime == null) {
 				myLogger.warn("Intended to be called from macros or scripts, in which case");
 				myLogger.warn("the parameters 'URL', 'datasetID' and 'accessRegime' must be supplied.");
@@ -373,9 +387,11 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	// ========= command reporting =========
 	public String reportCurrentSettings() {
-		return "url="+URL
+		return  "url="+URL
 				+" datasetid="+datasetID
 				+" accessregime="+accessRegime
+				+" versionasstr="+versionAsStr
+				+" resolutionlevelsasstr=["+resolutionLevelsAsStr+"]"
 				+" minx="+minX
 				+" maxx="+maxX
 				+" miny="+minY
@@ -385,14 +401,27 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" timepoint="+timepoint
 				+" channel="+channel
 				+" angle="+angle
-				+" resolutionlevelsasstr=["+resolutionLevelsAsStr+"]"
-				+" versionasstr="+versionAsStr
 				+" timeout="+timeout;
 	}
 
 	public String reportAsMacroCommand(final String forThisCommand) {
-		return "run(\""+forThisCommand+"\", \""+reportCurrentSettings()
-				+" verboselog="+verboseLog+" showruncmd="+showRunCmd+"\");";
+		return "run(\""+forThisCommand+"\", \""
+				+ "url="+URL
+				+" datasetid="+datasetID
+				+" versionasstr="+versionAsStr
+				+" resolutionlevelsasstr=["+resolutionLevelsAsStr+"]"
+				+" minx="+minX
+				+" maxx="+maxX
+				+" miny="+minY
+				+" maxy="+maxY
+				+" minz="+minZ
+				+" maxz="+maxZ
+				+" timepoint="+timepoint
+				+" channel="+channel
+				+" angle="+angle
+				+" timeout="+timeout
+				+" verboselog="+verboseLog
+				+" showruncmd="+showRunCmd+"\");";
 	}
 
 	protected void adjustReportingVerbosity() {
