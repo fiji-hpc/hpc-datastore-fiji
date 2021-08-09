@@ -7,7 +7,6 @@ import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,10 +47,10 @@ import ij.ImageJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.ImgLoader;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.TimePoints;
 import mpicbg.spim.data.sequence.ViewSetup;
@@ -111,7 +110,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		// create ImgLoader wrapping the image
 
-		final ImgLoader imgLoader = params.spimData.getSequenceDescription()
+		final BasicImgLoader imgLoader = params.spimData.getSequenceDescription()
 			.getImgLoader();
 
 		// TODO reimplement following
@@ -225,9 +224,9 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			
 			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
-				params.compression, () -> datasetIndex.getWriter(Paths.get(
-					lastSPIMdata), params.serverURL, adapter.constructN5Writer(
-						params.serverURL.toString(), params.dataserverTimeout * 1000l)),
+				params.compression, () -> datasetIndex.getWriter(lastSPIMdata,
+					params.serverURL, adapter.constructN5Writer(params.serverURL
+						.toString(), params.dataserverTimeout * 1000l)),
 				loopbackHeuristic, afterEachPlane,
 				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
 					0.95));

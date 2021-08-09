@@ -9,6 +9,7 @@ package cz.it4i.fiji.datastore.rest_client;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -65,16 +66,13 @@ public final class DatasetIndex {
 		return dto;
 	}
 	
-	public N5Writer getWriter(Path path, URL url, N5WriterWithUUID innerWriter) {
-		try {
-			return new N5WriterFilter(path, url, innerWriter);
-		}
-		catch (IOException exc) {
-			throw new RuntimeException(exc);
-		}
+	public N5Writer getWriter(String path, URL url,
+		N5WriterWithUUID innerWriter)
+	{
+		return new N5WriterFilter(path, url, innerWriter);
 	}
 
-	private synchronized UUID getUUID(Path datasetPath, URL serverURL) {
+	private synchronized UUID getUUID(String datasetPath, URL serverURL) {
 		UUID result = datasetPath2UUID.get(getKey(datasetPath, serverURL));
 		if (result == null) {
 			return null;
@@ -128,7 +126,7 @@ public final class DatasetIndex {
 		}
 	}
 
-	private synchronized void registerDataset(Path datasetPath, URL url,
+	private synchronized void registerDataset(String datasetPath, URL url,
 		UUID uuid)
 	{
 		String key = getKey(datasetPath, url);
@@ -145,8 +143,8 @@ public final class DatasetIndex {
 	}
 
 
-	private String getKey(Path datasetPath, URL url) {
-		return datasetPath.toAbsolutePath() + ";" + url;
+	private String getKey(String datasetPath, URL url) {
+		return datasetPath + ";" + url;
 	}
 
 	private BlockIdentification createBlockIdentification(String path,
@@ -177,18 +175,16 @@ public final class DatasetIndex {
 
 		@Delegate(excludes = N5WriterExcludes.class)
 		private final N5WriterWithUUID innerWriter;
-		private final Path datasetPath;
+		private final String datasetPath;
 		private final Set<BlockIdentification> alreadyWritedBlocks =
 			new HashSet<>();
 		private UUID uuid;
 		private URL serverURL;
 
 		
-		public N5WriterFilter(Path path, URL url, N5WriterWithUUID innerWriter)
-			throws IOException
-		{
+		public N5WriterFilter(String path, URL url, N5WriterWithUUID innerWriter) {
 			this.innerWriter = innerWriter;
-			this.datasetPath = path.toRealPath();
+			this.datasetPath = toRealPath(path);
 			this.serverURL = url;
 			this.uuid = DatasetIndex.this.getUUID(datasetPath, this.serverURL);
 			if (uuid != null) {
@@ -248,6 +244,20 @@ public final class DatasetIndex {
 			catch (IOException exc) {
 				log.error("Load block index", exc);
 			}
+		}
+
+		private String toRealPath(String path) {
+			final File file = new File(path);
+			if (file.exists()) {
+				try {
+					return Paths.get(path).toRealPath().toAbsolutePath().toString();
+				}
+				catch (IOException exc) {
+					log.warn("getPath", exc);
+					return path;
+				}
+			}
+			return path;
 		}
 
 	}
