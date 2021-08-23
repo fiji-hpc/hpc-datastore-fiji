@@ -200,6 +200,12 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 								+ " -> "+blockLength+" Bytes");
 						totalHeaders += 12;
 
+						if (bx == -1 && by == -1 && bz == -1) {
+							//server signals that this block is missing, we skip it for now...
+							myLogger.info(" -> skipped");
+							continue;
+						}
+
 						//check if the incoming block size fits the currently expected block size
 						checkBlockSizeAndPassOrThrow(bx,ex,'x');
 						checkBlockSizeAndPassOrThrow(by,ey,'y');
