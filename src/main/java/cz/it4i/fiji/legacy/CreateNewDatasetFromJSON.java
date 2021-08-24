@@ -27,6 +27,9 @@ public class CreateNewDatasetFromJSON implements Command {
 	public LogService mainLogger;
 	protected Logger myLogger;
 
+	@Parameter(label = "Report corresponding macro command:", required = false)
+	public boolean showRunCmd = false;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	public String newDatasetUUID;
 
@@ -44,6 +47,11 @@ public class CreateNewDatasetFromJSON implements Command {
 			connection.getOutputStream().write(json.getBytes());
 
 			newDatasetUUID = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+
+			if (showRunCmd) {
+				myLogger.info("run(\"Create new dataset from JSON\", 'url="+this.url
+						+" json="+this.json+" showruncmd=False');");
+			}
 		} catch (MalformedURLException e) {
 			myLogger.error("Malformed URL, probably because of \"http://\" prefix. Please use only hostname:port without any spaces.");
 			myLogger.error(e.getMessage());

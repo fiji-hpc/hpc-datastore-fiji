@@ -85,6 +85,9 @@ public class CreateNewDataset implements Command {
 	public LogService mainLogger;
 	protected Logger myLogger;
 
+	@Parameter(label = "Report corresponding macro command:", required = false)
+	public boolean showRunCmd = false;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	public String newDatasetUUID;
 
@@ -149,7 +152,7 @@ public class CreateNewDataset implements Command {
 			myLogger.info("CREATED JSON:\n"+json);
 
 			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
-					"url",url, "json",json);
+					"url",url, "json",json, "showRunCmd",showRunCmd);
 			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
 		} catch (ExecutionException e) {
 			e.printStackTrace();
