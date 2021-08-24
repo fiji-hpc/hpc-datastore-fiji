@@ -16,13 +16,6 @@ import java.util.concurrent.Future;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -97,6 +90,9 @@ public class CreateNewDataset implements Command {
 
 	@Override
 	public void run() {
+		//logging facility
+		myLogger = mainLogger.subLogger("HPC CreateDataset", LogLevel.INFO);
+
 		DatasetInfo di = new DatasetInfo();
 		di.voxelType = this.voxelType;
 		di.dimensions = Arrays.asList(fullResSizeX,fullResSizeY,fullResSizeZ);
@@ -141,42 +137,26 @@ public class CreateNewDataset implements Command {
 					rldlg_presets.remove("down_z");
 				}
 			}
-			//finishup the resolutions...
+
+			//finish it up with the resolutions...
 			for (DatasetInfo.ResolutionLevel l : di.resolutionLevels)
 				l.setDimensions(di.dimensions);
 
+			myLogger.info("============ collected this params: ===============");
+			myLogger.info(di);
+
+			final String json = new ObjectMapper().writeValueAsString(di);
+			myLogger.info("CREATED JSON:\n"+json);
+
+			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
+					"url",url, "json",json);
+			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
 		} catch (ExecutionException e) {
 			e.printStackTrace();
-			return; //stops the whole thing!
 		} catch (InterruptedException e) {
-			return; //stops the whole thing!
-		}
-
-		//logging facility
-		myLogger = mainLogger.subLogger("HPC CreateDataset", LogLevel.INFO);
-		myLogger.info("============ collected this params: ===============");
-		myLogger.info(di);
-
-		try {
-			final ObjectMapper om = new ObjectMapper();
-			myLogger.info("SUBMITTED JSON:\n" + om.writeValueAsString(di));
-
-			final HttpURLConnection connection = (HttpURLConnection)new URL("http://"+this.url+"/datasets").openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type","application/json");
-			connection.setDoOutput(true);
-			connection.connect();
-			om.writeValue(connection.getOutputStream(), di);
-
-			newDatasetUUID = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+			//dialog interrupted, do nothing special...
 		} catch (JsonProcessingException e) {
 			myLogger.error("Error converting dataset description into JSON:"+e.getMessage());
-		} catch (MalformedURLException e) {
-			myLogger.error("Malformed URL, probably because of \"http://\" prefix. Please use only hostname:port without any spaces.");
-			myLogger.error(e.getMessage());
-		} catch (IOException e) {
-			myLogger.error("Some connection problem:");
-			e.printStackTrace();
 		}
 	}
 }
