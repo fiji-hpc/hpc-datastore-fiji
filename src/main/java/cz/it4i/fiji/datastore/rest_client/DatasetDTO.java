@@ -81,6 +81,10 @@ public class DatasetDTO {
 
 	@Getter
 	@Setter
+	private double[][] transformations;
+
+	@Getter
+	@Setter
 	private String voxelUnit;
 
 	@Getter

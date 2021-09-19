@@ -33,6 +33,7 @@ import bdv.export.ProposeMipmaps;
 import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
+import bdv.img.hdf5.MipmapInfo;
 import bdv.img.imagestack.ImageStackImageLoader;
 import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
@@ -194,7 +195,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			timepoints.add( new TimePoint( t ) );
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal( new TimePoints( timepoints ), setups, imgLoader, null );
 
-		Map< Integer, ExportMipmapInfo > perSetupExportMipmapInfo;
+		Map<Integer, MipmapInfo> perSetupExportMipmapInfo;
 		perSetupExportMipmapInfo = new HashMap<>();
 		final ExportMipmapInfo mipmapInfo = new ExportMipmapInfo( params.resolutions, params.subdivisions );
 		for ( final BasicViewSetup setup : seq.getViewSetupsOrdered() )

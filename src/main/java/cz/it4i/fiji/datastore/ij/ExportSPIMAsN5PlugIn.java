@@ -37,6 +37,8 @@ import bdv.export.ProposeMipmaps;
 import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
+import bdv.img.hdf5.MipmapInfo;
+import bdv.img.hdf5.Util;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import cz.it4i.fiji.datastore.rest_client.DatasetIndex;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
@@ -49,7 +51,6 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.TimePoints;
@@ -127,13 +128,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final double pd = viewSetupZero.getVoxelSize().dimension(2);
 		String punit = viewSetupZero.getVoxelSize().unit();
 		if (punit == null || punit.isEmpty()) punit = "px";
-		final FinalVoxelDimensions voxelSize = new FinalVoxelDimensions(punit, pw,
-			ph, pd);
 
-		final int w = (int) viewSetupZero.getSize().dimension(0);
-		final int h = (int) viewSetupZero.getSize().dimension(1);
-		final int d = (int) viewSetupZero.getSize().dimension(2);
-		final FinalDimensions size = new FinalDimensions(w, h, d);
 
 		final int numTimepoints = params.spimData.getSequenceDescription()
 			.getTimePoints().size();
@@ -145,12 +140,12 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		sourceTransform.set(pw, 0, 0, 0, 0, ph, 0, 0, 0, 0, pd, 0);
 
 		// write n5
-		final HashMap<Integer, BasicViewSetup> setups = new HashMap<>(numSetups);
-		for (int s = 0; s < numSetups; ++s) {
-			final BasicViewSetup setup = new BasicViewSetup(s, String.format(
-				"channel %d", s + 1), size, voxelSize);
-			setup.setAttribute(new Channel(s + 1));
-			setups.put(s, setup);
+		final HashMap<Integer, ViewSetup> setups = new HashMap<>(numSetups);
+		int s = 0;
+		for (ViewSetup vs : params.spimData.getSequenceDescription()
+			.getViewSetupsOrdered())
+		{
+			setups.put(s, vs);
 		}
 		final ArrayList<TimePoint> timepoints = new ArrayList<>(numTimepoints);
 		for (int t = 0; t < numTimepoints; ++t)
@@ -158,12 +153,13 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal(
 			new TimePoints(timepoints), setups, imgLoader, null);
 
-		Map<Integer, ExportMipmapInfo> perSetupExportMipmapInfo;
-		perSetupExportMipmapInfo = new HashMap<>();
-		final ExportMipmapInfo mipmapInfo = new ExportMipmapInfo(params.resolutions,
-			params.subdivisions);
-		for (final BasicViewSetup setup : seq.getViewSetupsOrdered())
-			perSetupExportMipmapInfo.put(setup.getId(), mipmapInfo);
+		Map<Integer, MipmapInfo> perSetupExportMipmapInfo = new HashMap<>();
+		for (final BasicViewSetup setup : seq.getViewSetupsOrdered()) {
+			perSetupExportMipmapInfo.put(setup.getId(), new MipmapInfo(Util
+				.castToDoubles(params.resolutions), new AffineTransform3D[] {
+					params.spimData.getViewRegistrations().getViewRegistration(0, setup
+						.getId()).getModel() }, params.subdivisions));
+		}
 
 		// LoopBackHeuristic:
 		// - If saving more than 8x on pixel reads use the loopback image over

@@ -16,8 +16,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +30,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Cast;
 
 import org.apache.http.HttpStatus;
@@ -37,8 +40,10 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
-import bdv.export.ExportMipmapInfo;
+import bdv.img.hdf5.MipmapInfo;
+import bdv.img.hdf5.Util;
 import cz.it4i.fiji.datastore.rest_client.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.rest_client.PerAnglesChannels.AngleChannel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -73,13 +78,14 @@ public class N5RESTAdapter {
 	private final AbstractSequenceDescription<?, ?, ?> seq;
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
-		Map<Integer, ExportMipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
+		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
 		Compression compression)
 	{
 		this.seq = seq;
 		int angles = 1;
 		int channels = 1;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
+		PerAnglesChannels perAnglesChannels = PerAnglesChannels.construct(seq);
 
 		final int setupId = setup.getId();
 
@@ -91,6 +97,7 @@ public class N5RESTAdapter {
 				.dimensions(setup.getSize().dimensionsAsLongArray())
 				.angles(angles)
 				.channels(channels)
+				.transformations(extractTransformations(perAnglesChannels, perSetupMipmapInfo))
 				.timepoints(seq.getTimePoints().size())
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
@@ -98,6 +105,44 @@ public class N5RESTAdapter {
 				.resolutionLevels(getResolutionsLevels(perSetupMipmapInfo.get(setupId)))
 				.build();
 // @formatter:on
+	}
+
+	private double[][] extractTransformations(PerAnglesChannels perAnglesChannels,
+		Map<Integer, MipmapInfo> perSetupMipmapInfo)
+	{
+		double[][] result = new double[perAnglesChannels.getAngles()][];
+		int[] channels = new int[perAnglesChannels.getChannels()];
+		for (Entry<Integer, MipmapInfo> entry : perSetupMipmapInfo.entrySet()) {
+			AngleChannel ac = perAnglesChannels.getAngleChannel(entry.getKey());
+			int angleIdx = ac.getAngleIndex();
+			int channelIdx = ac.getChannelIndex();
+			double[] transform = getTransform(entry.getValue().getTransforms());
+			if (result[angleIdx] != null && !Arrays.equals(result[angleIdx],
+				transform))
+			{
+				throw new IllegalArgumentException("Angle " + angleIdx +
+					" for channel " + channelIdx + " has transformation " + getMatrix(
+						transform) + " whilst for channel " + channels[angleIdx] + " has " +
+					getMatrix(result[angleIdx]));
+			}
+			result[angleIdx] = transform;
+			channels[angleIdx] = channelIdx;
+		}
+		return result;
+	}
+
+	private AffineTransform3D getMatrix(double[] transform) {
+		AffineTransform3D result = new AffineTransform3D();
+		result.set(transform);
+		return result;
+	}
+
+	private double[] getTransform(AffineTransform3D[] transforms) {
+		AffineTransform3D result = new AffineTransform3D();
+		for (AffineTransform3D transform : transforms) {
+			result.concatenate(transform);
+		}
+		return result.getRowPackedCopy();
 	}
 
 	public N5WriterWithUUID constructN5Writer(String url) {
@@ -119,10 +164,9 @@ public class N5RESTAdapter {
 		return dto;
 	}
 
-	private ResolutionLevel[] getResolutionsLevels(
-		ExportMipmapInfo exportMipmapInfo)
+	private ResolutionLevel[] getResolutionsLevels(MipmapInfo exportMipmapInfo)
 	{
-		int[][] resolutions = exportMipmapInfo.intResolutions;
+		int[][] resolutions = Util.castToInts(exportMipmapInfo.getResolutions());
 		int[][] subdivisions = exportMipmapInfo.getSubdivisions();
 
 		ResolutionLevel[] result = new ResolutionLevel[resolutions.length];

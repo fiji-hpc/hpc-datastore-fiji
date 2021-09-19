@@ -71,6 +71,8 @@ import bdv.export.ProgressWriter;
 import bdv.export.ProgressWriterNull;
 import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
+import bdv.img.hdf5.MipmapInfo;
+import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -130,7 +132,7 @@ public class WriteSequenceToN5
 	 */
 	public static void writeN5File(
 		final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, ExportMipmapInfo> perSetupMipmapInfo,
+		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
 			final Compression compression,
 			final File n5File,
 			final LoopbackHeuristic loopbackHeuristic,
@@ -144,7 +146,7 @@ public class WriteSequenceToN5
 	}
 
 	public static void writeN5File(final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, ExportMipmapInfo> perSetupMipmapInfo,
+		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
 		final Compression compression,
 		final SupplierWithIOException<N5Writer> writerSupplier,
 		final LoopbackHeuristic loopbackHeuristic,
@@ -206,7 +208,7 @@ public class WriteSequenceToN5
 				{
 					progressWriter.out().printf( "proccessing setup %d / %d\n", ++setupIndex, numSetups );
 
-					final ExportMipmapInfo mipmapInfo = perSetupMipmapInfo.get( setupId );
+					final MipmapInfo mipmapInfo = perSetupMipmapInfo.get(setupId);
 					final double startCompletionRatio = ( double ) numCompletedTasks++ / numTasks;
 					final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
 					final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
@@ -237,7 +239,7 @@ public class WriteSequenceToN5
 			final BasicImgLoader imgLoader,
 			final int setupId,
 			final int timepointId,
-			final ExportMipmapInfo mipmapInfo,
+		final MipmapInfo mipmapInfo,
 			final ExecutorService executorService,
 			final int numThreads,
 			final LoopbackHeuristic loopbackHeuristic,
@@ -252,7 +254,8 @@ public class WriteSequenceToN5
 		options().getClass().getMethods();
 		
 		ExportScalePyramid.writeScalePyramid(
-				img, type, mipmapInfo, io,
+			img, type, new ExportMipmapInfo(Util.castToInts(mipmapInfo
+				.getResolutions()), mipmapInfo.getSubdivisions()), io,
 				executorService, numThreads,
 				loopbackHeuristic, afterEachPlane, progressWriter );
 	}
