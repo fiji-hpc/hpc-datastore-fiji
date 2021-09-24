@@ -1,0 +1,2 @@
+run("Read Full Image",  "url=192.168.3.119:9080 datasetid=7cfd47a8-f264-474f-8d55-86626568823f timepoint=0 channel=0 angle=0 resolutionlevelsasstr=[[2, 2, 2]] versionasstr=0 verboselog=true");
+run("Write Full Image", "url=192.168.3.119:9080 datasetid=7cfd47a8-f264-474f-8d55-86626568823f timepoint=0 channel=0 angle=0 resolutionlevelsasstr=[[2, 2, 2]] versionasstr=2 verboselog=true");
