@@ -122,10 +122,6 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		ViewSetup viewSetupZero = params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered().get(0);
 
-		// get calibration and image size
-		final double pw = viewSetupZero.getVoxelSize().dimension(0);
-		final double ph = viewSetupZero.getVoxelSize().dimension(1);
-		final double pd = viewSetupZero.getVoxelSize().dimension(2);
 		String punit = viewSetupZero.getVoxelSize().unit();
 		if (punit == null || punit.isEmpty()) punit = "px";
 
@@ -135,9 +131,6 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final int numSetups = params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered().size();
 
-		// create SourceTransform from the images calibration
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceTransform.set(pw, 0, 0, 0, 0, ph, 0, 0, 0, 0, pd, 0);
 
 		// write n5
 		final HashMap<Integer, ViewSetup> setups = new HashMap<>(numSetups);
@@ -145,7 +138,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		for (ViewSetup vs : params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered())
 		{
-			setups.put(s, vs);
+			setups.put(s++, vs);
 		}
 		final ArrayList<TimePoint> timepoints = new ArrayList<>(numTimepoints);
 		for (int t = 0; t < numTimepoints; ++t)

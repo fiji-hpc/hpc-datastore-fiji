@@ -50,15 +50,15 @@ public final class DatasetIndex {
 	private final Map<String, UUID> datasetPath2UUID = new HashMap<>();
 
 	private final DatasetDTO dto;
+	private PerAnglesChannels perAnglesChannels;
 
 
-	private final AbstractSequenceDescription<?, ?, ?> seq;
 
 	public DatasetIndex(DatasetDTO dto,
 		AbstractSequenceDescription<?, ?, ?> seq)
 	{
 		this.dto = dto;
-		this.seq = seq;
+		this.perAnglesChannels = PerAnglesChannels.construct(seq);
 		loadIndex();
 	}
 
@@ -151,7 +151,7 @@ public final class DatasetIndex {
 		DataBlock<?> dataBlock)
 	{
 		AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
-			seq, path);
+			perAnglesChannels, path);
 		ResolutionLevel resolutionLevel = dto.getResolutionLevels()[act
 			.getLevelID()];
 		return new BlockIdentification(resolutionLevel.getResolutions(), dataBlock

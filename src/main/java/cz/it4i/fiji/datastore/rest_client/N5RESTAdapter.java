@@ -52,7 +52,6 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -75,17 +74,16 @@ public class N5RESTAdapter {
 
 	private final DataType dataType;
 
-	private final AbstractSequenceDescription<?, ?, ?> seq;
+	private final PerAnglesChannels perAnglesChannels;
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
 		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
 		Compression compression)
 	{
-		this.seq = seq;
 		int angles = 1;
 		int channels = 1;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
-		PerAnglesChannels perAnglesChannels = PerAnglesChannels.construct(seq);
+		this.perAnglesChannels = PerAnglesChannels.construct(seq);
 
 		final int setupId = setup.getId();
 
@@ -97,7 +95,7 @@ public class N5RESTAdapter {
 				.dimensions(setup.getSize().dimensionsAsLongArray())
 				.angles(angles)
 				.channels(channels)
-				.transformations(extractTransformations(perAnglesChannels, perSetupMipmapInfo))
+				.transformations(extractTransformations(perSetupMipmapInfo))
 				.timepoints(seq.getTimePoints().size())
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
@@ -107,7 +105,7 @@ public class N5RESTAdapter {
 // @formatter:on
 	}
 
-	private double[][] extractTransformations(PerAnglesChannels perAnglesChannels,
+	private double[][] extractTransformations(
 		Map<Integer, MipmapInfo> perSetupMipmapInfo)
 	{
 		double[][] result = new double[perAnglesChannels.getAngles()][];
@@ -286,7 +284,7 @@ public class N5RESTAdapter {
 		{
 		
 			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
-				seq, pathName);
+				perAnglesChannels, pathName);
 			DatasetServerClient client = getServerClient(act.getLevelID());
 			Response response = client.readBlock(gridPosition[0], gridPosition[1],
 				gridPosition[2], act.getTimepointID(), act.getChannelID(), act
@@ -309,7 +307,7 @@ public class N5RESTAdapter {
 			throws IOException
 		{
 			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
-				seq, pathName);
+				perAnglesChannels, pathName);
 			DatasetServerClient client = getServerClient(act.getLevelID());
 			
 			long[] pos = dataBlock.getGridPosition();
@@ -496,7 +494,7 @@ public class N5RESTAdapter {
 		final int levelID;
 
 		public static AngleChannelTimepoint constructForSeqAndPath(
-			AbstractSequenceDescription<?, ?, ?> seq, String pathName)
+			PerAnglesChannels perAnglesChannels, String pathName)
 		{
 			Matcher matcher = PATH.matcher(pathName);
 			if (!matcher.matches()) {
@@ -507,16 +505,9 @@ public class N5RESTAdapter {
 			int timepointID = Integer.parseInt(matcher.group(2));
 			int levelID = Integer.parseInt(matcher.group(3));
 
-			BasicViewSetup bvs = seq.getViewSetups().get(setupID);
-			int channel = 0;
-			int angle = 0;
-			if (bvs instanceof ViewSetup) {
-				ViewSetup vs = (ViewSetup) bvs;
-				channel = vs.getChannel().getId();
-				angle = vs.getAngle().getId();
-			}
-
-			return new AngleChannelTimepoint(angle, channel, timepointID, levelID);
+			AngleChannel ach = perAnglesChannels.getAngleChannel(setupID);
+			return new AngleChannelTimepoint(ach.getAngleIndex(), ach
+				.getChannelIndex(), timepointID, levelID);
 		}
 	}
 
