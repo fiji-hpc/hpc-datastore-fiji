@@ -51,6 +51,7 @@ public class ReadFullImage implements Command, WaitingCaller {
 
 	@Override
 	public void run() {
+		System.out.println("PREDPREDPRED");
 		cs.run(ReadIntoImagePlus.class,true,
 				"URL",URL,
 				"datasetID",datasetID,
@@ -73,6 +74,7 @@ public class ReadFullImage implements Command, WaitingCaller {
 				);
 
 		//pseudo-busy loop waiting for the inner call, max 5 minutes
+		System.out.println("MEZIMEZIMEZI");
 		try {
 			int tries = 600;
 			while (tries > 0) {
@@ -83,6 +85,7 @@ public class ReadFullImage implements Command, WaitingCaller {
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Interrupted while waiting for inner command.",e);
 		}
+		System.out.println("POPOPO");
 	}
 
 	@Override
