@@ -27,6 +27,7 @@ public class DatasetInfo {
 
 	public String compression;
 
+	public double[][] transformations;
 	public List<ResolutionLevel> resolutionLevels;
 	public List<Integer> versions;
 
