@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.it4i.fiji.legacy.util.GuiResolutionLevelParams;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create empty dataset from another")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create empty dataset from another")
 public class CloneEmptyDatasetFromAnother implements Command {
 	@Parameter(label = "URL of a reference DatasetsRegisterService:")
 	public String src_url = "someHostname:9080";

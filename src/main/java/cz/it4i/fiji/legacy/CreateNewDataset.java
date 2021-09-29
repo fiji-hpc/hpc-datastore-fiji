@@ -25,12 +25,12 @@ import java.util.Collections;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 import cz.it4i.fiji.legacy.util.GuiResolutionLevelParams;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create new dataset")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
 public class CreateNewDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";
 
-	@Parameter(label = "Voxel type:", choices = {"uint8", "uint16", "uint32", "uint64", "float"})
+	@Parameter(label = "Voxel type:", choices = {"uint8", "uint16", "uint32", "uint64","int8", "int16", "int32", "int64", "float32", "float64"})
 	public String voxelType;
 
 	@Parameter(label = "Full-resolution image size x:", min = "1")

@@ -15,7 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create new dataset from JSON")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset from JSON")
 public class CreateNewDatasetFromJSON implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";

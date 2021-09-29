@@ -7,7 +7,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read Into Image")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read>Read Into Image")
 public class ReadIntoImagePlus extends ImagePlusTransferrer implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	public Dataset outDatasetImg;
