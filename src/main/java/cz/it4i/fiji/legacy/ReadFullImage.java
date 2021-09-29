@@ -6,9 +6,10 @@ import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import cz.it4i.fiji.legacy.util.WaitingCaller;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read>Read Full Image")
-public class ReadFullImage implements Command {
+public class ReadFullImage implements Command, WaitingCaller {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String URL;
 
@@ -67,7 +68,26 @@ public class ReadFullImage implements Command {
 				"versionAsStr",versionAsStr,
 				"timeout",timeout,
 				"verboseLog",verboseLog,
-				"showRunCmd",false
+				"showRunCmd",false,
+				"notifyThisCaller",this
 				);
+
+		//pseudo-busy loop waiting for the inner call, max 5 minutes
+		try {
+			int tries = 600;
+			while (tries > 0) {
+				if (innerRunIsDone) break;
+				Thread.sleep(500);
+				--tries;
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Interrupted while waiting for inner command.",e);
+		}
 	}
+
+	@Override
+	public void innerSaysItsDone() {
+		innerRunIsDone = true;
+	}
+	private boolean innerRunIsDone = false;
 }
