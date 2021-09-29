@@ -12,7 +12,7 @@ import java.net.URL;
 import java.io.IOException;
 import cz.it4i.fiji.legacy.util.GuiSelectVersion;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Delete dataset or its version")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Delete>Delete dataset or its version")
 public class DeleteDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";

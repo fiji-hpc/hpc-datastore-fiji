@@ -25,7 +25,7 @@ import java.util.Collections;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 import cz.it4i.fiji.legacy.util.GuiResolutionLevelParams;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create new dataset")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
 public class CreateNewDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";
