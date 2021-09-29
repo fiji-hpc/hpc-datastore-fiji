@@ -80,10 +80,10 @@ public class N5RESTAdapter {
 		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
 		Compression compression)
 	{
-		int angles = 1;
-		int channels = 1;
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
 		this.perAnglesChannels = PerAnglesChannels.construct(seq);
+		int angles = perAnglesChannels.getAngles();
+		int channels = perAnglesChannels.getChannels();
 
 		final int setupId = setup.getId();
 
