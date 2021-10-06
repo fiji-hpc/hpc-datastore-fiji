@@ -20,7 +20,7 @@ public class RequestDatasetServing implements Command {
 			description = "A dataset name that one just needs to know, the Service is not listing available dataset names.")
 	public String datasetID;
 
-	@Parameter(label = "Access regime:", choices = {"read","write","read-write"})
+	@Parameter(label = "Access mode:", choices = {"read","write","read-write"})
 	public String accessRegime;
 
 	@Parameter
