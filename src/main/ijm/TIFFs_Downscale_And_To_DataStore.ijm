@@ -1,6 +1,7 @@
 #@ String host_port
 #@ String dataset
 #@ int(min="0") uploadIntoThisChannel
+#@ int(min="0") uploadIntoThisVersion
 #@ int(min="0") TP_from
 #@ int(min="0") TP_till
 #@ String(description="The part of file name before the running numbers") fileNameBeforeNumber
@@ -23,7 +24,7 @@ function padding(number, width) {
 }
 
 function justSaveAsLevel(resLevelX,resLevelY,resLevelZ) {
-	run("Write From Image", "url="+host_port+" datasetid="+dataset+" versionasstr=0 resolutionlevelsasstr=[["+resLevelX+", "+resLevelY+", "+resLevelZ+"]] minx=0 maxx=99999 miny=0 maxy=99999 minz=0 maxz=99999 timepoint="+t+" channel="+uploadIntoThisChannel+" angle=0 timeout="+(timeout*1000)+" verboselog="+verboseUpload+" showruncmd=false");
+	run("Write From Image", "url="+host_port+" datasetid="+dataset+" versionasstr="+uploadIntoThisVersion+" resolutionlevelsasstr=[["+resLevelX+", "+resLevelY+", "+resLevelZ+"]] minx=0 maxx=99999 miny=0 maxy=99999 minz=0 maxz=99999 timepoint="+t+" channel="+uploadIntoThisChannel+" angle=0 timeout="+(timeout*1000)+" verboselog="+verboseUpload+" showruncmd=false");
 }
 
 function scaleAndSave(refMainImg, resLevelX,resLevelY,resLevelZ) {
