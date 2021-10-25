@@ -11,6 +11,10 @@ in [the server-side repository](https://github.com/fiji-hpc/hpc-datastore).
 
 Worth mentioning is also [this specification document.](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
 
+Main authors: [Jan Kožusznik](https://github.com/kozusznik), [Vladimír Ulman](https://github.com/xulman)
+
+Contact person: Vladimir Ulman, <vladimir.ulman@vsb.cz>
+
 ### But I don't have time to read any docs
 To the quickest experience:
 
