@@ -1,29 +1,29 @@
 package cz.it4i.fiji.legacy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.command.CommandInfo;
 import org.scijava.command.CommandModule;
 import org.scijava.command.CommandService;
-import org.scijava.log.LogService;
 import org.scijava.log.LogLevel;
+import org.scijava.log.LogService;
 import org.scijava.log.Logger;
-import org.scijava.ItemIO;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collections;
-
-import cz.it4i.fiji.rest.util.DatasetInfo;
 import cz.it4i.fiji.legacy.util.GuiResolutionLevelParams;
+import cz.it4i.fiji.rest.util.DatasetInfo;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
 public class CreateNewDataset implements Command {

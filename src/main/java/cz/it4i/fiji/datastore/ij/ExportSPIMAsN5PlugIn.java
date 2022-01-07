@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
@@ -23,6 +24,7 @@ import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.Lz4Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
+import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -41,9 +43,11 @@ import bdv.img.hdf5.Util;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import cz.it4i.fiji.datastore.rest_client.DatasetIndex;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
+import cz.it4i.fiji.datastore.rest_client.N5WriterWithUUID;
 import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -59,6 +63,7 @@ import mpicbg.spim.data.sequence.ViewSetup;
  *
  * @author Tobias Pietzsch
  */
+@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
 public class ExportSPIMAsN5PlugIn implements Command {
@@ -84,6 +89,9 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 	@Parameter
 	private PrefService prefService;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	public String newDatasetUUID;
 
 	@Override
 	public void run() {
@@ -201,20 +209,40 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
 				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
 			
+			
+			class N5WriterProviderProxy {
+				private N5WriterWithUUID n5Writer;
+
+				N5WriterWithUUID getN5Writer() {
+					if (n5Writer == null) {
+						n5Writer = adapter.constructN5Writer(params.serverURL
+							.toString(), params.dataserverTimeout * 1000l);
+					}
+					return n5Writer;
+				}
+
+				UUID getUUID() {
+					return n5Writer.getUUID();
+				}
+			}
+			
+			N5WriterProviderProxy provider = new N5WriterProviderProxy();
+			
 			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
 				params.compression, () -> datasetIndex.getWriter(lastSPIMdata,
-					params.serverURL, adapter.constructN5Writer(params.serverURL
-						.toString(), params.dataserverTimeout * 1000l)),
-				loopbackHeuristic, afterEachPlane,
-				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
-					0.95));
+					params.serverURL, provider.getN5Writer()), loopbackHeuristic,
+				afterEachPlane, numCellCreatorThreads, new SubTaskProgressWriter(
+					progressWriter, 0, 0.95));
+			newDatasetUUID = provider.getUUID().toString();
 			progressWriter.setProgress(1.0);
+			progressWriter.out().println("done");
+			log.info("newDatasetUUID: {}", newDatasetUUID);
 		}
 		catch (final IOException e) {
 			throw new RuntimeException(e);
 		}
-		progressWriter.out().println("done");
+
 	}
 
 	private void loadPrefs() {

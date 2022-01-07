@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.scijava.command.CommandModule;
 
 import cz.it4i.fiji.datastore.ij.ExportSPIMAsN5PlugIn;
+import cz.it4i.fiji.legacy.CreateNewDataset;
 
 @Disabled
 public class Fiji {
@@ -32,6 +33,19 @@ public class Fiji {
 
 		// invoke the plugin
 		Future<CommandModule> result = ij.command().run(ExportSPIMAsN5PlugIn.class,
+			true);
+		result.get();
+	}
+
+	@Test
+	public void runCreateNewDataset() throws InterruptedException,
+		ExecutionException
+	{
+		final ImageJ ij = new ImageJ();
+		ij.ui().showUI();
+
+		// invoke the plugin
+		Future<CommandModule> result = ij.command().run(CreateNewDataset.class,
 			true);
 		result.get();
 	}

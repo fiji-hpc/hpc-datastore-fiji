@@ -52,6 +52,7 @@ public class CreateNewDatasetFromJSON implements Command {
 				myLogger.info("run(\"Create new dataset from JSON\", 'url="+this.url
 					+ " json=" + this.json + " showruncmd=False');");
 			}
+			mainLogger.info("Created dataset UUID: " + newDatasetUUID);
 		} catch (MalformedURLException e) {
 			myLogger.error("Malformed URL, probably because of \"http://\" prefix. Please use only hostname:port without any spaces.");
 			myLogger.error(e.getMessage());
