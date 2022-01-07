@@ -82,15 +82,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 	private static final String LAST_DATASERVER_TIMEOUT =
 		"LAST_DATASERVER_TIMEOUT";
 
-	@SuppressWarnings("resource")
-	public static void main(final String[] args) {
-		new ImageJ();
-
-		ExportSPIMAsN5PlugIn plugin = new ExportSPIMAsN5PlugIn();
-		new Context().inject(plugin);
-		plugin.run();
-
-	}
+	private static final String LAST_LABEL = "LAST_LABEL";
 
 	@Parameter
 	private PrefService prefService;
@@ -209,7 +201,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		try {
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo, imgLoader, params.compression);
+				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
 			
 			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
 			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
@@ -241,6 +233,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			LAST_COMPRESSION_DEFAULT_SETTINGS, true);
 		lastServerURL = prefService.get(getClass(), LAST_SERVER_URL,
 			"http://localhost:8080");
+		lastLabel = prefService.get(getClass(), LAST_LABEL, "");
 		lastDataserverTimeout = prefService.getInt(getClass(),
 			LAST_DATASERVER_TIMEOUT, 60);
 	}
@@ -255,6 +248,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		prefService.put(getClass(), LAST_COMPRESSION_DEFAULT_SETTINGS,
 			lastCompressionDefaultSettings);
 		prefService.put(getClass(), LAST_SERVER_URL, lastServerURL);
+		prefService.put(getClass(), LAST_LABEL, lastLabel);
 		prefService.put(getClass(), LAST_DATASERVER_TIMEOUT, lastDataserverTimeout);
 	}
 
@@ -274,9 +268,12 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		final int dataserverTimeout;
 
+		final String label;
+
 		public Parameters(final boolean setMipmapManual, final int[][] resolutions,
 			final int[][] subdivisions, final URL serverURL,
-			final Compression compression, SpimData spimData, int aDataserverTimeout)
+			final Compression compression, SpimData spimData, int aDataserverTimeout,
+			String label)
 		{
 			this.setMipmapManual = setMipmapManual;
 			this.resolutions = resolutions;
@@ -285,6 +282,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			this.compression = compression;
 			this.spimData = spimData;
 			this.dataserverTimeout = aDataserverTimeout;
+			this.label = label;
 		}
 	}
 
@@ -303,6 +301,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 	static String lastServerURL = "http://localhost:9080";
 
 	static int lastDataserverTimeout = 60;
+
+	static String lastLabel = "";
 
 	private static class ParameterConstructor {
 
@@ -337,6 +337,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 				gd.addMessage("");
 				gd.addStringField("Export_URL", lastServerURL, 25);
+				gd.addStringField("Label", lastLabel, 25);
 				gd.addStringField("Timeout for Dataserver[s]", "" +
 					lastDataserverTimeout, 25);
 
@@ -390,6 +391,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				lastCompressionChoice = gd.getNextChoiceIndex();
 				lastCompressionDefaultSettings = gd.getNextBoolean();
 				lastServerURL = gd.getNextString();
+				lastLabel = gd.getNextString();
 				String timeoutValue = gd.getNextString();
 				try {
 					lastDataserverTimeout = Integer.parseInt(timeoutValue);
@@ -456,7 +458,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				if (compression == null) return null;
 
 				return new Parameters(lastSetMipmapManual, resolutions, subdivisions,
-					serverURL, compression, SPIMData, lastDataserverTimeout);
+					serverURL, compression, SPIMData, lastDataserverTimeout, lastLabel);
 			}
 		}
 

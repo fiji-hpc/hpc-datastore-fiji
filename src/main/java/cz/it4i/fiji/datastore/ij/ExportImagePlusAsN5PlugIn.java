@@ -41,10 +41,8 @@ import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
 import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
 import mpicbg.spim.data.sequence.Channel;
@@ -57,20 +55,10 @@ import mpicbg.spim.data.sequence.TimePoints;
  *
  * @author Tobias Pietzsch
  */
-@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export Current Image as remote XML/N5")
 public class ExportImagePlusAsN5PlugIn implements Command
 {
-	public static void main( final String[] args )
-	{
-		log.debug("main");
-		new ImageJ();
-		final ImagePlus imp = IJ.openImage("/home/koz01/aaa/t1-head.tif");
-		imp.show();
-		new ExportImagePlusAsN5PlugIn().run();
-
-	}
 
 	@Override
 	public void run()
@@ -255,8 +243,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 		try
 		{
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo,
-				imgLoader, params.compression);
+				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
 			WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
 				params.compression, () -> adapter.constructN5Writer(params.serverURL
 					.toString()),
@@ -282,18 +269,20 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
 		final URL serverURL;
 
-
 		final Compression compression;
+
+		final String label;
 
 		public Parameters(
 				final boolean setMipmapManual, final int[][] resolutions, final int[][] subdivisions,
-			final URL serverURL, final Compression compression)
+			final URL serverURL, final Compression compression, String label)
 		{
 			this.setMipmapManual = setMipmapManual;
 			this.resolutions = resolutions;
 			this.subdivisions = subdivisions;
 			this.serverURL = serverURL;
 			this.compression = compression;
+			this.label = label;
 		}
 	}
 
@@ -308,6 +297,8 @@ public class ExportImagePlusAsN5PlugIn implements Command
 	static boolean lastCompressionDefaultSettings = true;
 
 	static String lastServerURL = "http://localhost:9080";
+
+	static String lastLabel = "";
 
 	protected Parameters getParameters( final ExportMipmapInfo autoMipmapSettings  )
 	{
@@ -329,6 +320,8 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
 			gd.addMessage( "" );
 			gd.addStringField("Export_URL", lastServerURL, 25);
+			gd.addMessage("");
+			gd.addStringField("Label", lastLabel, 25);
 
 			final String autoSubsampling = ProposeMipmaps.getArrayString( autoMipmapSettings.getExportResolutions() );
 			final String autoChunkSizes = ProposeMipmaps.getArrayString( autoMipmapSettings.getSubdivisions() );
@@ -338,6 +331,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 				gd.getNextString();
 				gd.getNextChoiceIndex();
 				gd.getNextBoolean();
+				gd.getNextString();
 				gd.getNextString();
 				if ( e instanceof ItemEvent && e.getID() == ItemEvent.ITEM_STATE_CHANGED && e.getSource() == cManualMipmap )
 				{
@@ -371,6 +365,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			lastCompressionChoice = gd.getNextChoiceIndex();
 			lastCompressionDefaultSettings = gd.getNextBoolean();
 			lastServerURL = gd.getNextString();
+			lastLabel = gd.getNextString();
 
 			// parse mipmap resolutions and cell sizes
 			final int[][] resolutions = PluginHelper.parseResolutionsString( lastSubsampling );
@@ -431,7 +426,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 				return null;
 
 			return new Parameters(lastSetMipmapManual, resolutions, subdivisions,
-				serverURL, compression);
+				serverURL, compression, lastLabel);
 		}
 	}
 

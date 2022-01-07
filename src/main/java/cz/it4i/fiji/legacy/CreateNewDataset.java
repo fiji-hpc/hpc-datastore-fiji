@@ -30,6 +30,9 @@ public class CreateNewDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";
 
+	@Parameter(label = "Label:")
+	public String label = "";
+
 	@Parameter(label = "Voxel type:", choices = {"uint8", "uint16", "uint32", "uint64","int8", "int16", "int32", "int64", "float32", "float64"})
 	public String voxelType;
 
@@ -114,6 +117,7 @@ public class CreateNewDataset implements Command {
 
 		di.versions = Collections.emptyList();
 		di.resolutionLevels = new ArrayList<>(numberOfAllResLevels);
+		di.label = label;
 
 		final CommandInfo rldlg_ci = new CommandInfo(GuiResolutionLevelParams.class);
 		final Map<String,Object> rldlg_presets = new HashMap<>(4);

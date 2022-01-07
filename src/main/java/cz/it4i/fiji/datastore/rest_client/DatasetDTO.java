@@ -114,4 +114,9 @@ public class DatasetDTO {
 	@Getter
 	@Setter
 	private List<Integer> versions;
+
+	@Getter
+	@Setter
+	private String label;
+
 }

@@ -30,6 +30,7 @@ public class DatasetInfo {
 	public double[][] transformations;
 	public List<ResolutionLevel> resolutionLevels;
 	public List<Integer> versions;
+	public String label;
 
 	@Override
 	public String toString() {

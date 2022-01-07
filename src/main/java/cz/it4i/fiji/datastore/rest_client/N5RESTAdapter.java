@@ -78,7 +78,7 @@ public class N5RESTAdapter {
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
 		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
-		Compression compression)
+		Compression compression, String label)
 	{
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
 		this.perAnglesChannels = PerAnglesChannels.construct(seq);
@@ -101,6 +101,7 @@ public class N5RESTAdapter {
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
 				.compression(compression.getType())
 				.resolutionLevels(getResolutionsLevels(perSetupMipmapInfo.get(setupId)))
+				.label(label)
 				.build();
 // @formatter:on
 	}
