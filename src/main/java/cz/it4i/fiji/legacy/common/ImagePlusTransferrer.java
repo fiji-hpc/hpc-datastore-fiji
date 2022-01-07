@@ -131,6 +131,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		Dataset outDatasetImg = null;
 
 		try {
+			@SuppressWarnings("unchecked")
 			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(di.voxelType);
 			final Img<T> img = th.createPlanarImgFactory().create(maxX-minX+1,maxY-minY+1,maxZ-minZ+1);
 
@@ -255,10 +256,13 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	public <T extends NativeType<T> & RealType<T>>
 	void writeWithAType(final Dataset inDatasetImg) {
 		try {
+			@SuppressWarnings("unchecked")
 			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(inDatasetImg.getType());
-			final Img<T> img = (Img)inDatasetImg.getImgPlus().getImg();
+			@SuppressWarnings("unchecked")
+			final Img<T> img = (Img<T>) inDatasetImg.getImgPlus().getImg();
 
 			//sanity check already at the client
+			@SuppressWarnings("unchecked")
 			final Imglib2Types.TypeHandler<T> thServer = Imglib2Types.getTypeHandler(di.voxelType);
 			if (!thServer.nativeAndRealType.equals(th.nativeAndRealType))
 				throw new IllegalArgumentException("Connecting to a server for a type "+thServer.httpType

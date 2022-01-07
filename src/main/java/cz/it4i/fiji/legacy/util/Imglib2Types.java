@@ -41,7 +41,7 @@ public class Imglib2Types {
 		final BufferProcessors.BufferProcessor bp;
 
 		public PlanarImgFactory<T> createPlanarImgFactory() {
-			return new PlanarImgFactory<T>(nativeAndRealType);
+			return new PlanarImgFactory<>(nativeAndRealType);
 		}
 
 		public void blockIntoImgInterval(final byte[] bytes, final int length, final IterableInterval<T> img) {
