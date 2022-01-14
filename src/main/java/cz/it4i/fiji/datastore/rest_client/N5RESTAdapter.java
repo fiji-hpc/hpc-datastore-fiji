@@ -8,14 +8,13 @@
 package cz.it4i.fiji.datastore.rest_client;
 
 
-import java.io.BufferedReader;
+import static cz.it4i.fiji.datastore.rest_client.DataBlockRoutines.getSizeOfElement;
+import static cz.it4i.fiji.datastore.rest_client.Routines.getText;
+
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +32,6 @@ import javax.ws.rs.core.Response.Status;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Cast;
 
-import org.apache.http.HttpStatus;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -42,7 +40,8 @@ import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
 import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
-import cz.it4i.fiji.datastore.rest_client.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.rest_client.PerAnglesChannels.AngleChannel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -176,63 +175,12 @@ public class N5RESTAdapter {
 		return result;
 	}
 
-	private static DataBlock<?> constructDataBlock(long[] gridPosition,
-		InputStream inputStream, DataType dataType) throws IOException
-	{
-		DataInputStream dis = new DataInputStream(inputStream);
-		int[] size = new int[3];
-		for (int i = 0; i < 3; i++) {
-			size[i] = dis.readInt();
-		}
-
-		DataBlock<?> block = dataType.createDataBlock(size, gridPosition);
-		byte[] buffer = new byte[block.getNumElements() * getSizeOfElement(
-			dataType)];
-		readFully(inputStream, buffer);
-		block.readData(ByteBuffer.wrap(buffer));
-		return block;
-	}
-
 	private static double[] dimensionsasArray(VoxelDimensions voxelSize) {
 		double[] result = new double[voxelSize.numDimensions()];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = voxelSize.dimension(i);
 		}
 		return result;
-	}
-
-	private static int getSizeOfElement(DataType dataType) {
-		switch (dataType) {
-			case UINT8:
-			case INT8:
-				return 1;
-			case UINT16:
-			case INT16:
-				return 2;
-			case UINT32:
-			case INT32:
-			case FLOAT32:
-				return 4;
-			case UINT64:
-			case INT64:
-			case FLOAT64:
-				return 8;
-			default:
-				throw new IllegalArgumentException("Datatype " + dataType +
-					" not supported");
-		}
-	}
-
-	private static int readFully(InputStream in, byte[] b) throws IOException {
-		int n = 0;
-		while (n < b.length) {
-			int count = in.read(b, n, b.length - n);
-			if (count < 0) {
-				break;
-			}
-			n += count;
-		}
-		return n;
 	}
 
 	private class N5RESTWriter implements N5WriterWithUUID {
@@ -287,19 +235,9 @@ public class N5RESTAdapter {
 			AngleChannelTimepoint act = AngleChannelTimepoint.constructForSeqAndPath(
 				perAnglesChannels, pathName);
 			DatasetServerClient client = getServerClient(act.getLevelID());
-			Response response = client.readBlock(gridPosition[0], gridPosition[1],
-				gridPosition[2], act.getTimepointID(), act.getChannelID(), act
-					.getAngleID());
-			if (response.getStatus() != Status.OK.getStatusCode()) {
-				log.warn("readBlock({},{},{}) - status = {}, msg = {}", pathName,
-					datasetAttributes, ("[" +
-					gridPosition[0] + ", " + gridPosition[1] + ", " + gridPosition[0] +
-						"]"), "" + response.getStatusInfo().getStatusCode(), getText(
-							(InputStream) response.getEntity()));
-				return null;
-			}
-			InputStream is = response.readEntity(InputStream.class);
-			return constructDataBlock(gridPosition, is, dataType);
+
+			return Routines.readBlock(dataType, client, gridPosition, act
+				.getTimepointID(), act.getChannelID(), act.getAngleID());
 		}
 
 		@Override
@@ -315,9 +253,9 @@ public class N5RESTAdapter {
 		
 			ModifiedByteArrayOutputStream baos;
 			DataOutputStream os = new DataOutputStream(baos =
-				new ModifiedByteArrayOutputStream(
-					getSizeOfElement(datasetAttributes.getDataType()) * dataBlock
-						.getNumElements() + dataBlock.getSize().length * Integer.BYTES));
+				new ModifiedByteArrayOutputStream(getSizeOfElement(datasetAttributes
+					.getDataType()) * dataBlock.getNumElements() + dataBlock
+						.getSize().length * Integer.BYTES));
 			for (int i = 0; i < dataBlock.getSize().length; i++) {
 				os.writeInt(dataBlock.getSize()[i]);
 			}
@@ -429,34 +367,18 @@ public class N5RESTAdapter {
 			return registerServiceClient;
 		}
 
-		private synchronized DatasetServerClient getServerClient(int levelId) {
+		private synchronized DatasetServerClient getServerClient(int levelId)
+			throws IOException
+		{
 			DatasetServerClient result = level2serverClient.get(levelId);
 			if (result == null) {
 				ResolutionLevel resolutionLevel = dto.getResolutionLevels()[levelId];
-				Response response = getRegisterServiceClient().start(uuid.toString(),
-					resolutionLevel.getResolutions()[0], resolutionLevel
-						.getResolutions()[1], resolutionLevel.getResolutions()[2], "latest",
+				result = Routines.startDatasetServer(getRegisterServiceClient(), uuid
+					.toString(), resolutionLevel.getResolutions(), "latest",
 					OPERATION_MODE, dataserverTimeout);
-				if (response.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
-					String uri = response.getLocation().toString();
-					result = RESTClientFactory.create(uri,
-						DatasetServerClient.class);
-					level2serverClient.put(levelId, result);
-				}
-				else {
-					log.warn("Response for url /{}/{}/{}/{}/{}/{} was: {}", uuid,
-						resolutionLevel.getResolutions()[0], resolutionLevel
-							.getResolutions()[1], resolutionLevel.getResolutions()[2],
-						"latest", OPERATION_MODE, response
-							.getStatusInfo());
-				}
+				level2serverClient.put(levelId, result);
 			}
 			return result;
-		}
-
-		private String getText(InputStream entity) {
-			return new BufferedReader(new InputStreamReader(entity)).lines().collect(
-				Collectors.joining("\n"));
 		}
 
 	}

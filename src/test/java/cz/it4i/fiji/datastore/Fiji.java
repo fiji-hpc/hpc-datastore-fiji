@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.scijava.command.CommandModule;
 
+import bdv.ij.BigDataBrowserPlugIn;
 import cz.it4i.fiji.datastore.ij.ExportSPIMAsN5PlugIn;
 import cz.it4i.fiji.legacy.CreateNewDataset;
 
@@ -50,4 +51,16 @@ public class Fiji {
 		result.get();
 	}
 
+	@Test
+	public void runBigDataBrowser() throws InterruptedException,
+		ExecutionException
+	{
+		final ImageJ ij = new ImageJ();
+		ij.ui().showUI();
+
+		// invoke the plugin
+		Future<CommandModule> result = ij.command().run(BigDataBrowserPlugIn.class,
+			true);
+		result.get();
+	}
 }

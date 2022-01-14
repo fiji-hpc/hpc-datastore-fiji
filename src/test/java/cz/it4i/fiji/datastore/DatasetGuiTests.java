@@ -7,11 +7,9 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
-import cz.it4i.fiji.legacy.ReadIntoImagePlus;
-import cz.it4i.fiji.legacy.RequestDatasetServing;
 import net.imagej.ImageJ;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import cz.it4i.fiji.legacy.ReadIntoImagePlus;
 
 public class DatasetGuiTests {
 /* -- everything is killed after the @test is over...

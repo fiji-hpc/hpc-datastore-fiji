@@ -21,7 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/")
-interface DatasetServerClient {
+public interface DatasetServerClient {
 
 	static final String TIME_PARAM = "TIME";
 

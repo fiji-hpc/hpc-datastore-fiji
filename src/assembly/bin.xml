@@ -13,6 +13,7 @@
 			<scope>runtime</scope>
 			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
+				<include>cz.it4i.fiji:hpc-datastore-core:jar</include>
 				<include>org.apache.cxf:cxf-rt-rs-client:jar</include>
 				<include>org.apache.cxf:cxf-core:jar</include>
 				<include>org.apache.cxf:cxf-rt-frontend-jaxrs:jar</include>

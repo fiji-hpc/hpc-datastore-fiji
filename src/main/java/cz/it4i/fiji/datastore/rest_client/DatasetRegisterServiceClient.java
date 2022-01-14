@@ -16,8 +16,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+
 @Path("/")
-interface DatasetRegisterServiceClient {
+public interface DatasetRegisterServiceClient {
 
 	static final String UUID = "uuid";
 	static final String X_PARAM = "x";

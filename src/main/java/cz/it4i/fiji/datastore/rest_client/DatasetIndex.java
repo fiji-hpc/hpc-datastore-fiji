@@ -32,7 +32,8 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
-import cz.it4i.fiji.datastore.rest_client.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter.AngleChannelTimepoint;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
