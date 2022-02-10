@@ -109,7 +109,6 @@ public class N5RESTAdapter {
 		Map<Integer, MipmapInfo> perSetupMipmapInfo)
 	{
 		double[][] result = new double[perAnglesChannels.getAngles()][];
-		int[] channels = new int[perAnglesChannels.getChannels()];
 		for (Entry<Integer, MipmapInfo> entry : perSetupMipmapInfo.entrySet()) {
 			AngleChannel ac = perAnglesChannels.getAngleChannel(entry.getKey());
 			int angleIdx = ac.getAngleIndex();
@@ -120,11 +119,11 @@ public class N5RESTAdapter {
 			{
 				throw new IllegalArgumentException("Angle " + angleIdx +
 					" for channel " + channelIdx + " has transformation " + getMatrix(
-						transform) + " whilst for channel " + channels[angleIdx] + " has " +
+						transform) + " whilst for channel " + channelIdx + " has " +
 					getMatrix(result[angleIdx]));
 			}
 			result[angleIdx] = transform;
-			channels[angleIdx] = channelIdx;
+
 		}
 		return result;
 	}

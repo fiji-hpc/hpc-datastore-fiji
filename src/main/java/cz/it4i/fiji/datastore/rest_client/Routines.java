@@ -54,7 +54,7 @@ public final class Routines {
 		Response response = datasetServer.readBlock(gridPosition[0],
 			gridPosition[1], gridPosition[2], timepoint, channel, angle);
 		if (response.getStatus() != Status.OK.getStatusCode()) {
-			log.warn("readBlock(%s) - status = %s, msg = %s", "" + response
+			log.warn("readBlock({}) - status = {}, msg = {}", "" + response
 				.getStatusInfo()
 						.getStatusCode(), getText((InputStream) response.getEntity()));
 			return null;

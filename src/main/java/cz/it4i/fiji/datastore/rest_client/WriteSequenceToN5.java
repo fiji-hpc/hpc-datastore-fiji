@@ -355,7 +355,8 @@ public class WriteSequenceToN5
 			final long[] dimensions = attributes.getDimensions();
 			final int[] cellDimensions = attributes.getBlockSize();
 			final CellGrid grid = new CellGrid( dimensions, cellDimensions );
-			final SimpleCacheArrayLoader< ? > cacheArrayLoader = N5ImageLoader.createCacheArrayLoader( n5, pathName );
+			final SimpleCacheArrayLoader<?> cacheArrayLoader = N5ImageLoader
+				.createCacheArrayLoader(new N5WriterDecorator(n5), pathName);
 			return new ReadOnlyCachedCellImgFactory().createWithCacheLoader(
 					dimensions, type,
 					key -> {
