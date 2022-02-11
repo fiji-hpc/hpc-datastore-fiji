@@ -1,5 +1,7 @@
 package cz.it4i.fiji.datastore.ij;
 
+import static cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5.writeN5File;
+
 import java.awt.Checkbox;
 import java.awt.TextField;
 import java.awt.event.ItemEvent;
@@ -7,6 +9,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,13 +41,13 @@ import bdv.img.imagestack.ImageStackImageLoader;
 import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
-import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
+import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.TimePoint;
@@ -183,11 +186,14 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			timepoints.add( new TimePoint( t ) );
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal( new TimePoints( timepoints ), setups, imgLoader, null );
 
-		Map<Integer, MipmapInfo> perSetupExportMipmapInfo;
-		perSetupExportMipmapInfo = new HashMap<>();
+		
 		final ExportMipmapInfo mipmapInfo = new ExportMipmapInfo( params.resolutions, params.subdivisions );
-		for ( final BasicViewSetup setup : seq.getViewSetupsOrdered() )
-			perSetupExportMipmapInfo.put( setup.getId(), mipmapInfo );
+		Map<Integer, MipmapInfo> perSetupExportMipmapInfo =
+				new HashMap<>();
+
+		for (final BasicViewSetup vs : seq.getViewSetupsOrdered()) {
+			perSetupExportMipmapInfo.put(vs.getId(), mipmapInfo);
+		}
 
 		// LoopBackHeuristic:
 		// - If saving more than 8x on pixel reads use the loopback image over
@@ -243,10 +249,13 @@ public class ExportImagePlusAsN5PlugIn implements Command
 		try
 		{
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
-			WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
-				params.compression, () -> adapter.constructN5Writer(params.serverURL
-					.toString()),
+				new ViewRegistrations(Collections.emptyList()), params.resolutions,
+				params.subdivisions, imgLoader, params.compression,
+				params.label);
+			
+
+			writeN5File(seq, perSetupExportMipmapInfo, params.compression,
+				() -> adapter.constructN5Writer(params.serverURL.toString()),
 				loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads,
 					new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );

@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.rest_client;
 
 
+import static cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel.constructLevels;
 import static cz.it4i.fiji.datastore.rest_client.DataBlockRoutines.getSizeOfElement;
 import static cz.it4i.fiji.datastore.rest_client.Routines.getText;
 
@@ -15,10 +16,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,6 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Cast;
 
 import org.janelia.saalfeldlab.n5.Compression;
@@ -38,10 +38,10 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
-import bdv.img.hdf5.MipmapInfo;
-import bdv.img.hdf5.Util;
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.core.ViewRegistrationDTO;
+import cz.it4i.fiji.datastore.core.ViewTransformDTO;
 import cz.it4i.fiji.datastore.rest_client.PerAnglesChannels.AngleChannel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,6 +51,8 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.registration.ViewRegistration;
+import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -69,6 +71,7 @@ public class N5RESTAdapter {
 
 	private static final long DEFAULT_DATASERVER_TIMEOUT = 60000l;
 
+	@Getter
 	private final DatasetDTO dto;
 
 	private final DataType dataType;
@@ -76,7 +79,9 @@ public class N5RESTAdapter {
 	private final PerAnglesChannels perAnglesChannels;
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
-		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
+		ViewRegistrations viewRegistrations, int[][] resolutions,
+		int[][] blockDimensions,
+		BasicImgLoader imgLoader,
 		Compression compression, String label)
 	{
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
@@ -94,52 +99,42 @@ public class N5RESTAdapter {
 				.dimensions(setup.getSize().dimensionsAsLongArray())
 				.angles(angles)
 				.channels(channels)
-				.transformations(extractTransformations(perSetupMipmapInfo))
 				.timepoints(seq.getTimePoints().size())
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
 				.compression(compression.getType())
-				.resolutionLevels(getResolutionsLevels(perSetupMipmapInfo.get(setupId)))
+				.resolutionLevels(constructLevels(resolutions, blockDimensions))
 				.label(label)
+				.viewRegistrations(createViewRegistrations(viewRegistrations))
 				.build();
 // @formatter:on
 	}
 
-	private double[][] extractTransformations(
-		Map<Integer, MipmapInfo> perSetupMipmapInfo)
+	private List<ViewRegistrationDTO> createViewRegistrations(
+		ViewRegistrations viewRegistrations)
 	{
-		double[][] result = new double[perAnglesChannels.getAngles()][];
-		for (Entry<Integer, MipmapInfo> entry : perSetupMipmapInfo.entrySet()) {
-			AngleChannel ac = perAnglesChannels.getAngleChannel(entry.getKey());
-			int angleIdx = ac.getAngleIndex();
-			int channelIdx = ac.getChannelIndex();
-			double[] transform = getTransform(entry.getValue().getTransforms());
-			if (result[angleIdx] != null && !Arrays.equals(result[angleIdx],
-				transform))
-			{
-				throw new IllegalArgumentException("Angle " + angleIdx +
-					" for channel " + channelIdx + " has transformation " + getMatrix(
-						transform) + " whilst for channel " + channelIdx + " has " +
-					getMatrix(result[angleIdx]));
-			}
-			result[angleIdx] = transform;
+		List<ViewRegistrationDTO> result = new LinkedList<>();
+		for (ViewRegistration iVr : viewRegistrations.getViewRegistrationsOrdered())
+		{
+			AngleChannel ac = perAnglesChannels.getAngleChannel(iVr.getViewSetupId());
+			ViewRegistrationDTO vr = ViewRegistrationDTO.builder().angle(ac
+				.getAngleIndex()).channel(ac.getChannelIndex()).time(iVr
+					.getTimePointId()).transformations(extractTransformations(iVr))
+				.build();
+			result.add(vr);
 
 		}
+
 		return result;
 	}
 
-	private AffineTransform3D getMatrix(double[] transform) {
-		AffineTransform3D result = new AffineTransform3D();
-		result.set(transform);
-		return result;
-	}
-
-	private double[] getTransform(AffineTransform3D[] transforms) {
-		AffineTransform3D result = new AffineTransform3D();
-		for (AffineTransform3D transform : transforms) {
-			result.concatenate(transform);
-		}
-		return result.getRowPackedCopy();
+	private static List<ViewTransformDTO> extractTransformations(
+		ViewRegistration viewRegistration)
+	{
+		return viewRegistration.getTransformList().stream().map(
+			t -> new ViewTransformDTO(t.getName(), t.asAffine3D().getRowPackedCopy()))
+			.collect(Collectors.toList());
+		
 	}
 
 	public N5WriterWithUUID constructN5Writer(String url) {
@@ -151,27 +146,6 @@ public class N5RESTAdapter {
 	{
 		log.debug("constructN5Writer> url={}", url);
 		return new N5RESTWriter(url, dataserverTimeout);
-	}
-
-
-
-
-
-	public DatasetDTO getDTO() {
-		return dto;
-	}
-
-	private ResolutionLevel[] getResolutionsLevels(MipmapInfo exportMipmapInfo)
-	{
-		int[][] resolutions = Util.castToInts(exportMipmapInfo.getResolutions());
-		int[][] subdivisions = exportMipmapInfo.getSubdivisions();
-
-		ResolutionLevel[] result = new ResolutionLevel[resolutions.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = ResolutionLevel.builder().resolutions(resolutions[i])
-				.blockDimensions(subdivisions[i]).build();
-		}
-		return result;
 	}
 
 	private static double[] dimensionsasArray(VoxelDimensions voxelSize) {

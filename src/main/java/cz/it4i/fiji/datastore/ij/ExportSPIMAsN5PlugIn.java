@@ -7,14 +7,11 @@ import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
@@ -39,8 +36,7 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.img.hdf5.MipmapInfo;
-import bdv.img.hdf5.Util;
-import bdv.spimdata.SequenceDescriptionMinimal;
+import cz.it4i.fiji.datastore.core.HPCDatastoreImageLoaderMetaData;
 import cz.it4i.fiji.datastore.rest_client.DatasetIndex;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
 import cz.it4i.fiji.datastore.rest_client.N5WriterWithUUID;
@@ -51,11 +47,11 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.TimePoint;
-import mpicbg.spim.data.sequence.TimePoints;
 import mpicbg.spim.data.sequence.ViewSetup;
 
 /**
@@ -116,41 +112,14 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final Runnable clearCache = () -> {};
 		final boolean isVirtual = false;
 
-
+		
+		
 		ViewSetup viewSetupZero = params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered().get(0);
 
 		String punit = viewSetupZero.getVoxelSize().unit();
 		if (punit == null || punit.isEmpty()) punit = "px";
 
-
-		final int numTimepoints = params.spimData.getSequenceDescription()
-			.getTimePoints().size();
-		final int numSetups = params.spimData.getSequenceDescription()
-			.getViewSetupsOrdered().size();
-
-
-		// write n5
-		final HashMap<Integer, ViewSetup> setups = new HashMap<>(numSetups);
-		int s = 0;
-		for (ViewSetup vs : params.spimData.getSequenceDescription()
-			.getViewSetupsOrdered())
-		{
-			setups.put(s++, vs);
-		}
-		final ArrayList<TimePoint> timepoints = new ArrayList<>(numTimepoints);
-		for (int t = 0; t < numTimepoints; ++t)
-			timepoints.add(new TimePoint(t));
-		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal(
-			new TimePoints(timepoints), setups, imgLoader, null);
-
-		Map<Integer, MipmapInfo> perSetupExportMipmapInfo = new HashMap<>();
-		for (final BasicViewSetup setup : seq.getViewSetupsOrdered()) {
-			perSetupExportMipmapInfo.put(setup.getId(), new MipmapInfo(Util
-				.castToDoubles(params.resolutions), new AffineTransform3D[] {
-					params.spimData.getViewRegistrations().getViewRegistration(0, setup
-						.getId()).getModel() }, params.subdivisions));
-		}
 
 		// LoopBackHeuristic:
 		// - If saving more than 8x on pixel reads use the loopback image over
@@ -206,9 +175,14 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		};
 
 		try {
-			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
-			
+			AbstractSequenceDescription<?, ?, ?> seq = params.spimData
+				.getSequenceDescription();
+			ViewRegistrations viewRegistrations = params.spimData
+				.getViewRegistrations();
+
+			final N5RESTAdapter adapter = new N5RESTAdapter(seq, viewRegistrations,
+				params.resolutions, params.subdivisions, imgLoader, params.compression,
+				params.label);
 			
 			class N5WriterProviderProxy {
 				private N5WriterWithUUID n5Writer;
@@ -227,13 +201,15 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			}
 			
 			N5WriterProviderProxy provider = new N5WriterProviderProxy();
-			
-			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
-			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
-				params.compression, () -> datasetIndex.getWriter(lastSPIMdata,
-					params.serverURL, provider.getN5Writer()), loopbackHeuristic,
-				afterEachPlane, numCellCreatorThreads, new SubTaskProgressWriter(
-					progressWriter, 0, 0.95));
+			Map<Integer, MipmapInfo> perSetupMipmapInfo =
+				HPCDatastoreImageLoaderMetaData.createPerSetupMipmapInfo(seq
+					.getViewSetupsOrdered(), adapter.getDto());
+			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDto(), seq);
+			WriteSequenceToN5.writeN5File(seq, perSetupMipmapInfo, params.compression,
+				() -> datasetIndex.getWriter(lastSPIMdata, params.serverURL, provider
+					.getN5Writer()), loopbackHeuristic, afterEachPlane,
+				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
+					0.95));
 			newDatasetUUID = provider.getUUID().toString();
 			progressWriter.setProgress(1.0);
 			progressWriter.out().println("done");
