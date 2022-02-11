@@ -43,11 +43,8 @@ import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.core.HPCDatastoreImageLoaderMetaData;
 import cz.it4i.fiji.datastore.core.HPCDatastoreImageLoaderPlugin;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.SpimDataIOException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
-import mpicbg.spim.data.registration.ViewRegistrations;
-import mpicbg.spim.data.registration.XmlIoViewRegistrations;
 
 @Plugin(type = HPCDatastoreImageLoaderPlugin.class)
 public class HPCDatastoreImageLoaderImpl implements HPCDatastoreImageLoaderPlugin {
@@ -69,8 +66,6 @@ public class HPCDatastoreImageLoaderImpl implements HPCDatastoreImageLoaderPlugi
 
 	private AbstractSequenceDescription<?, ?, ?> sequenceDescription;
 
-	private ViewRegistrations viewRegistrations;
-
 	private boolean isOpen = false;
 
 
@@ -85,8 +80,6 @@ public class HPCDatastoreImageLoaderImpl implements HPCDatastoreImageLoaderPlugi
 	{
 		this.baseUrl = aBaseUrl;
 		this.sequenceDescription = aSequenceDescription;
-		viewRegistrations = getViewRegistrations(elem);
-
 	}
 
 	@Override
@@ -123,7 +116,7 @@ public class HPCDatastoreImageLoaderImpl implements HPCDatastoreImageLoaderPlugi
 				DatasetDTO datasetDTO = gsonBuilder.create().fromJson(
 					new InputStreamReader(url.openStream()), DatasetDTO.class);
 				metadata = new HPCDatastoreImageLoaderMetaData(datasetDTO,
-					sequenceDescription, viewRegistrations, DataType.fromString(datasetDTO
+					sequenceDescription, DataType.fromString(datasetDTO
 						.getVoxelType()));
 				final DataTypeFactory<?, ?, T, V> factory = DataTypeFactory
 					.getByDataType(metadata.getDataType());
@@ -265,25 +258,4 @@ public class HPCDatastoreImageLoaderImpl implements HPCDatastoreImageLoaderPlugi
 		}
 	}
 
-	private static Element getRootElement(Element elem) {
-		Element parent = elem.getParentElement();
-		if (parent == null) {
-			return elem;
-		}
-		return getRootElement(parent);
-	}
-
-	private static ViewRegistrations getViewRegistrations(Element elem)
-		throws SpimDataException
-	{
-		XmlIoViewRegistrations xmlIoViewRegistrations =
-			new XmlIoViewRegistrations();
-		Element root = getRootElement(elem);
-		elem = root.getChild(xmlIoViewRegistrations.getTag());
-		if (elem == null) {
-			throw new SpimDataIOException("no <" + xmlIoViewRegistrations.getTag() +
-				"> element found.");
-		}
-		return xmlIoViewRegistrations.fromXml(elem);
-	}
 }

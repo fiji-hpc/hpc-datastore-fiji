@@ -104,7 +104,7 @@ public class WriteSequenceToN5
 	 *          and timepoints as well as an {@link BasicImgLoader} that provides
 	 *          the image data, Registration information is not needed here, that
 	 *          will go into the accompanying xml).
-	 * @param perTimepointAndSetupMipmapInfo this maps from setup
+	 * @param perSetupMipmapInfo this maps from setup
 	 *          {@link BasicViewSetup#getId() id} to {@link ExportMipmapInfo} for
 	 *          that setup. The {@link ExportMipmapInfo} contains for each mipmap
 	 *          level, the subsampling factors and subdivision block sizes.
@@ -125,7 +125,7 @@ public class WriteSequenceToN5
 	 */
 	public static void writeN5File(
 		final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupMipmapInfo,
+		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
 			final Compression compression,
 			final File n5File,
 			final LoopbackHeuristic loopbackHeuristic,
@@ -133,14 +133,14 @@ public class WriteSequenceToN5
 			final int numCellCreatorThreads,
 			ProgressWriter progressWriter ) throws IOException
 	{
-		writeN5File(seq, perTimepointAndSetupMipmapInfo, compression,
+		writeN5File(seq, perSetupMipmapInfo, compression,
 			() -> new N5FSWriter(
 			n5File.getAbsolutePath()), loopbackHeuristic, afterEachPlane,
 			numCellCreatorThreads, progressWriter);
 	}
 
 	public static void writeN5File(final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupMipmapInfo,
+		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
 		final Compression compression,
 		final SupplierWithIOException<N5Writer> writerSupplier,
 		final LoopbackHeuristic loopbackHeuristic,
@@ -202,8 +202,7 @@ public class WriteSequenceToN5
 				{
 					progressWriter.out().printf( "proccessing setup %d / %d\n", ++setupIndex, numSetups );
 
-					final MipmapInfo mipmapInfo = perTimepointAndSetupMipmapInfo.get(
-						timepointId).get(setupId);
+					final MipmapInfo mipmapInfo = perSetupMipmapInfo.get(setupId);
 					final double startCompletionRatio = ( double ) numCompletedTasks++ / numTasks;
 					final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
 					final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );

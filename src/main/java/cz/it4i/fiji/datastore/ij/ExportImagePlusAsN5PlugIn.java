@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
+import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.TimePoint;
@@ -186,15 +188,11 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
 		
 		final ExportMipmapInfo mipmapInfo = new ExportMipmapInfo( params.resolutions, params.subdivisions );
-		Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupExportMipmapInfo =
+		Map<Integer, MipmapInfo> perSetupExportMipmapInfo =
 				new HashMap<>();
 
-		for (final TimePoint tp : seq.getTimePoints().getTimePointsOrdered())
-		{
-			for (final BasicViewSetup vs : seq.getViewSetupsOrdered()) {
-				perTimepointAndSetupExportMipmapInfo.computeIfAbsent(vs.getId(),
-					$ -> new HashMap<>()).put(tp.getId(), mipmapInfo);
-			}
+		for (final BasicViewSetup vs : seq.getViewSetupsOrdered()) {
+			perSetupExportMipmapInfo.put(vs.getId(), mipmapInfo);
 		}
 
 		// LoopBackHeuristic:
@@ -251,9 +249,12 @@ public class ExportImagePlusAsN5PlugIn implements Command
 		try
 		{
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perTimepointAndSetupExportMipmapInfo, imgLoader, params.compression,
+				new ViewRegistrations(Collections.emptyList()), params.resolutions,
+				params.subdivisions, imgLoader, params.compression,
 				params.label);
-			writeN5File(seq, perTimepointAndSetupExportMipmapInfo, params.compression,
+			
+
+			writeN5File(seq, perSetupExportMipmapInfo, params.compression,
 				() -> adapter.constructN5Writer(params.serverURL.toString()),
 				loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads,
