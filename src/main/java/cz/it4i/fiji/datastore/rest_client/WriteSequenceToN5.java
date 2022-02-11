@@ -96,43 +96,36 @@ public class WriteSequenceToN5
 
 
 	/**
-	 * Create a n5 group containing image data from all views and all
-	 * timepoints in a chunked, mipmaped representation.
+	 * Create a n5 group containing image data from all views and all timepoints
+	 * in a chunked, mipmaped representation.
 	 *
-	 * @param seq
-	 *            description of the sequence to be stored as hdf5. (The
-	 *            {@link AbstractSequenceDescription} contains the number of
-	 *            setups and timepoints as well as an {@link BasicImgLoader}
-	 *            that provides the image data, Registration information is not
-	 *            needed here, that will go into the accompanying xml).
-	 * @param perSetupMipmapInfo
-	 *            this maps from setup {@link BasicViewSetup#getId() id} to
-	 *            {@link ExportMipmapInfo} for that setup. The
-	 *            {@link ExportMipmapInfo} contains for each mipmap level, the
-	 *            subsampling factors and subdivision block sizes.
-	 * @param compression
-	 *            n5 compression scheme.
-	 * @param n5File
-	 *            n5 root.
-	 * @param loopbackHeuristic
-	 *            heuristic to decide whether to create each resolution level by
-	 *            reading pixels from the original image or by reading back a
-	 *            finer resolution level already written to the hdf5. may be
-	 *            null (in this case always use the original image).
-	 * @param afterEachPlane
-	 *            this is called after each "plane of chunks" is written, giving
-	 *            the opportunity to clear caches, etc.
-	 * @param numCellCreatorThreads
-	 *            The number of threads that will be instantiated to generate
-	 *            cell data. Must be at least 1. (In addition the cell creator
-	 *            threads there is one writer thread that saves the generated
-	 *            data to HDF5.)
-	 * @param progressWriter
-	 *            completion ratio and status output will be directed here.
+	 * @param seq description of the sequence to be stored as hdf5. (The
+	 *          {@link AbstractSequenceDescription} contains the number of setups
+	 *          and timepoints as well as an {@link BasicImgLoader} that provides
+	 *          the image data, Registration information is not needed here, that
+	 *          will go into the accompanying xml).
+	 * @param perTimepointAndSetupMipmapInfo this maps from setup
+	 *          {@link BasicViewSetup#getId() id} to {@link ExportMipmapInfo} for
+	 *          that setup. The {@link ExportMipmapInfo} contains for each mipmap
+	 *          level, the subsampling factors and subdivision block sizes.
+	 * @param compression n5 compression scheme.
+	 * @param n5File n5 root.
+	 * @param loopbackHeuristic heuristic to decide whether to create each
+	 *          resolution level by reading pixels from the original image or by
+	 *          reading back a finer resolution level already written to the hdf5.
+	 *          may be null (in this case always use the original image).
+	 * @param afterEachPlane this is called after each "plane of chunks" is
+	 *          written, giving the opportunity to clear caches, etc.
+	 * @param numCellCreatorThreads The number of threads that will be
+	 *          instantiated to generate cell data. Must be at least 1. (In
+	 *          addition the cell creator threads there is one writer thread that
+	 *          saves the generated data to HDF5.)
+	 * @param progressWriter completion ratio and status output will be directed
+	 *          here.
 	 */
 	public static void writeN5File(
 		final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
+		final Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupMipmapInfo,
 			final Compression compression,
 			final File n5File,
 			final LoopbackHeuristic loopbackHeuristic,
@@ -140,13 +133,14 @@ public class WriteSequenceToN5
 			final int numCellCreatorThreads,
 			ProgressWriter progressWriter ) throws IOException
 	{
-		writeN5File(seq, perSetupMipmapInfo, compression, () -> new N5FSWriter(
+		writeN5File(seq, perTimepointAndSetupMipmapInfo, compression,
+			() -> new N5FSWriter(
 			n5File.getAbsolutePath()), loopbackHeuristic, afterEachPlane,
 			numCellCreatorThreads, progressWriter);
 	}
 
 	public static void writeN5File(final AbstractSequenceDescription<?, ?, ?> seq,
-		final Map<Integer, MipmapInfo> perSetupMipmapInfo,
+		final Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupMipmapInfo,
 		final Compression compression,
 		final SupplierWithIOException<N5Writer> writerSupplier,
 		final LoopbackHeuristic loopbackHeuristic,
@@ -208,7 +202,8 @@ public class WriteSequenceToN5
 				{
 					progressWriter.out().printf( "proccessing setup %d / %d\n", ++setupIndex, numSetups );
 
-					final MipmapInfo mipmapInfo = perSetupMipmapInfo.get(setupId);
+					final MipmapInfo mipmapInfo = perTimepointAndSetupMipmapInfo.get(
+						timepointId).get(setupId);
 					final double startCompletionRatio = ( double ) numCompletedTasks++ / numTasks;
 					final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
 					final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );

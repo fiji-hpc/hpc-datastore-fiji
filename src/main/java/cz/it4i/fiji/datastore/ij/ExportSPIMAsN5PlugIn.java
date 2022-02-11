@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,6 +54,8 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.registration.ViewRegistration;
+import mpicbg.spim.data.registration.ViewTransform;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.TimePoints;
@@ -116,7 +119,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final Runnable clearCache = () -> {};
 		final boolean isVirtual = false;
 
-
+		
+		
 		ViewSetup viewSetupZero = params.spimData.getSequenceDescription()
 			.getViewSetupsOrdered().get(0);
 
@@ -144,12 +148,15 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal(
 			new TimePoints(timepoints), setups, imgLoader, null);
 
-		Map<Integer, MipmapInfo> perSetupExportMipmapInfo = new HashMap<>();
-		for (final BasicViewSetup setup : seq.getViewSetupsOrdered()) {
-			perSetupExportMipmapInfo.put(setup.getId(), new MipmapInfo(Util
-				.castToDoubles(params.resolutions), new AffineTransform3D[] {
-					params.spimData.getViewRegistrations().getViewRegistration(0, setup
-						.getId()).getModel() }, params.subdivisions));
+		Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupExportMipmapInfo =
+			new HashMap<>();
+		for (final ViewRegistration vr : params.spimData.getViewRegistrations()
+			.getViewRegistrationsOrdered())
+		{
+			perTimepointAndSetupExportMipmapInfo.computeIfAbsent(vr.getTimePointId(),
+				$ -> new HashMap<>()).put(vr.getViewSetupId(), new MipmapInfo(
+					Util.castToDoubles(params.resolutions), getAffineTransformArray(vr
+						.getTransformList()), params.subdivisions));
 		}
 
 		// LoopBackHeuristic:
@@ -207,8 +214,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 		try {
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
-			
+				perTimepointAndSetupExportMipmapInfo, imgLoader, params.compression,
+				params.label);
 			
 			class N5WriterProviderProxy {
 				private N5WriterWithUUID n5Writer;
@@ -229,7 +236,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			N5WriterProviderProxy provider = new N5WriterProviderProxy();
 			
 			final DatasetIndex datasetIndex = new DatasetIndex(adapter.getDTO(), seq);
-			WriteSequenceToN5.writeN5File(seq, perSetupExportMipmapInfo,
+			WriteSequenceToN5.writeN5File(seq, perTimepointAndSetupExportMipmapInfo,
 				params.compression, () -> datasetIndex.getWriter(lastSPIMdata,
 					params.serverURL, provider.getN5Writer()), loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads, new SubTaskProgressWriter(
@@ -244,6 +251,16 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		}
 
 	}
+
+	private static AffineTransform3D[] getAffineTransformArray(
+		List<ViewTransform> transformList)
+	{
+		return transformList.stream().map(t -> new AffineTransform3D().concatenate(t
+			.asAffine3D())).toArray(AffineTransform3D[]::new);
+		
+	}
+
+
 
 	private void loadPrefs() {
 		lastSPIMdata = prefService.get(getClass(), LAST_SPIM_DATA, "");

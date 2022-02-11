@@ -10,6 +10,8 @@ package cz.it4i.fiji.datastore.rest_client;
 
 import static cz.it4i.fiji.datastore.rest_client.DataBlockRoutines.getSizeOfElement;
 import static cz.it4i.fiji.datastore.rest_client.Routines.getText;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -17,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -42,6 +46,7 @@ import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel;
+import cz.it4i.fiji.datastore.core.ViewRegistration;
 import cz.it4i.fiji.datastore.rest_client.PerAnglesChannels.AngleChannel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,6 +56,7 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -76,10 +82,12 @@ public class N5RESTAdapter {
 	private final PerAnglesChannels perAnglesChannels;
 
 	public N5RESTAdapter(AbstractSequenceDescription<?, ?, ?> seq,
-		Map<Integer, MipmapInfo> perSetupMipmapInfo, BasicImgLoader imgLoader,
+		Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupExportMipmapInfo,
+		BasicImgLoader imgLoader,
 		Compression compression, String label)
 	{
 		BasicViewSetup setup = seq.getViewSetupsOrdered().get(0);
+		TimePoint timepoint = seq.getTimePoints().getTimePointsOrdered().get(0);
 		this.perAnglesChannels = PerAnglesChannels.construct(seq);
 		int angles = perAnglesChannels.getAngles();
 		int channels = perAnglesChannels.getChannels();
@@ -94,15 +102,41 @@ public class N5RESTAdapter {
 				.dimensions(setup.getSize().dimensionsAsLongArray())
 				.angles(angles)
 				.channels(channels)
-				.transformations(extractTransformations(perSetupMipmapInfo))
+				.transformations(extractTransformations(perTimepointAndSetupExportMipmapInfo.get(timepoint.getId())))
 				.timepoints(seq.getTimePoints().size())
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
 				.compression(compression.getType())
-				.resolutionLevels(getResolutionsLevels(perSetupMipmapInfo.get(setupId)))
+				.resolutionLevels(getResolutionsLevels(perTimepointAndSetupExportMipmapInfo.get(timepoint.getId()).get(setupId)))
 				.label(label)
+				.viewRegistrations(createViewRegistrations(perTimepointAndSetupExportMipmapInfo))
 				.build();
 // @formatter:on
+	}
+
+	private List<ViewRegistration> createViewRegistrations(
+		Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupExportMipmapInfo)
+	{
+		List<ViewRegistration> result = new LinkedList<>();
+		for (Entry<Integer, Map<Integer, MipmapInfo>> tEntry : perTimepointAndSetupExportMipmapInfo
+			.entrySet())
+		{
+			for (Entry<Integer, MipmapInfo> vsEntry : tEntry.getValue().entrySet()) {
+				AngleChannel ac = perAnglesChannels.getAngleChannel(vsEntry.getKey());
+				ViewRegistration vr = ViewRegistration.builder().angle(ac
+					.getAngleIndex()).channel(ac.getChannelIndex()).time(tEntry.getKey())
+					.transformations(extractTransformations(vsEntry.getValue()))
+					.build();
+				result.add(vr);
+			}
+		}
+
+		return result;
+	}
+
+	private static List<double[]> extractTransformations(MipmapInfo value) {
+		return stream(value.getTransforms()).map(t -> t.getRowPackedCopy()).collect(
+			toList());
 	}
 
 	private double[][] extractTransformations(

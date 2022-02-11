@@ -1,5 +1,7 @@
 package cz.it4i.fiji.datastore.ij;
 
+import static cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5.writeN5File;
+
 import java.awt.Checkbox;
 import java.awt.TextField;
 import java.awt.event.ItemEvent;
@@ -38,7 +40,6 @@ import bdv.img.imagestack.ImageStackImageLoader;
 import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import cz.it4i.fiji.datastore.rest_client.N5RESTAdapter;
-import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
@@ -183,11 +184,18 @@ public class ExportImagePlusAsN5PlugIn implements Command
 			timepoints.add( new TimePoint( t ) );
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal( new TimePoints( timepoints ), setups, imgLoader, null );
 
-		Map<Integer, MipmapInfo> perSetupExportMipmapInfo;
-		perSetupExportMipmapInfo = new HashMap<>();
+		
 		final ExportMipmapInfo mipmapInfo = new ExportMipmapInfo( params.resolutions, params.subdivisions );
-		for ( final BasicViewSetup setup : seq.getViewSetupsOrdered() )
-			perSetupExportMipmapInfo.put( setup.getId(), mipmapInfo );
+		Map<Integer, Map<Integer, MipmapInfo>> perTimepointAndSetupExportMipmapInfo =
+				new HashMap<>();
+
+		for (final TimePoint tp : seq.getTimePoints().getTimePointsOrdered())
+		{
+			for (final BasicViewSetup vs : seq.getViewSetupsOrdered()) {
+				perTimepointAndSetupExportMipmapInfo.computeIfAbsent(vs.getId(),
+					$ -> new HashMap<>()).put(tp.getId(), mipmapInfo);
+			}
+		}
 
 		// LoopBackHeuristic:
 		// - If saving more than 8x on pixel reads use the loopback image over
@@ -243,10 +251,10 @@ public class ExportImagePlusAsN5PlugIn implements Command
 		try
 		{
 			final N5RESTAdapter adapter = new N5RESTAdapter(seq,
-				perSetupExportMipmapInfo, imgLoader, params.compression, params.label);
-			WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
-				params.compression, () -> adapter.constructN5Writer(params.serverURL
-					.toString()),
+				perTimepointAndSetupExportMipmapInfo, imgLoader, params.compression,
+				params.label);
+			writeN5File(seq, perTimepointAndSetupExportMipmapInfo, params.compression,
+				() -> adapter.constructN5Writer(params.serverURL.toString()),
 				loopbackHeuristic,
 				afterEachPlane, numCellCreatorThreads,
 					new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
