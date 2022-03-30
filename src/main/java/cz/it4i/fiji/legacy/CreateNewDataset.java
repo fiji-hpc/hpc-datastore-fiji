@@ -91,8 +91,10 @@ public class CreateNewDataset implements Command {
 	@Parameter(label = "Report corresponding macro command:", required = false)
 	public boolean showRunCmd = false;
 
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(type = ItemIO.OUTPUT, label="UUID of the created dataset:")
 	public String newDatasetUUID;
+	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
+	public String newDatasetLabel;
 
 	@Override
 	public void run() {
@@ -158,6 +160,7 @@ public class CreateNewDataset implements Command {
 			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
 					"url",url, "json",json, "showRunCmd",showRunCmd);
 			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
+			newDatasetLabel = di.getLabel();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
