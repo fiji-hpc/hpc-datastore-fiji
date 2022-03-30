@@ -7,7 +7,7 @@ import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write Full Image")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write full image")
 public class WriteFullImage implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String URL;
@@ -54,6 +54,8 @@ public class WriteFullImage implements Command {
 				"URL",URL,
 				"datasetID",datasetID,
 				"accessRegime","write",
+				"datasetUUID",null, //just two informative fields, content is ignored
+				"datasetLabel",null,
 				"minX",0,
 				"maxX",999999,
 				"minY",0,

@@ -1,5 +1,7 @@
 package cz.it4i.fiji.legacy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.it4i.fiji.rest.util.DatasetInfo;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.log.LogLevel;
@@ -30,8 +32,10 @@ public class CreateNewDatasetFromJSON implements Command {
 	@Parameter(label = "Report corresponding macro command:", required = false)
 	public boolean showRunCmd = false;
 
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(type = ItemIO.OUTPUT, label="UUID of the created dataset:")
 	public String newDatasetUUID;
+	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
+	public String newDatasetLabel;
 
 	@Override
 	public void run() {
@@ -47,6 +51,7 @@ public class CreateNewDatasetFromJSON implements Command {
 			connection.getOutputStream().write(json.getBytes());
 
 			newDatasetUUID = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+			newDatasetLabel = new ObjectMapper().readValue(json, DatasetInfo.class).getLabel();
 
 			if (showRunCmd) {
 				myLogger.info("run(\"Create new dataset from JSON\", 'url="+this.url

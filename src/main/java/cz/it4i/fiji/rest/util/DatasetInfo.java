@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DatasetInfo {
+	public String uuid;
 	public String voxelType;
 
 	//6D space as 3D+1+1+1
@@ -27,14 +28,25 @@ public class DatasetInfo {
 
 	public String compression;
 
-	public double[][] transformations;
 	public List<ResolutionLevel> resolutionLevels;
 	public List<Integer> versions;
 	public String label;
 
+	/** a common label provider with default fallback response/label */
+	public static final String NO_LABEL_MSG = "(no label is attached)";
+	public String getLabel() {
+		if (label == null || label.length() == 0) return NO_LABEL_MSG;
+		return label;
+	}
+
+	public double[][] transformations;
+	public double[][] viewRegistrations;
+
 	@Override
 	public String toString() {
-		return "voxelType = " + voxelType +
+		return "UUID = " + uuid +
+				"\nlabel = " + label +
+				"\nvoxelType = " + voxelType +
 				"\ndimensions,timepoints,channels,angles = " +
 					dimensions + ", " + timepoints + "," + channels + "," + angles +
 				"\nvoxelResolution = " + voxelResolution + " " + voxelUnit +

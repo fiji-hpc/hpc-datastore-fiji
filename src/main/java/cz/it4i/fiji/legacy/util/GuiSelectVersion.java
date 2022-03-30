@@ -10,6 +10,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,7 +49,9 @@ public class GuiSelectVersion extends DynamicCommand {
 	public void run() {
 		try {
 			myLogger.info("Deleting version "+version+" from dataset "+datasetID+" at "+url);
-			new URL("http://"+url+"/datasets/"+datasetID+"/"+version+"/delete").openStream();
+			final HttpURLConnection connection = (HttpURLConnection)new URL("http://"+url+"/datasets/"+datasetID+"/"+version+"/delete").openConnection();
+			connection.getInputStream(); //the communication happens only after this command
+			myLogger.info("Server responded: "+connection.getResponseMessage());
 		} catch (IOException e) {
 			myLogger.error("Some connection problem:");
 			e.printStackTrace();

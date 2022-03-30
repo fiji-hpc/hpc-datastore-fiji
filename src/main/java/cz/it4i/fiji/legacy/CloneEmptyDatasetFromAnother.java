@@ -55,8 +55,10 @@ public class CloneEmptyDatasetFromAnother implements Command {
 	@Parameter(label = "Report corresponding macro command:", required = false)
 	public boolean showRunCmd = false;
 
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(type = ItemIO.OUTPUT, label="UUID of the created dataset:")
 	public String newDatasetUUID;
+	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
+	public String newDatasetLabel;
 
 	@Override
 	public void run() {
@@ -76,6 +78,7 @@ public class CloneEmptyDatasetFromAnother implements Command {
 				final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
 						"url",tgt_url, "json",json, "showRunCmd",showRunCmd);
 				newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
+				newDatasetLabel = (String)subcall.get().getOutput("newDatasetLabel");
 			} else {
 				//we gonna preset the prefs store so that the "params of resolution level" dialog(s)
 				//will get preloaded with the reference values
@@ -95,6 +98,7 @@ public class CloneEmptyDatasetFromAnother implements Command {
 
 				final CommandModule cm = new CommandModule( new CommandInfo(CreateNewDataset.class) );
 				cm.setInput("url", tgt_url);
+				cm.setInput("label", di.label);
 				cm.setInput("voxelType", di.voxelType);
 				cm.setInput("fullResSizeX", di.dimensions.get(0));
 				cm.setInput("fullResSizeY", di.dimensions.get(1));
@@ -152,6 +156,7 @@ public class CloneEmptyDatasetFromAnother implements Command {
 						"compression",di.compression, "showRunCmd",showRunCmd);
 				*/
 				newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
+				newDatasetLabel = (String)subcall.get().getOutput("newDatasetLabel");
 			}
 		} catch (IOException | ModuleException e) {
 			myLogger.error("Some error accessing the reference service and dataset: "+e.getMessage());

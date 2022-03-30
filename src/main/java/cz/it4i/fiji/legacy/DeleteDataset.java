@@ -8,6 +8,7 @@ import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.IOException;
 import cz.it4i.fiji.legacy.util.GuiSelectVersion;
@@ -24,6 +25,9 @@ public class DeleteDataset implements Command {
 			choices = {"whole dataset","select version"})
 	public String range = "whole dataset";
 
+	@Parameter(label = "Are you sure?", persist = false)
+	public boolean areYouSure = false;
+
 	@Parameter
 	public CommandService cs;
 
@@ -35,11 +39,17 @@ public class DeleteDataset implements Command {
 	public void run() {
 		//logging facility
 		myLogger = mainLogger.subLogger("HPC DeleteDataset", LogLevel.INFO);
+		if (!areYouSure) {
+			myLogger.info("Doing nothing, user is not sure...");
+			return;
+		}
 
 		try {
 			if (range.startsWith("whole")) {
 				myLogger.info("Deleting dataset "+datasetID+" at "+url);
-				new URL("http://"+url+"/datasets/"+datasetID+"/delete").openStream();
+				final HttpURLConnection connection = (HttpURLConnection)new URL("http://"+url+"/datasets/"+datasetID+"/delete").openConnection();
+				connection.getInputStream(); //the communication happens only after this command
+				myLogger.info("Server responded: "+connection.getResponseMessage());
 			} else {
 				cs.run(GuiSelectVersion.class,true,
 						"url",url, "datasetID",datasetID);

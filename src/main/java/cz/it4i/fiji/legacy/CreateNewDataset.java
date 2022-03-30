@@ -30,8 +30,8 @@ public class CreateNewDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:")
 	public String url = "someHostname:9080";
 
-	@Parameter(label = "Label:")
-	public String label = "";
+	@Parameter(label="Dataset label:")
+	public String label = "provide some nickname of this dataset";
 
 	@Parameter(label = "Voxel type:", choices = {"uint8", "uint16", "uint32", "uint64","int8", "int16", "int32", "int64", "float32", "float64"})
 	public String voxelType;
@@ -51,11 +51,11 @@ public class CreateNewDataset implements Command {
 	public int angles = 1;
 
 	@Parameter(label = "Physical dimension of one voxel in x:", min = "0")
-	public double res_x = 1;
+	public double res_x = 1.0;
 	@Parameter(label = "Physical dimension of one voxel in y:", min = "0")
-	public double res_y = 1;
+	public double res_y = 1.0;
 	@Parameter(label = "Physical dimension of one voxel in z:", min = "0")
-	public double res_z = 1;
+	public double res_z = 1.0;
 	@Parameter(label = "Physical unit of the voxel dimension:", description = "microns")
 	public String res_unit = "microns";
 
@@ -91,8 +91,10 @@ public class CreateNewDataset implements Command {
 	@Parameter(label = "Report corresponding macro command:", required = false)
 	public boolean showRunCmd = false;
 
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(type = ItemIO.OUTPUT, label="UUID of the created dataset:")
 	public String newDatasetUUID;
+	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
+	public String newDatasetLabel;
 
 	@Override
 	public void run() {
@@ -158,6 +160,7 @@ public class CreateNewDataset implements Command {
 			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
 					"url",url, "json",json, "showRunCmd",showRunCmd);
 			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
+			newDatasetLabel = di.getLabel();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
