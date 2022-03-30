@@ -6,7 +6,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write From Image")
+@Plugin(type = Command.class, headless = true)
 public class WriteFromImagePlus extends ImagePlusTransferrer {
 	@Parameter
 	public Dataset inDatasetImg;
