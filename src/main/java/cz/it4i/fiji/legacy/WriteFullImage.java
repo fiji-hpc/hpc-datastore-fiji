@@ -54,6 +54,8 @@ public class WriteFullImage implements Command {
 				"URL",URL,
 				"datasetID",datasetID,
 				"accessRegime","write",
+				"datasetUUID",null, //just two informative fields, content is ignored
+				"datasetLabel",null,
 				"minX",0,
 				"maxX",999999,
 				"minY",0,
