@@ -95,6 +95,7 @@ public class CloneEmptyDatasetFromAnother implements Command {
 
 				final CommandModule cm = new CommandModule( new CommandInfo(CreateNewDataset.class) );
 				cm.setInput("url", tgt_url);
+				cm.setInput("label", di.label);
 				cm.setInput("voxelType", di.voxelType);
 				cm.setInput("fullResSizeX", di.dimensions.get(0));
 				cm.setInput("fullResSizeY", di.dimensions.get(1));

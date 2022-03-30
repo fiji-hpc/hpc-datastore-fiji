@@ -1,5 +1,6 @@
 package cz.it4i.fiji.legacy.common;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.DynamicCommand;
 import org.scijava.prefs.PrefService;
 import org.scijava.log.LogLevel;
@@ -31,6 +32,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public PrefService prefService;
 
 	// ========= user-visible parameters to define subset of the original dataset =========
+	@Parameter(label="Params of UUID:", visibility = ItemVisibility.MESSAGE,
+			required = false, persist = false)
+	public String datasetUUID = "";
+	@Parameter(label="Dataset label:", visibility = ItemVisibility.MESSAGE,
+			required = false, persist = false)
+	public String datasetLabel = "";
+
 	@Parameter(label="min X [px]:", min="0", callback = "rangeSpatialX")
 	public int minX = -1;
 	@Parameter(label="max X [px]:", min="0", callback = "rangeSpatialX")
@@ -212,6 +220,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			rangeTPs();
 			rangeChannels();
 			rangeAngles();
+			datasetLabel = di.getLabel();
+			datasetUUID = di.uuid;
 
 			//make also sure versionAsStr holds already some intelligent input, there's
 			//no callback nor validator used as it seems for it impossible to hold value
