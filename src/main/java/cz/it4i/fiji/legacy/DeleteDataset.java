@@ -24,6 +24,9 @@ public class DeleteDataset implements Command {
 			choices = {"whole dataset","select version"})
 	public String range = "whole dataset";
 
+	@Parameter(label = "Are you sure?", persist = false)
+	public boolean areYouSure = false;
+
 	@Parameter
 	public CommandService cs;
 
@@ -35,6 +38,10 @@ public class DeleteDataset implements Command {
 	public void run() {
 		//logging facility
 		myLogger = mainLogger.subLogger("HPC DeleteDataset", LogLevel.INFO);
+		if (!areYouSure) {
+			myLogger.info("Doing nothing, user is not sure...");
+			return;
+		}
 
 		try {
 			if (range.startsWith("whole")) {
