@@ -10,4 +10,4 @@ DIR=`readlink -f $1`
 OLD_DIR=`readlink -f .`
 cd $DIR/jars
 cd $OLD_DIR
-cp -v target/hpc-datastore-*-SNAPSHOT.jar target/module-assembly-bin/lib/*.jar $DIR/jars/
+cp -v target/module-assembly-bin/lib/*.jar $DIR/jars/
