@@ -333,7 +333,7 @@ public class N5RESTAdapter {
 				}
 				catch (ProcessingException exc) {
 					if (exc.getCause() instanceof ConnectException) {
-						log.info("Server {} is alreade stopped.", dsc.toString());
+						log.info("Server {} is already stopped.", dsc.toString());
 
 					}
 					else {
