@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -326,7 +328,19 @@ public class N5RESTAdapter {
 		@Override
 		public void close() {
 			for (DatasetServerClient dsc : level2serverClient.values()) {
-				dsc.stopDataServer();
+				try {
+					dsc.stopDataServer();
+				}
+				catch (ProcessingException exc) {
+					if (exc.getCause() instanceof ConnectException) {
+						log.info("Server {} is alreade stopped.", dsc.toString());
+
+					}
+					else {
+						log.warn("stop", exc);
+					}
+
+				}
 			}
 		}
 
