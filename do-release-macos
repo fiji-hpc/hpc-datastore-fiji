@@ -7,7 +7,4 @@ if [ ! $# -eq 1 ]; then
 fi
 
 DIR=`greadlink -f $1`
-OLD_DIR=`greadlink -f .`
-cd $DIR/jars
-cd $OLD_DIR
-cp -v target/hpc-datastore-*-SNAPSHOT.jar target/module-assembly-bin/lib/*.jar $DIR/jars/
+cp -v target/module-assembly-bin/lib/*.jar $DIR/jars/

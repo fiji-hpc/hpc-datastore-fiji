@@ -6,7 +6,19 @@
 		<format>dir</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
-
+	<fileSets>
+		<fileSet>
+	      <directory>${project.build.directory}</directory>
+	      <outputDirectory>lib</outputDirectory>
+	      <includes>
+	        <include>*.jar</include>
+	      </includes>
+	      <excludes>
+	        <exclude>*tests*</exclude>
+	        <exclude>*sources*</exclude>
+	      </excludes>
+	    </fileSet>
+    </fileSets>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
