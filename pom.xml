@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>30.0.0</version>
+        <version>31.1.0</version>
         <relativePath />
     </parent>
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore-fiji</artifactId>
 
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>HPC DataStore Fiji client</name>
     <description>Fiji client for HPC DataStore</description>
     <url>ToDO</url>
@@ -157,6 +157,7 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>bigdataviewer-core</artifactId>
+            <version>10.2.2</version>
         </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>

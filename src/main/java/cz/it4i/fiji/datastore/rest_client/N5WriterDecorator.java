@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.rest_client;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -93,7 +94,7 @@ public class N5WriterDecorator implements N5Writer {
 	}
 
 	@Override
-	public boolean deleteBlock(String pathName, long[] gridPosition)
+	public boolean deleteBlock(String pathName, long... gridPosition)
 		throws IOException
 	{
 		return writer.deleteBlock(pathName, gridPosition);
@@ -107,6 +108,13 @@ public class N5WriterDecorator implements N5Writer {
 	}
 
 	@Override
+	public <T> T getAttribute(String pathName, String key, Type type)
+		throws IOException
+	{
+		return writer.getAttribute(pathName, key, type);
+	}
+
+	@Override
 	public DatasetAttributes getDatasetAttributes(String pathName)
 		throws IOException
 	{
@@ -115,7 +123,8 @@ public class N5WriterDecorator implements N5Writer {
 
 	@Override
 	public DataBlock<?> readBlock(String pathName,
-		DatasetAttributes datasetAttributes, long[] gridPosition) throws IOException
+		DatasetAttributes datasetAttributes, long... gridPosition)
+		throws IOException
 	{
 		DataBlock<?> result = writer.readBlock(pathName, datasetAttributes,
 			gridPosition);

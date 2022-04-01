@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -203,7 +204,7 @@ public class N5RESTAdapter {
 
 		@Override
 		public DataBlock<?> readBlock(String pathName,
-			DatasetAttributes datasetAttributes, long[] gridPosition)
+			DatasetAttributes datasetAttributes, long... gridPosition)
 			throws IOException
 		{
 		
@@ -282,6 +283,13 @@ public class N5RESTAdapter {
 		}
 
 		@Override
+		public <T> T getAttribute(String pathName, String key, Type type)
+			throws IOException
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
 		public boolean exists(String pathName) {
 			throw new UnsupportedOperationException();
 		}
@@ -309,7 +317,7 @@ public class N5RESTAdapter {
 		}
 
 		@Override
-		public boolean deleteBlock(String pathName, long[] gridPosition)
+		public boolean deleteBlock(String pathName, long... gridPosition)
 			throws IOException
 		{
 			throw new UnsupportedOperationException();
@@ -367,6 +375,8 @@ public class N5RESTAdapter {
 			}
 			return result;
 		}
+
+
 
 	}
 

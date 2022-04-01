@@ -11,12 +11,9 @@ import java.util.UUID;
 
 import org.janelia.saalfeldlab.n5.N5Writer;
 
-public interface N5WriterWithUUID extends N5Writer, AutoCloseable {
+public interface N5WriterWithUUID extends N5Writer {
 
 	UUID getUUID();
 
 	void setUUID(UUID uuid);
-
-	@Override
-	void close();
 }
