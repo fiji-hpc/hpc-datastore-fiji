@@ -9,10 +9,10 @@ import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write full image")
 public class WriteFullImage implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:")
+	@Parameter(label = "UUID of a dataset on that service:", persistKey = "datasetdatasetid")
 	public String datasetID;
 
 	@Parameter(label="time point:", min="0",
@@ -57,11 +57,11 @@ public class WriteFullImage implements Command {
 				"datasetUUID",null, //just two informative fields, content is ignored
 				"datasetLabel",null,
 				"minX",0,
-				"maxX",999999,
+				"maxX",Integer.MAX_VALUE,
 				"minY",0,
-				"maxY",999999,
+				"maxY",Integer.MAX_VALUE,
 				"minZ",0,
-				"maxZ",999999,
+				"maxZ",Integer.MAX_VALUE,
 				"timepoint",timepoint,
 				"channel",channel,
 				"angle",angle,

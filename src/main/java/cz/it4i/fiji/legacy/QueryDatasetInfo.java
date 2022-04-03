@@ -12,10 +12,10 @@ import java.io.IOException;
 
 @Plugin(type = Command.class, headless = false, menuPath = "Plugins>HPC DataStore>Query>Dataset info")
 public class QueryDatasetInfo implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
-	@Parameter(label = "UUID of the dataset to be queried:")
+	@Parameter(label = "UUID of the dataset to be queried:", persistKey = "datasetdatasetid")
 	public String datasetID = "someDatasetUUID";
 
 	@Parameter

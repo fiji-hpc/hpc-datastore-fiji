@@ -13,11 +13,13 @@ import org.scijava.plugin.Plugin;
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Request dataset serving")
 public class RequestDatasetServing implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:",
-			description = "IPaddress:portNumber or hostname:portNumber, always without http://")
+			description = "IPaddress:portNumber or hostname:portNumber, always without http://",
+			persistKey = "datasetserverurl")
 	public String URL;
 
 	@Parameter(label = "UUID of a dataset on that service:",
-			description = "A dataset name that one just needs to know, the Service is not listing available dataset names.")
+			description = "A dataset name that one just needs to know, the Service is not listing available dataset names.",
+			persistKey = "datasetdatasetid")
 	public String datasetID;
 
 	@Parameter(label = "Access mode:", choices = {"read","write","read-write"})

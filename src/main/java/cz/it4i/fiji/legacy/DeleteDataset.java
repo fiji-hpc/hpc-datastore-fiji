@@ -15,10 +15,10 @@ import cz.it4i.fiji.legacy.util.GuiSelectVersion;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Delete>Delete dataset or its version")
 public class DeleteDataset implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
-	@Parameter(label = "UUID of the dataset to be deleted:")
+	@Parameter(label = "UUID of the dataset to be deleted:", persistKey = "datasetdatasetid")
 	public String datasetID = "someDatasetUUID";
 
 	@Parameter(label = "What everything should be deleted:",

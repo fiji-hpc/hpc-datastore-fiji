@@ -15,10 +15,10 @@ import java.net.URL;
 
 @Plugin(type = Command.class, headless = false, menuPath = "Plugins>HPC DataStore>Modify>Add channel to dataset")
 public class AddChannelDataset implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
-	@Parameter(label = "UUID of the dataset to be modified:")
+	@Parameter(label = "UUID of the dataset to be modified:", persistKey = "datasetdatasetid")
 	public String datasetID = "someDatasetUUID";
 
 	//@Parameter(label = "Number of channels being added:", min = "1", stepSize = "1")
