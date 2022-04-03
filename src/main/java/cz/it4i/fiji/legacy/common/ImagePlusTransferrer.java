@@ -55,6 +55,11 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 					+ "the expected block size "+expected+" px.");
 	}
 
+	public static
+	String createResStr(final int downscaleX, final int downscaleY, final int downscaleZ) {
+		return "["+downscaleX+", "+downscaleY+", "+downscaleZ+"]";
+	}
+
 	// ----------------------------------------------
 	// transfer controls
 	int fullBlockByteSize;
