@@ -7,6 +7,15 @@ import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.createResStr;
+import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
+import cz.it4i.fiji.rest.util.DatasetInfo;
+import org.scijava.Context;
+import org.scijava.log.LogLevel;
+import org.scijava.log.LogService;
+import java.io.IOException;
+
+
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read>Read full image")
 public class ReadFullImage implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
@@ -71,5 +80,82 @@ public class ReadFullImage implements Command {
 				"verboseLog",verboseLog,
 				"showRunCmd",false
 				);
+	}
+
+
+	public static
+	Dataset from(final String url, final String datasetID,
+	             final int timepoint, final int channel, final int angle,
+	             final int downscaleX, final int downscaleY, final int downscaleZ,
+	             final String versionAsStr)
+	throws IOException {
+		return from(url,datasetID,timepoint,channel,angle,
+				createResStr(downscaleX,downscaleY,downscaleZ),
+				versionAsStr,120000,false);
+	}
+
+	public static
+	Dataset from(final String url, final String datasetID,
+	             final int timepoint, final int channel, final int angle,
+	             final String resolutionLevelsAsStr, final String versionAsStr)
+	throws IOException {
+		return from(url,datasetID,timepoint,channel,angle,
+				resolutionLevelsAsStr,
+				versionAsStr,120000,false);
+	}
+
+	public static
+	Dataset from(final String url, final String datasetID,
+	             final int timepoint, final int channel, final int angle,
+	             final String resolutionLevelsAsStr, final String versionAsStr,
+	             final int serverTimeout, final boolean verboseLog)
+	throws IOException {
+		return new LocalReader().readNow(url, datasetID, timepoint, channel, angle,
+				resolutionLevelsAsStr, versionAsStr, serverTimeout, verboseLog);
+	}
+
+
+	static class LocalReader extends ImagePlusTransferrer {
+		LocalReader() {
+			final Context ctx = new Context(LogService.class);
+			mainLogger = ctx.getService(LogService.class);
+		}
+
+		Dataset readNow(final String url, final String datasetID,
+		                final int timepoint, final int channel, final int angle,
+		                final String resolutionLevelsAsStr, final String versionAsStr,
+		                final int serverTimeout, final boolean verboseLog)
+		throws IOException {
+			this.URL = url;
+			this.datasetID = datasetID;
+			this.timepoint = timepoint;
+			this.channel = channel;
+			this.angle = angle;
+			this.resolutionLevelsAsStr = resolutionLevelsAsStr;
+			this.versionAsStr = versionAsStr;
+			this.timeout = serverTimeout;
+			this.verboseLog = verboseLog;
+			this.accessRegime = "read";
+			this.minX=0;
+			this.maxX=Integer.MAX_VALUE;
+			this.minY=0;
+			this.maxY=Integer.MAX_VALUE;
+			this.minZ=0;
+			this.maxZ=Integer.MAX_VALUE;
+
+			myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
+			myLogger.info("entered init with this state: "+reportCurrentSettings());
+
+			myLogger.info("Reading "+datasetID+" from "+URL);
+			di = DatasetInfo.createFrom(URL, datasetID);
+			myLogger.info(di.toString());
+
+			matchResLevel();
+			rangeSpatialX();
+			rangeSpatialY();
+			rangeSpatialZ();
+
+			return this.readWithAType();
+		}
 	}
 }
