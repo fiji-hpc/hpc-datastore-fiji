@@ -28,13 +28,13 @@ import cz.it4i.fiji.rest.util.DatasetInfo;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create empty dataset from another")
 public class CloneEmptyDatasetFromAnother implements Command {
-	@Parameter(label = "URL of a reference DatasetsRegisterService:")
+	@Parameter(label = "URL of a reference DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String src_url = "someHostname:9080";
 
-	@Parameter(label = "UUID of a reference dataset on that service:")
+	@Parameter(label = "UUID of a reference dataset on that service:", persistKey = "datasetdatasetid")
 	public String src_uuid = "someDatasetUUID";
 
-	@Parameter(label = "URL of a target DatasetsRegisterService:")
+	@Parameter(label = "URL of a target DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String tgt_url = "someHostname:9080";
 
 	@Parameter(label = "Modify params before creating the new dataset:")

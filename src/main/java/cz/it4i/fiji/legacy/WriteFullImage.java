@@ -9,10 +9,10 @@ import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write full image")
 public class WriteFullImage implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:")
+	@Parameter(label = "UUID of a dataset on that service:", persistKey = "datasetdatasetid")
 	public String datasetID;
 
 	@Parameter(label="time point:", min="0",
