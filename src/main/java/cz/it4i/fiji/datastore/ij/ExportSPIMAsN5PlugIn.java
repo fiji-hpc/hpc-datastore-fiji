@@ -78,8 +78,8 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 	private static final String LAST_SPIM_DATA = "LAST_SPIM_DATA";
 
-	private static final String LAST_DATASERVER_TIMEOUT =
-		"LAST_DATASERVER_TIMEOUT";
+	private static final String LAST_DATASERVER_TIMEOUT = "LAST_DATASERVER_TIMEOUT";
+	private static final int DEFAULT_DATASERVER_TIMEOUT = 1200;
 
 	private static final String LAST_LABEL = "LAST_LABEL";
 
@@ -234,10 +234,10 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		lastCompressionDefaultSettings = prefService.getBoolean(getClass(),
 			LAST_COMPRESSION_DEFAULT_SETTINGS, true);
 		lastServerURL = prefService.get(getClass(), LAST_SERVER_URL,
-			"http://localhost:8080");
+			"http://localhost:9080");
 		lastLabel = prefService.get(getClass(), LAST_LABEL, "");
 		lastDataserverTimeout = prefService.getInt(getClass(),
-			LAST_DATASERVER_TIMEOUT, 60);
+			LAST_DATASERVER_TIMEOUT, DEFAULT_DATASERVER_TIMEOUT);
 	}
 
 	private void savePrefs() {
@@ -302,7 +302,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 
 	static String lastServerURL = "http://localhost:9080";
 
-	static int lastDataserverTimeout = 60;
+	static int lastDataserverTimeout = DEFAULT_DATASERVER_TIMEOUT;
 
 	static String lastLabel = "";
 
