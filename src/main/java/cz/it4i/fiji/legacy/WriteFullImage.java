@@ -1,11 +1,21 @@
 package cz.it4i.fiji.legacy;
 
 import net.imagej.Dataset;
-
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.createResStr;
+import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
+import cz.it4i.fiji.rest.util.DatasetInfo;
+import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+import org.scijava.Context;
+import org.scijava.log.LogLevel;
+import org.scijava.log.LogService;
+import java.io.IOException;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write full image")
 public class WriteFullImage implements Command {
@@ -72,5 +82,89 @@ public class WriteFullImage implements Command {
 				"verboseLog",verboseLog,
 				"showRunCmd",false
 				);
+	}
+
+
+	public static
+	void to(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final int downscaleX, final int downscaleY, final int downscaleZ,
+	        final String versionAsStr)
+	throws IOException {
+		to(image, url,datasetID,timepoint,channel,angle,
+				createResStr(downscaleX,downscaleY,downscaleZ),
+				versionAsStr,120000,false);
+	}
+
+	public static
+	void to(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final String resolutionLevelsAsStr, final String versionAsStr)
+	throws IOException {
+		to(image, url,datasetID,timepoint,channel,angle,
+				resolutionLevelsAsStr,
+				versionAsStr,120000,false);
+	}
+
+	public static
+	void to(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final String resolutionLevelsAsStr, final String versionAsStr,
+	        final int serverTimeout, final boolean verboseLog)
+	throws IOException {
+		new LocalWriter().writeNow(image, url, datasetID, timepoint, channel, angle,
+				resolutionLevelsAsStr, versionAsStr, serverTimeout, verboseLog);
+	}
+
+
+	static class LocalWriter extends ImagePlusTransferrer {
+		LocalWriter() {
+			final Context ctx = new Context(LogService.class);
+			mainLogger = ctx.getService(LogService.class);
+		}
+
+		void writeNow(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+		              final int timepoint, final int channel, final int angle,
+		              final String resolutionLevelsAsStr, final String versionAsStr,
+		              final int serverTimeout, final boolean verboseLog)
+		throws IOException {
+
+			if (!(image.firstElement() instanceof NativeType)) {
+				throw new IllegalArgumentException("Provided type ("
+						+image.firstElement().getClass().getSimpleName()
+						+") is not derived from NativeType.");
+			}
+
+			this.URL = url;
+			this.datasetID = datasetID;
+			this.timepoint = timepoint;
+			this.channel = channel;
+			this.angle = angle;
+			this.resolutionLevelsAsStr = resolutionLevelsAsStr;
+			this.versionAsStr = versionAsStr;
+			this.timeout = serverTimeout;
+			this.verboseLog = verboseLog;
+			this.accessRegime = "write";
+			this.minX=0;
+			this.maxX=Integer.MAX_VALUE;
+			this.minY=0;
+			this.maxY=Integer.MAX_VALUE;
+			this.minZ=0;
+			this.maxZ=Integer.MAX_VALUE;
+
+			myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
+			myLogger.info("entered init with this state: "+reportCurrentSettings());
+
+			myLogger.info("Reading "+datasetID+" from "+URL);
+			di = DatasetInfo.createFrom(URL, datasetID);
+			myLogger.info(di.toString());
+
+			matchResLevel();
+			rangeSpatialX();
+			rangeSpatialY();
+			rangeSpatialZ();
+
+			this.writeWithAType((Img)image);
+		}
 	}
 }
