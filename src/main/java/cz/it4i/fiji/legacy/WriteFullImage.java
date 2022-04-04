@@ -53,6 +53,7 @@ public class WriteFullImage implements Command {
 		cs.run(WriteFromImagePlus.class,true,
 				"URL",URL,
 				"datasetID",datasetID,
+				"inDatasetImg",inDatasetImg,
 				"accessRegime","write",
 				"datasetUUID",null, //just two informative fields, content is ignored
 				"datasetLabel",null,
