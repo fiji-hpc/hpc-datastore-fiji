@@ -11,10 +11,10 @@
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore-fiji</artifactId>
 
-    <version>0.0.2</version>
-    <name>HPC DataStore Fiji client</name>
+    <version>0.0.3-SNAPSHOT</version>
+    <name>HPC DataStore Fiji client and Java client API</name>
     <description>Fiji client for HPC DataStore</description>
-    <url>ToDO</url>
+    <url>https://github.com/fiji-hpc/hpc-datastore</url>
     <inceptionYear>2021</inceptionYear>
     <organization>
         <name>SciJava</name>
