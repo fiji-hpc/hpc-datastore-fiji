@@ -1,6 +1,7 @@
 package cz.it4i.fiji.legacy;
 
 import net.imagej.Dataset;
+import net.imglib2.img.Img;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -16,7 +17,7 @@ public class WriteFromImagePlus extends ImagePlusTransferrer {
 		checkAccessRegimeVsDatasetVersionOrThrow();
 		adjustReportingVerbosity();
 
-		writeWithAType(inDatasetImg);
+		writeWithAType((Img)inDatasetImg);
 		if (showRunCmd)
 			mainLogger.info("Corresponding IJM command: "+reportAsMacroCommand("Write From Image"));
 	}

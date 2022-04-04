@@ -259,12 +259,10 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 
 	public <T extends NativeType<T> & RealType<T>>
-	void writeWithAType(final Dataset inDatasetImg) {
+	void writeWithAType(final Img<T> img) {
 		try {
 			@SuppressWarnings("unchecked")
-			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(inDatasetImg.getType());
-			@SuppressWarnings("unchecked")
-			final Img<T> img = (Img<T>) inDatasetImg.getImgPlus().getImg();
+			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(img.firstElement());
 
 			//sanity check already at the client
 			@SuppressWarnings("unchecked")
