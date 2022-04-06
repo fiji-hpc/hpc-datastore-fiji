@@ -167,7 +167,11 @@ public final class DatasetIndex {
 	 * @return path to index file
 	 */
 	private static Path getPath() {
-		return Paths.get(System.getenv("HOME")).resolve(IMAGEJ_DIRECTORY).resolve(
+		String home = System.getenv("HOME");
+		if (home == null) {
+			home = "";
+		}
+		return Paths.get(home).resolve(IMAGEJ_DIRECTORY).resolve(
 			DATA_STORE_DIRECTORY);
 	}
 
