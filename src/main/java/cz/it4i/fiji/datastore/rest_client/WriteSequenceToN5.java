@@ -74,6 +74,7 @@ import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
+import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
@@ -85,6 +86,7 @@ import mpicbg.spim.data.sequence.ViewId;
  * @author Tobias Pietzsch
  * @author John Bogovic
  */
+@Log4j2
 public class WriteSequenceToN5
 {
 
@@ -180,9 +182,7 @@ public class WriteSequenceToN5
 		int numCompletedTasks = 0;
 
 		final ExecutorService executorService = Executors.newFixedThreadPool( numCellCreatorThreads );
-		N5Writer n5 = writerSupplier.get();
-		try
-		{
+		try (N5Writer n5 = writerSupplier.get()) {
 			// write image data for all views
 			final int numTimepoints = timepointIds.size();
 			int timepointIndex = 0;
@@ -214,14 +214,12 @@ public class WriteSequenceToN5
 				}
 			}
 		}
-		finally
-		{
+		catch(IOException|RuntimeException e) {
+			log.warn("writeN5File", e);
+			throw e;
+		}
+		finally {
 			executorService.shutdown();
-			if (n5 instanceof N5WriterWithUUID) {
-				try (N5WriterWithUUID closable = (N5WriterWithUUID) n5) {
-					// only for close without operations
-				}
-			}
 		}
 
 		progressWriter.setProgress( 1.0 );
