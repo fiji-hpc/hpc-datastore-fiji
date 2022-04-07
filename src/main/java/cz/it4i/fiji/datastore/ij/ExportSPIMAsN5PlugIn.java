@@ -23,6 +23,7 @@ import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -43,7 +44,6 @@ import cz.it4i.fiji.datastore.rest_client.N5WriterWithUUID;
 import cz.it4i.fiji.datastore.rest_client.WriteSequenceToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -59,7 +59,6 @@ import mpicbg.spim.data.sequence.ViewSetup;
  *
  * @author Tobias Pietzsch
  */
-@Log4j2
 @Plugin(type = Command.class,
 	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
 public class ExportSPIMAsN5PlugIn implements Command {
@@ -89,8 +88,12 @@ public class ExportSPIMAsN5PlugIn implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	public String newDatasetUUID;
 
+	@Parameter
+	private LogService loggingService;
+
 	@Override
 	public void run() {
+		loggingService.info("Export started");
 		if (ij.Prefs.setIJMenuBar) System.setProperty("apple.laf.useScreenMenuBar",
 			"true");
 		loadPrefs();
@@ -213,7 +216,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 			newDatasetUUID = provider.getUUID().toString();
 			progressWriter.setProgress(1.0);
 			progressWriter.out().println("done");
-			log.info("newDatasetUUID: {}", newDatasetUUID);
+			loggingService.info("newDatasetUUID: " + newDatasetUUID);
 		}
 		catch (final IOException e) {
 			throw new RuntimeException(e);

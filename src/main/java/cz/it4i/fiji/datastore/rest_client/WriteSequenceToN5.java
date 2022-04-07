@@ -62,6 +62,8 @@ import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.ShortArrayDataBlock;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
+import org.scijava.Context;
+import org.scijava.log.LogService;
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid;
@@ -86,10 +88,15 @@ import mpicbg.spim.data.sequence.ViewId;
  * @author Tobias Pietzsch
  * @author John Bogovic
  */
-@Log4j2
 public class WriteSequenceToN5
 {
 
+	private static LogService log;
+
+	static {
+		log = new Context().getService(LogService.class);
+
+	}
 	@FunctionalInterface
 	public interface SupplierWithIOException<T> {
 		T get() throws IOException;
