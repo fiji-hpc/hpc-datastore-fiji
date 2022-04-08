@@ -214,7 +214,7 @@ public class WriteSequenceToN5
 			}
 		}
 		catch(IOException|RuntimeException e) {
-			progressWriter.err().printf("export failed with exception: %", e
+			progressWriter.err().printf("export failed with exception: %s", e
 				.getMessage());
 			e.printStackTrace(progressWriter.err());
 			throw e;
