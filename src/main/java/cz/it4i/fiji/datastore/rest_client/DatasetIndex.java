@@ -211,7 +211,7 @@ public final class DatasetIndex {
 		}
 
 		@Override
-		public <T> void writeBlock(String pathName,
+		synchronized public <T> void writeBlock(String pathName,
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
