@@ -156,8 +156,8 @@ public final class DatasetIndex {
 		ResolutionLevel resolutionLevel = dto.getResolutionLevels()[act
 			.getLevelID()];
 		return new BlockIdentification(resolutionLevel.getResolutions(), dataBlock
-			.getGridPosition(), act.getTimepointID(), act.channelID, act
-				.getChannelID());
+			.getGridPosition(), act.getTimepointID(), act.getChannelID(), act
+				.getAngleID());
 	}
 
 
@@ -211,14 +211,24 @@ public final class DatasetIndex {
 		}
 
 		@Override
-		synchronized public <T> void writeBlock(String pathName,
+		public <T> void writeBlock(String pathName,
 			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
 			throws IOException
 		{
 			BlockIdentification bi = createBlockIdentification(pathName, dataBlock);
-			if (!alreadyWritedBlocks.contains(bi)) {
-				innerWriter.writeBlock(pathName, datasetAttributes, dataBlock);
-				registerBlock(bi);
+
+			if (prepareForWriting(bi)) {
+				boolean writed = false;
+				try {
+					innerWriter.writeBlock(pathName, datasetAttributes, dataBlock);
+					registerBlock(bi);
+					writed = true;
+				}
+				finally {
+					if (!writed) {
+						writeFailed(bi);
+					}
+				}
 			}
 		}
 
@@ -239,8 +249,15 @@ public final class DatasetIndex {
 			}
 		}
 
-		private synchronized void registerBlock(BlockIdentification bi) {
+		synchronized private boolean prepareForWriting(BlockIdentification bi) {
+			if (alreadyWritedBlocks.contains(bi)) {
+				return false;
+			}
 			alreadyWritedBlocks.add(bi);
+			return true;
+		}
+
+		private synchronized void registerBlock(BlockIdentification bi) {
 			try (BufferedWriter bw = Files.newBufferedWriter(getPath().resolve(uuid
 				.toString()), StandardOpenOption.APPEND, StandardOpenOption.CREATE))
 			{
@@ -263,6 +280,10 @@ public final class DatasetIndex {
 				}
 			}
 			return path;
+		}
+
+		synchronized private void writeFailed(BlockIdentification bi) {
+			alreadyWritedBlocks.remove(bi);
 		}
 
 	}
