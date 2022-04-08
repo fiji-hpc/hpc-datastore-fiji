@@ -62,8 +62,6 @@ import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.ShortArrayDataBlock;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
-import org.scijava.Context;
-import org.scijava.log.LogService;
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid;
@@ -76,7 +74,6 @@ import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
-import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
@@ -91,12 +88,7 @@ import mpicbg.spim.data.sequence.ViewId;
 public class WriteSequenceToN5
 {
 
-	private static LogService log;
 
-	static {
-		log = new Context().getService(LogService.class);
-
-	}
 	@FunctionalInterface
 	public interface SupplierWithIOException<T> {
 		T get() throws IOException;
@@ -222,7 +214,9 @@ public class WriteSequenceToN5
 			}
 		}
 		catch(IOException|RuntimeException e) {
-			log.warn("writeN5File", e);
+			progressWriter.err().printf("export failed with exception: %", e
+				.getMessage());
+			e.printStackTrace(progressWriter.err());
 			throw e;
 		}
 		finally {
