@@ -3,7 +3,6 @@ package cz.it4i.fiji.legacy;
 import net.imagej.Dataset;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
-import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -55,31 +54,19 @@ public class ReadFullImage implements Command {
 	public Dataset outDatasetImg;
 
 	@Parameter
-	public CommandService cs;
+	public LogService log;
 
 	@Override
 	public void run() {
-		cs.run(ReadIntoImagePlus.class,true,
-				"URL",URL,
-				"datasetID",datasetID,
-				"accessRegime","read",
-				"datasetUUID",null, //just two informative fields, content is ignored
-				"datasetLabel",null,
-				"minX",0,
-				"maxX",Integer.MAX_VALUE,
-				"minY",0,
-				"maxY",Integer.MAX_VALUE,
-				"minZ",0,
-				"maxZ",Integer.MAX_VALUE,
-				"timepoint",timepoint,
-				"channel",channel,
-				"angle",angle,
-				"resolutionLevelsAsStr",resolutionLevelsAsStr,
-				"versionAsStr",versionAsStr,
-				"timeout",timeout,
-				"verboseLog",verboseLog,
-				"showRunCmd",false
-				);
+		try {
+			outDatasetImg = new LocalReader(log.getContext()).readNow(URL,datasetID,
+					timepoint,channel,angle,
+					resolutionLevelsAsStr,versionAsStr,
+					timeout,verboseLog);
+		} catch (IOException e) {
+			log.error("Problem reading full image: "+e.getMessage());
+			//e.printStackTrace();
+		}
 	}
 
 
@@ -116,9 +103,15 @@ public class ReadFullImage implements Command {
 
 
 	static class LocalReader extends ImagePlusTransferrer {
+		/** intended for use in solo (without a valid scijava context) application */
 		LocalReader() {
 			final Context ctx = new Context(LogService.class);
 			mainLogger = ctx.getService(LogService.class);
+		}
+
+		/** PREFERRED whenever appropriate context is available */
+		LocalReader(final Context useThisCtx) {
+			this.setContext(useThisCtx);
 		}
 
 		Dataset readNow(final String url, final String datasetID,

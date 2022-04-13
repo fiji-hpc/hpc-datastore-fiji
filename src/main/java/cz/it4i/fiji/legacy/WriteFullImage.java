@@ -2,7 +2,6 @@ package cz.it4i.fiji.legacy;
 
 import net.imagej.Dataset;
 import org.scijava.command.Command;
-import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -56,32 +55,20 @@ public class WriteFullImage implements Command {
 	public Dataset inDatasetImg;
 
 	@Parameter
-	public CommandService cs;
+	public LogService log;
 
 	@Override
 	public void run() {
-		cs.run(WriteFromImagePlus.class,true,
-				"URL",URL,
-				"datasetID",datasetID,
-				"inDatasetImg",inDatasetImg,
-				"accessRegime","write",
-				"datasetUUID",null, //just two informative fields, content is ignored
-				"datasetLabel",null,
-				"minX",0,
-				"maxX",Integer.MAX_VALUE,
-				"minY",0,
-				"maxY",Integer.MAX_VALUE,
-				"minZ",0,
-				"maxZ",Integer.MAX_VALUE,
-				"timepoint",timepoint,
-				"channel",channel,
-				"angle",angle,
-				"resolutionLevelsAsStr",resolutionLevelsAsStr,
-				"versionAsStr",versionAsStr,
-				"timeout",timeout,
-				"verboseLog",verboseLog,
-				"showRunCmd",false
-				);
+		try {
+			new LocalWriter(log.getContext()).writeNow(inDatasetImg.getImgPlus().getImg(),
+					URL,datasetID,
+					timepoint,channel,angle,
+					resolutionLevelsAsStr,versionAsStr,
+					timeout,verboseLog);
+		} catch (IOException e) {
+			log.error("Problem writing full image: "+e.getMessage());
+			//e.printStackTrace();
+		}
 	}
 
 
@@ -118,9 +105,15 @@ public class WriteFullImage implements Command {
 
 
 	static class LocalWriter extends ImagePlusTransferrer {
+		/** intended for use in solo (without a valid scijava context) application */
 		LocalWriter() {
 			final Context ctx = new Context(LogService.class);
 			mainLogger = ctx.getService(LogService.class);
+		}
+
+		/** PREFERRED whenever appropriate context is available */
+		LocalWriter(final Context useThisCtx) {
+			this.setContext(useThisCtx);
 		}
 
 		void writeNow(final Img<? extends RealType<?>> image, final String url, final String datasetID,
