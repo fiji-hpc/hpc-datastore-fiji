@@ -1,12 +1,17 @@
-#@ String host_port
-#@ String dataset
+#@ String(persistkey="datasetserverurl") host_port
+#@ String(persistkey="datasetdatasetid") dataset
+#@ String(description="Use single number like 0,1,2 or keywords latest or mixedLatest") version = "latest"
+
 #@ int(min="0") downloadFromThisChannel
-#@ int(min="0") TP_from
-#@ int(min="0") TP_till
-#@ String(description="The part of file name before the running numbers") fileNameBeforeNumber
-#@ int(description="Pad running numbers with zeros up to the given width, set to 0 for no padding.", min="0") zeroPaddingWidth
-#@ String(description="The part of file name right after the running numbers") fileNameAfterNumber = ".tif"
+#@ int(min="0") downloadThisAngle
+#@ int(min="0") downloadTimePoint_FROM
+#@ int(min="0") downloadTimePoint_TILL
+
+#@ String(description="The part of file name before the time-point running numbers", default="img") fileNameBeforeTPNumber
+#@ int(description="Pad running numbers with zeros up to the given width, set to 0 for no padding.", min="0", default="0") zeroPaddingWidth
+#@ String(description="The part of file name right after the time-point running numbers", default=".tif") fileNameAfterTPNumber = ".tif"
 #@ File(style="directory") outputDir
+
 #@ boolean verboseDownload = false
 #@ int(min="0", label="Timeout in seconds, e.g. 60") timeout
 
@@ -23,12 +28,11 @@ function padding(number, width) {
 }
 
 print("Downloading started....");
-for (t = TP_from; t <= TP_till; t++) {
-	filename = outputDir+"/"+fileNameBeforeNumber+padding(t,zeroPaddingWidth)+fileNameAfterNumber;
+for (t = downloadTimePoint_FROM; t <= downloadTimePoint_TILL; t++) {
+	filename = outputDir+"/"+fileNameBeforeTPNumber+padding(t,zeroPaddingWidth)+fileNameAfterTPNumber;
 	print("Doing TP "+t+", that is a file: "+filename);
 
-	run("Read Into Image", "url="+host_port+" datasetid="+dataset+" versionasstr=latest resolutionlevelsasstr=[[1, 1, 1]] minx=0 maxx=99999 miny=0 maxy=99999 minz=0 maxz=99999 timepoint="+t+" channel="+downloadFromThisChannel+" angle=0 timeout="+(timeout*1000)+" verboselog="+verboseDownload+" showruncmd=false");
-	//run("Read Full Image", "url="+host_port+" datasetid="+dataset+" timepoint="+t+" channel=0 angle=0 resolutionlevelsasstr=[[1, 1, 1]] versionasstr=latest timeout=120000 verboselog="+verboseDownload);
+	run("Read full image", "url="+host_port+" datasetid="+dataset+" timepoint="+t+" channel="+downloadFromThisChannel+" angle="+downloadThisAngle+" resolutionlevelsasstr=[[1, 1, 1]] versionasstr="+version+" timeout="+(timeout*1000)+" verboselog="+verboseDownload);
 
 	saveAs("Tiff", filename);
 	close();
