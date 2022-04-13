@@ -40,8 +40,8 @@ public class WriteFullImage implements Command {
 	@Parameter(label = "Selected down-resolution:")
 	public String resolutionLevelsAsStr = "[1, 1, 1]";
 
-	@Parameter(label = "Selected version:")
-	public String versionAsStr = "0";
+	@Parameter(label = "Selected version:", description = "provide number, or keyword: latest, new")
+	public String versionAsStr = "latest";
 
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity, but that's not a good idea...",
