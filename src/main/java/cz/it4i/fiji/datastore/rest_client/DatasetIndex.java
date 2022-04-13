@@ -26,6 +26,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -166,8 +167,8 @@ public final class DatasetIndex {
 	 * 
 	 * @return path to index file
 	 */
-	private static Path getPath() {
-		String home = System.getenv("HOME");
+	public static Path getPath() {
+		String home = FileUtils.getUserDirectoryPath();
 		if (home == null) {
 			home = "";
 		}
