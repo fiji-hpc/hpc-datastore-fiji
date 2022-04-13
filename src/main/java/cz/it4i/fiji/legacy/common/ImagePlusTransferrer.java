@@ -63,7 +63,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	// ----------------------------------------------
 	// transfer controls
 	int fullBlockByteSize;
-	int maxOneReadTransferByteSize  = 1 << 27; //128 MB
+	int maxOneReadTransferByteSize  = 1 << 25; //32 MB
 	int maxOneWriteTransferByteSize = 1 << 23; //8 MB
 	//NB: server fails to receive larger, consider using here HttpURLConnection.setFixedLengthStreamingMode
 
