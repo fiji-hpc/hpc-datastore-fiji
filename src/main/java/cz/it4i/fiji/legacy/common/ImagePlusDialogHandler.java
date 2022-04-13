@@ -15,10 +15,10 @@ import cz.it4i.fiji.legacy.WriteFromImagePlus;
 
 abstract class ImagePlusDialogHandler extends DynamicCommand {
 	// ========= internal parameters that must be set when using this command =========
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String URL;
 
-	@Parameter(label = "UUID of a dataset on that service:")
+	@Parameter(label = "UUID of a dataset on that service:", persistKey = "datasetdatasetid")
 	public String datasetID;
 
 	@Parameter(label = "Access regime:")
@@ -121,7 +121,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
 			description = "Value of -1 sets timeout to infinity, but that's not a good idea...")
-	public int timeout = -99;
+	public int timeout = 30000;
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.")
