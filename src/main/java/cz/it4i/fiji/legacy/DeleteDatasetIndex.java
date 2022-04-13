@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 import org.scijava.command.Command;
-import org.scijava.command.CommandService;
+import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
 import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
@@ -21,7 +21,7 @@ import cz.it4i.fiji.datastore.rest_client.DatasetIndex;
 	menuPath = "Plugins>HPC DataStore>Delete>Delete info about uploaded datasets")
 public class DeleteDatasetIndex implements Command {
 
-	@Parameter(label = "Directory to delete:", persist = false)
+	@Parameter(label = "Remove all files from this directory:", persist = false)
 	public String pathToDatasetIndexDirectory = DatasetIndex.getPath()
 		.toAbsolutePath().toString();
 
@@ -29,25 +29,24 @@ public class DeleteDatasetIndex implements Command {
 	public boolean areYouSure = false;
 
 	@Parameter
-	public CommandService cs;
-
-	@Parameter
 	public LogService mainLogger;
 	protected Logger myLogger;
 
 	@Override
 	public void run() {
+		//logging facility
+		myLogger = mainLogger.subLogger("HPC DeleteIndex", LogLevel.INFO);
 		if (!areYouSure) {
 			myLogger.info("Doing nothing, user is not sure...");
 			return;
 		}
+
 		try {
 			Files.walk(get(pathToDatasetIndexDirectory)).sorted(Comparator
 				.reverseOrder()).map(Path::toFile).forEach(File::delete);
 		}
 		catch (IOException exc) {
-			mainLogger.error("delete", exc);
+			myLogger.error("delete", exc);
 		}
-
 	}
 }
