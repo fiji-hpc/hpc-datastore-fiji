@@ -145,7 +145,7 @@ public class WriteFullImage implements Command {
 			this.minZ=0;
 			this.maxZ=Integer.MAX_VALUE;
 
-			myLogger = mainLogger.subLogger("HPC LegacyImage", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
+			myLogger = mainLogger.subLogger("HPC LegacyImage Write", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
 			myLogger.info("entered init with this state: "+reportCurrentSettings());
 
 			myLogger.info("Reading "+datasetID+" from "+URL);

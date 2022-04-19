@@ -77,7 +77,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 		@Override
 		public String toString() {
-			return (this.noOfBlocks+" blocks from "+this.URL);
+			return (this.noOfBlocks+" blocks as "+this.URL);
 		}
 	}
 	final List<OneTransfer> transferPlan = new LinkedList<>();
