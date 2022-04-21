@@ -11,7 +11,7 @@
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore-fiji</artifactId>
 
-    <version>0.2.1-SNAPSHOT</version>
+    <version>0.2.4-SNAPSHOT</version>
     <name>HPC DataStore Fiji client and Java client API</name>
     <description>Fiji client for HPC DataStore</description>
     <url>https://github.com/fiji-hpc/hpc-datastore</url>
