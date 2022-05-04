@@ -7,6 +7,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.createResStr;
+import cz.it4i.fiji.datastore.service.DataStoreService;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 import org.scijava.Context;
@@ -105,7 +106,7 @@ public class ReadFullImage implements Command {
 	static class LocalReader extends ImagePlusTransferrer {
 		/** intended for use in solo (without a valid scijava context) application */
 		LocalReader() {
-			final Context ctx = new Context(LogService.class);
+			final Context ctx = new Context(LogService.class,DataStoreService.class);
 			mainLogger = ctx.getService(LogService.class);
 		}
 
@@ -135,6 +136,9 @@ public class ReadFullImage implements Command {
 			this.maxY=Integer.MAX_VALUE;
 			this.minZ=0;
 			this.maxZ=Integer.MAX_VALUE;
+			this.dataStoreService = getContext().getService(DataStoreService.class);
+			if (this.dataStoreService == null)
+				throw new RuntimeException("Missing DataStoreService (is null) when reading full image.");
 
 			myLogger = mainLogger.subLogger("HPC LegacyImage Read", verboseLog ? LogLevel.INFO : LogLevel.ERROR);
 			myLogger.info("entered init with this state: "+reportCurrentSettings());
