@@ -16,7 +16,7 @@ import org.scijava.log.LogService;
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read>Read full image")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Read full image")
 public class ReadFullImage implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String URL;

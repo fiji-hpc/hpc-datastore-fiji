@@ -10,7 +10,7 @@ import org.scijava.plugin.Plugin;
  * for the next plugin that starts from that and that fetches info
  * from here-selected dataset.
  */
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Request dataset serving")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Image transfer wizard")
 public class RequestDatasetServing implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:",
 			description = "IPaddress:portNumber or hostname:portNumber, always without http://",

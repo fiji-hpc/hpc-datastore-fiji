@@ -7,7 +7,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ItemIO;
 
-@Plugin(type = Command.class, headless = false, menuPath = "Plugins>HPC DataStore>Open examples web page")
+@Plugin(type = Command.class, headless = false, menuPath = "Plugins>HPC DataStore>Examples web page")
 public class Examples implements Command {
 	@Parameter(label = "Web page with examples:", persist = false, required = false)
 	public String url = "https://github.com/fiji-hpc/hpc-datastore-fiji/tree/master/src/main/ijm";

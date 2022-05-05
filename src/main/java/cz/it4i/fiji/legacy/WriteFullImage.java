@@ -17,7 +17,7 @@ import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
 import java.io.IOException;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write>Write full image")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Write full image")
 public class WriteFullImage implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String URL;
