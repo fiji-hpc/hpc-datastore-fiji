@@ -1,5 +1,7 @@
 package cz.it4i.fiji.datastore.service;
 
+import org.scijava.log.LogService;
+import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.service.AbstractService;
@@ -16,6 +18,18 @@ import java.util.Map;
 @Plugin(type = Service.class)
 public class DataStoreService extends AbstractService implements SciJavaService
 {
+	@Parameter
+	public LogService logService;
+
+	private Logger logger;
+
+	@Override
+	public void initialize() {
+		if (logService == null)
+			throw new RuntimeException("Missing LogService (is null) when initializing DataStoreService");
+		logger = logService.subLogger("DataStoreService");
+	}
+
 	/**
 	 * if the estimated connection ends within this period from the
 	 * current moment, the system will rather request opening a new
@@ -30,17 +44,21 @@ public class DataStoreService extends AbstractService implements SciJavaService
 	public String getActiveServingUrl(final DataStoreRequest request)
 	throws IOException
 	{
+		logger.info("Processing request: "+request);
 		DataStoreConnection connection = knownServices.getOrDefault(request, null);
 
 		//a "dying" connection?  (an existing connection that is about to timeout soon)
 		if (connection != null && connection.willServerCloseAfter(uncertaintyWindowMiliSeconds))
 		{
+			logger.info("  - not using expired connection "+connection);
 			knownServices.remove(request);
 			connection = null;
 		}
 
 		//shall we open a new connection?
 		if (connection == null) {
+			logger.info("  - requesting a brand new connection");
+
 			connection = new DataStoreConnection(
 					requestService( request.createRequestURL() ), request.getTimeout() );
 			knownServices.put(request, connection);
@@ -52,14 +70,19 @@ public class DataStoreService extends AbstractService implements SciJavaService
 
 		//hypothetically "reset" the timeout of the service
 		connection.serverIsUsedNow();
+		logger.info("  - updated connection expiry time for "+connection);
 
 		return connection.datasetServerURL;
 	}
 
 	public void proneInactiveServices()
 	{
+		int origSize = knownServices.size();
+
 		final long criticalTime = System.currentTimeMillis() + uncertaintyWindowMiliSeconds;
 		knownServices.entrySet().removeIf(e -> e.getValue().timeWhenServerCloses() < criticalTime);
+
+		logger.info("removed "+(origSize-knownServices.size())+" expired connections");
 	}
 
 	public void serverIsUsedNow(final DataStoreRequest request)
