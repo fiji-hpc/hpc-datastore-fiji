@@ -13,13 +13,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import cz.it4i.fiji.legacy.util.Imglib2Types;
 import cz.it4i.fiji.legacy.util.TimeProfiling;
+import cz.it4i.fiji.datastore.service.DataStoreService;
+import cz.it4i.fiji.datastore.service.DataStoreRequest;
+import org.scijava.plugin.Parameter;
 
 public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
@@ -28,6 +30,9 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	// the dialog, it will happen via a separate object of this class...
 	// that was to say, this class is not designed to be re-entrant
 	// ('cause it needs not to be)
+
+	@Parameter
+	public DataStoreService dataStoreService;
 
 	// ----------------------------------------------
 	// common attributes to transfers, irrespective of the transfer direction:
@@ -81,6 +86,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		}
 	}
 	final List<OneTransfer> transferPlan = new LinkedList<>();
+	DataStoreRequest lastUsedRequest;
 
 	void setupTransferPlan(final int maxTransferByteSize) {
 		final String baseURL = requestDatasetServer();
@@ -169,6 +175,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							//NB: might close/clean-up the connection completely
 
 							OneTransfer t = transferPlan.remove(0);
+							dataStoreService.serverIsUsedNow(lastUsedRequest);
 							myLogger.info("=========================");
 							myLogger.info("Downloading "+t);
 							dataSrc = new URL(t.URL).openStream();
@@ -298,6 +305,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 						if (remainingBlocks == 0) {
 							//earlier connection? -> finish it up
 							if (connection != null) {
+								dataStoreService.serverIsUsedNow(lastUsedRequest);
 								myLogger.info("=== transferring starts");
 								connection.getInputStream();
 								myLogger.info("=== transferring ends");
@@ -408,20 +416,15 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 		myLogger.info("  at version "+versionAsStr);
 		myLogger.info("from dataset "+datasetID+" from "+URL+" for "+accessRegime);
 
-		final StringBuilder urlFirstGo = new StringBuilder();
-		urlFirstGo.append("http://"+URL+"/datasets/"+datasetID+"/");
-		for (int dim=0; dim < 3; ++dim)
-			urlFirstGo.append(currentResLevel.resolutions.get(dim)+"/");
-		urlFirstGo.append(versionAsStr+"/"+accessRegime+"?timeout="+timeout);
-		myLogger.info("1: "+urlFirstGo);
+		lastUsedRequest = new DataStoreRequest(URL,datasetID,
+				currentResLevel.resolutions.get(0), currentResLevel.resolutions.get(1),
+				currentResLevel.resolutions.get(2), versionAsStr, accessRegime, timeout);
+		myLogger.info("1: "+lastUsedRequest.createRequestURL());
 
 		try {
-			//connect to get the new URL for the blocks-server itself
-			final URLConnection connection = new URL(urlFirstGo.toString()).openConnection();
-			connection.getInputStream(); //this enables access to the redirected URL
-			final String urlSecondGo = connection.getURL().toString();
-			myLogger.info("2: "+urlSecondGo);
-			return urlSecondGo;
+			final String datasetServerUrl = dataStoreService.getActiveServingUrl(lastUsedRequest);
+			myLogger.info("2: "+datasetServerUrl);
+			return datasetServerUrl;
 		} catch (IOException e) {
 			myLogger.error(e.getMessage());
 			return null;
