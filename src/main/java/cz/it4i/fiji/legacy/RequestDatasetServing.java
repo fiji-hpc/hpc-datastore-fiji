@@ -22,7 +22,7 @@ public class RequestDatasetServing implements Command {
 			persistKey = "datasetdatasetid")
 	public String datasetID;
 
-	@Parameter(label = "Access mode:", choices = {"read","write","read-write"})
+	@Parameter(label = "Access mode:", choices = {"read","write"})
 	public String accessRegime;
 
 	@Parameter
