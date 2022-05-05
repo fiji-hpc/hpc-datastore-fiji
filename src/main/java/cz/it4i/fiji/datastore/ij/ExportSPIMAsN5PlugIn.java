@@ -86,8 +86,10 @@ public class ExportSPIMAsN5PlugIn implements Command {
 	@Parameter
 	private PrefService prefService;
 
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(type = ItemIO.OUTPUT, label="UUID of the created dataset:")
 	public String newDatasetUUID;
+	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
+	public String newDatasetLabel;
 
 
 	@Override
@@ -212,9 +214,10 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				numCellCreatorThreads, new SubTaskProgressWriter(progressWriter, 0,
 					0.95));
 			newDatasetUUID = provider.getUUID().toString();
+			newDatasetLabel = params.label;
 			progressWriter.setProgress(1.0);
 			progressWriter.out().println("done");
-			log.info("newDatasetUUID: " + newDatasetUUID);
+			log.info("Created dataset UUID: " + newDatasetUUID);
 		}
 		catch (final IOException e) {
 			throw new RuntimeException(e);
