@@ -55,19 +55,23 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public int maxZ = -1;
 
 	@Parameter(label="time point:", min="0", callback = "rangeTPs",
-			description="In units of the respective dataset.")
-	public int timepoint = -1;
+			description="In units of the respective dataset.",
+			persistKey="datasettimepoint")
+	public int timepoint = 0;
 
 	@Parameter(label="channel:", min="0", callback = "rangeChannels",
-			description="In units of the respective dataset.")
-	public int channel = -1;
+			description="In units of the respective dataset.",
+			persistKey="datasetchannel")
+	public int channel = 0;
 
 	@Parameter(label="angle:", min="0", callback = "rangeAngles",
-			description="In units of the respective dataset.")
-	public int angle = -1;
+			description="In units of the respective dataset.",
+			persistKey="datasetangle")
+	public int angle = 0;
 
 	@Parameter(label = "Available down-resolutions:", choices = {""},
-			initializer = "readInfo", callback = "updateSpatialRanges")
+			initializer = "readInfo", callback = "updateSpatialRanges",
+			persistKey="datasetreslevel")
 	public String resolutionLevelsAsStr = null;
 	protected DatasetInfo.ResolutionLevel currentResLevel; //caches the current level info
 
@@ -116,15 +120,19 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		currentResLevel = null;
 	}
 
-	@Parameter(label = "Available versions:", choices = {""})
+	@Parameter(label = "Available versions:", choices = {""},
+			persistKey="datasetversion")
 	public String versionAsStr = null;
 
-	@Parameter(label = "Server alive timeout [miliseconds]:", min = "-1", stepSize = "1000",
-			description = "Value of -1 sets timeout to infinity, but that's not a good idea...")
+	@Parameter(label = "Server alive timeout [miliseconds]:", min = "1", stepSize = "1000",
+			description = "How long inactivity period has to pass before the connection gets closed...",
+			persistKey="datasettimeout",
+			required = false)
 	public int timeout = 30000;
 
 	@Parameter(label = "Verbose reporting:", required = false,
-			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.")
+			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.",
+			persistKey="datasetverboselog")
 	public boolean verboseLog = false;
 
 	@Parameter(label = "Report corresponding macro command:", required = false)
