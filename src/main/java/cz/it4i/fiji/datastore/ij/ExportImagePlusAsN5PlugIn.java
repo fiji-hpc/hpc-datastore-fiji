@@ -59,7 +59,7 @@ import mpicbg.spim.data.sequence.TimePoints;
  * @author Tobias Pietzsch
  */
 @Plugin(type = Command.class,
-	menuPath = "Plugins>BigDataViewer>Export Current Image as remote XML/N5")
+	menuPath = "Plugins>BigDataViewer>Export Current Image into DataStore")
 public class ExportImagePlusAsN5PlugIn implements Command
 {
 

@@ -61,7 +61,7 @@ import mpicbg.spim.data.sequence.ViewSetup;
  */
 @Log4j2
 @Plugin(type = Command.class,
-	menuPath = "Plugins>BigDataViewer>Export SPIM data as remote XML/N5")
+	menuPath = "Plugins>BigDataViewer>Export SPIM Data into DataStore")
 public class ExportSPIMAsN5PlugIn implements Command {
 
 	private static final String LAST_SET_MIPMAP_MANUAL = "LAST_SET_MIPMAP_MANUAL";
