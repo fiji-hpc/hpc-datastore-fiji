@@ -4,6 +4,9 @@ package cz.it4i.fiji.datastore.ij;
 import java.awt.Checkbox;
 import java.awt.TextField;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.TextEvent;
+import java.awt.event.TextListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -323,7 +326,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					"Export for BigDataViewer as XML/N5");
 
 				gd.addFileField("SPIM_data", lastSPIMdata);
-				final Object cSpimData = gd.getStringFields().lastElement();
+				final TextField cSpimData = (TextField)gd.getStringFields().lastElement();
 				gd.addCheckbox("manual_mipmap_setup", lastSetMipmapManual);
 				final Checkbox cManualMipmap = (Checkbox) gd.getCheckboxes()
 					.lastElement();
@@ -348,38 +351,35 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					lastDataserverTimeout, 25);
 
 				tryLoadSPIMData(lastSPIMdata);
-				if (autoChunkSizes != null && autoSubsampling != null && !cManualMipmap
-					.getState())
+				if (autoChunkSizes != null && autoSubsampling != null && !cManualMipmap.getState())
 				{
 					tfChunkSizes.setText(autoChunkSizes);
 					tfSubsampling.setText(autoSubsampling);
 				}
 
-				gd.addDialogListener((dialog, e) -> {
-					tryLoadSPIMData(gd.getNextString());
-					gd.getNextBoolean();
-					gd.getNextString();
-					gd.getNextString();
-					gd.getNextChoiceIndex();
-					gd.getNextBoolean();
-					gd.getNextString();
-					gd.getNextString();
-					
-					if (autoSubsampling != null && autoChunkSizes != null &&
-						e instanceof ItemEvent && e
-							.getID() == ItemEvent.ITEM_STATE_CHANGED && (e
-								.getSource() == cManualMipmap || e.getSource() == cSpimData))
-					{
-						final boolean useManual = cManualMipmap.getState();
-						tfSubsampling.setEnabled(useManual);
-						tfChunkSizes.setEnabled(useManual);
-						if (!useManual) {
-							tfSubsampling.setText(autoSubsampling);
-							tfChunkSizes.setText(autoChunkSizes);
+				final class MipMapChangeProcessor implements TextListener, ItemListener {
+					@Override
+					public void itemStateChanged(ItemEvent itemEvent) { process(); }
+					@Override
+					public void textValueChanged(TextEvent textEvent) { process(); }
+
+					void process() {
+						//System.out.println("Processing a change:");
+						tryLoadSPIMData(cSpimData.getText());
+						if (autoSubsampling != null && autoChunkSizes != null) {
+							final boolean useManual = cManualMipmap.getState();
+							tfSubsampling.setEnabled(useManual);
+							tfChunkSizes.setEnabled(useManual);
+							if (!useManual) {
+								tfSubsampling.setText(autoSubsampling);
+								tfChunkSizes.setText(autoChunkSizes);
+							}
 						}
 					}
-					return true;
-				});
+				}
+				MipMapChangeProcessor mipmapChangeProcessor = new MipMapChangeProcessor();
+				cSpimData.addTextListener(mipmapChangeProcessor);
+				cManualMipmap.addItemListener(mipmapChangeProcessor);
 
 				tfSubsampling.setEnabled(lastSetMipmapManual);
 				tfChunkSizes.setEnabled(lastSetMipmapManual);
