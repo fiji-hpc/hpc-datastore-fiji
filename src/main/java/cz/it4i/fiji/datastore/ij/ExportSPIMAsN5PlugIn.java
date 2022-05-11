@@ -106,13 +106,13 @@ public class ExportSPIMAsN5PlugIn implements Command {
 		if (params == null) return;
 		savePrefs();
 
-		final ProgressWriter progressWriter = new ProgressWriterIJ();
-		progressWriter.out().println("starting export to remote N5...");
-
 		// create ImgLoader wrapping the image
 
 		final BasicImgLoader imgLoader = params.spimData.getSequenceDescription()
 			.getImgLoader();
+
+		final ProgressWriter progressWriter = new ProgressWriterIJ();
+		progressWriter.out().println("starting export to remote N5...");
 
 		// TODO reimplement following
 		final Runnable clearCache = () -> {};
