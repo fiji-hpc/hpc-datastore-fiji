@@ -27,7 +27,7 @@ import cz.it4i.fiji.rest.util.DatasetInfo;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
 public class CreateNewDataset implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
 	@Parameter(label="Dataset label:")

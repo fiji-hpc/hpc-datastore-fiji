@@ -19,7 +19,7 @@ import java.net.URL;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset from JSON")
 public class CreateNewDatasetFromJSON implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:")
+	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
 	@Parameter(label = "Specification in JSON:", persist = false)
