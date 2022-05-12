@@ -44,20 +44,20 @@ public class DataStoreService extends AbstractService implements SciJavaService
 	public String getActiveServingUrl(final DataStoreRequest request)
 	throws IOException
 	{
-		logger.info("Processing request: "+request);
+		logger.debug("Processing request: "+request);
 		DataStoreConnection connection = knownServices.getOrDefault(request, null);
 
 		//a "dying" connection?  (an existing connection that is about to timeout soon)
 		if (connection != null && connection.willServerCloseAfter(uncertaintyWindowMiliSeconds))
 		{
-			logger.info("  - not using expired connection "+connection);
+			logger.debug("  - not using expired connection "+connection);
 			knownServices.remove(request);
 			connection = null;
 		}
 
 		//shall we open a new connection?
 		if (connection == null) {
-			logger.info("  - requesting a brand new connection");
+			logger.debug("  - requesting a brand new connection");
 
 			connection = new DataStoreConnection(
 					requestService( request.createRequestURL() ), request.getTimeout() );
@@ -70,7 +70,7 @@ public class DataStoreService extends AbstractService implements SciJavaService
 
 		//hypothetically "reset" the timeout of the service
 		connection.serverIsUsedNow();
-		logger.info("  - updated connection expiry time for "+connection);
+		logger.debug("  - updated connection expiry time for "+connection);
 
 		return connection.datasetServerURL;
 	}
@@ -82,7 +82,7 @@ public class DataStoreService extends AbstractService implements SciJavaService
 		final long criticalTime = System.currentTimeMillis() + uncertaintyWindowMiliSeconds;
 		knownServices.entrySet().removeIf(e -> e.getValue().timeWhenServerCloses() < criticalTime);
 
-		logger.info("removed "+(origSize-knownServices.size())+" expired connections");
+		logger.debug("removed "+(origSize-knownServices.size())+" expired connections");
 	}
 
 	public void serverIsUsedNow(final DataStoreRequest request)
