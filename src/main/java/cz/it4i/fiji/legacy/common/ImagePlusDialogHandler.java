@@ -434,18 +434,18 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" datasetid="+datasetID
 				+" versionasstr="+versionAsStr
 				+" resolutionlevelsasstr=["+resolutionLevelsAsStr+"]"
-				+" minx="+minX
-				+" maxx="+maxX
-				+" miny="+minY
-				+" maxy="+maxY
-				+" minz="+minZ
-				+" maxz="+maxZ
+				//+" minx="+minX
+				//+" maxx="+maxX
+				//+" miny="+minY
+				//+" maxy="+maxY
+				//+" minz="+minZ
+				//+" maxz="+maxZ
 				+" timepoint="+timepoint
 				+" channel="+channel
 				+" angle="+angle
 				+" timeout="+timeout
-				+" verboselog="+verboseLog
-				+" showruncmd="+showRunCmd+"\");";
+				+" verboselog="+verboseLog+"\");";
+				//+" showruncmd="+showRunCmd+"\");";
 	}
 
 	protected void adjustReportingVerbosity() {
