@@ -18,18 +18,29 @@ public class GuiResolutionLevelParams implements Command {
 	@Parameter(label = "Down-size factor in z:", min = "1", persist = false)
 	public int down_z;
 
-	@Parameter(label = "Block size in pixels in x:", min = "1", persist = false)
+	@Parameter(label = "Block size in pixels in x:", min = "1", persist = false, callback = "reportBlockSize")
 	public int block_x;
-	@Parameter(label = "Block size in pixels in y:", min = "1", persist = false)
+	@Parameter(label = "Block size in pixels in y:", min = "1", persist = false, callback = "reportBlockSize")
 	public int block_y;
-	@Parameter(label = "Block size in pixels in z:", min = "1", persist = false)
+	@Parameter(label = "Block size in pixels in z:", min = "1", persist = false, callback = "reportBlockSize")
 	public int block_z;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	public String sizeMessage;
+	//
+	@Parameter(persist = false)
+	public int pxSizeInBytes = 2;
 
 	@Parameter(persist = false)
 	public int resLevelNumber = 999;
 
 	@Parameter
 	public PrefService prefs;
+
+	public void reportBlockSize() {
+		sizeMessage = "Ideal block size is just below 1024 kB, current is "
+				+(block_x*block_y*block_z*pxSizeInBytes/1024)+" kB.";
+	}
 
 	public void setFromPrefs() {
 		if (resLevelNumber == 1) {
@@ -45,6 +56,7 @@ public class GuiResolutionLevelParams implements Command {
 		block_x = prefs.getInt(GuiResolutionLevelParams.class, "level"+resLevelNumber+"_block_x", 64);
 		block_y = prefs.getInt(GuiResolutionLevelParams.class, "level"+resLevelNumber+"_block_y", 64);
 		block_z = prefs.getInt(GuiResolutionLevelParams.class, "level"+resLevelNumber+"_block_z", 64);
+		reportBlockSize();
 	}
 
 	public void storeIntoPrefs() {

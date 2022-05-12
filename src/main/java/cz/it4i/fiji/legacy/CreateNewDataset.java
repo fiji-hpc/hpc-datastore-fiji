@@ -23,6 +23,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import cz.it4i.fiji.legacy.util.GuiResolutionLevelParams;
+import cz.it4i.fiji.legacy.util.Imglib2Types;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
@@ -122,7 +123,10 @@ public class CreateNewDataset implements Command {
 		di.label = label;
 
 		final CommandInfo rldlg_ci = new CommandInfo(GuiResolutionLevelParams.class);
-		final Map<String,Object> rldlg_presets = new HashMap<>(4);
+		final Map<String,Object> rldlg_presets = new HashMap<>(5);
+		rldlg_presets.put("pxSizeInBytes", ((Imglib2Types.TypeHandler<?>)Imglib2Types
+				.getTypeHandler(voxelType)).nativeAndRealType.getBitsPerPixel()/8);
+
 		try {
 			for (int levelCnt = 1; levelCnt <= numberOfAllResLevels; ++levelCnt) {
 				rldlg_presets.put("resLevelNumber", levelCnt);
