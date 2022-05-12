@@ -11,7 +11,7 @@ import org.scijava.plugin.Plugin;
  * from here-selected dataset.
  */
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Image transfer wizard")
-public class RequestDatasetServing implements Command {
+public class ImageTransferWizard implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:",
 			description = "IPaddress:portNumber or hostname:portNumber, always without http://",
 			persistKey = "datasetserverurl")

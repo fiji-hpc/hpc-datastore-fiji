@@ -8,12 +8,12 @@
 package cz.it4i.fiji.datastore;
 
 import net.imagej.ImageJ;
-import cz.it4i.fiji.legacy.RequestDatasetServing;
+import cz.it4i.fiji.legacy.ImageTransferWizard;
 
 public class DatasetGuiTests {
 	public static void main(String[] args) {
 		final ImageJ myIJ = new ImageJ();
 		myIJ.ui().showUI();
-		myIJ.command().run(RequestDatasetServing.class,true);
+		myIJ.command().run(ImageTransferWizard.class,true);
 	}
 }
