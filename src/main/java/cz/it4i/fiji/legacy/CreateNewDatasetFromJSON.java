@@ -2,6 +2,7 @@ package cz.it4i.fiji.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.it4i.fiji.rest.util.DatasetInfo;
+import ij.plugin.frame.Recorder;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.log.LogLevel;
@@ -54,8 +55,10 @@ public class CreateNewDatasetFromJSON implements Command {
 			newDatasetLabel = new ObjectMapper().readValue(json, DatasetInfo.class).getLabel();
 
 			if (showRunCmd) {
-				myLogger.info("run(\"Create new dataset from JSON\", 'url="+this.url
-					+ " json=" + this.json + " showruncmd=False');");
+				final String howToRun = "run(\"Create new dataset from JSON\", 'url="+this.url
+					+ " json=" + this.json + " showruncmd=False');";
+				myLogger.info(howToRun);
+				Recorder.recordString(howToRun);
 			}
 			mainLogger.info("Created dataset UUID: " + newDatasetUUID);
 		} catch (MalformedURLException e) {
