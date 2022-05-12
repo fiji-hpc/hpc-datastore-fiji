@@ -1,67 +1,38 @@
-package cz.it4i.fiji.legacy;
+package cz.it4i.fiji.legacy.util;
 
 import bdv.BigDataViewer;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.viewer.ViewerOptions;
 import com.google.gson.stream.JsonReader;
-import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
 import org.apache.commons.lang.StringUtils;
-import org.scijava.plugin.Plugin;
-import org.scijava.plugin.Parameter;
-import org.scijava.command.Command;
-import org.scijava.log.LogService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.io.File;
-import java.io.InputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-@Plugin(type = Command.class, headless = false, menuPath = "Plugins>HPC DataStore>BigDataViewer>Open in BDV (legacy BDS)")
-public class BdvOpenViewer implements Command {
-	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
-	public String url = "someHostname:9080";
-
-	@Parameter(label = "UUID of the dataset to be modified:", persistKey = "datasetdatasetid")
-	public String datasetID = "someDatasetUUID";
-
-	@Parameter
-	public LogService logService;
-
-	@Override
-	public void run() {
-		final String serverUrl = "http://"+url+"/bdv/"+datasetID;
-		logService.info("Polling URL: "+serverUrl);
-
-		//verbatim copy from bdv.ij.BigDataBrowserPlugIn v6.2.1
-		//credits to the original author HongKee Moon
-		//=====================================================
+public class GuiBdvBrowseDialog {
+	public void startBrowser(final String serverUrl)
+	throws IOException
+	{
 		final ArrayList< String > nameList = new ArrayList<>();
-		try
-		{
-			getDatasetList( serverUrl, nameList );
-		}
-		catch ( final IOException e )
-		{
-			IJ.showMessage( "Error connecting to server at " + serverUrl );
-			e.printStackTrace();
-		}
+		getDatasetList( serverUrl, nameList );
 		createDatasetListUI( serverUrl, nameList.toArray() );
 	}
-
 
 	//verbatim copy from bdv.ij.BigDataBrowserPlugIn v6.2.1
 	//credits to the original author HongKee Moon
 	//=====================================================
-	private final Map< String, ImageIcon > imageMap = new HashMap<>();
+	private final Map< String, ImageIcon> imageMap = new HashMap<>();
 	private final Map< String, String > datasetUrlMap = new HashMap<>();
 
 	private boolean getDatasetList( final String remoteUrl, final ArrayList< String > nameList ) throws IOException
