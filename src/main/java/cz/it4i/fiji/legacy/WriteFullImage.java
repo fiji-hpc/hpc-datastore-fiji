@@ -45,9 +45,8 @@ public class WriteFullImage implements Command {
 			persistKey="datasetreslevel")
 	public String resolutionLevelsAsStr = "[1, 1, 1]";
 
-	@Parameter(label = "Write also lower resolutions:", required = false,
-			choices = {"no","yes -> uploading segmentation", "yes -> uploading raw images"})
-	public String uploadRegime = "No";
+	@Parameter(label = "Write also lower resolutions:", required = false)
+	public boolean uploadResPyramids = true;
 
 	@Parameter(label = "Selected version:",
 			description = "provide number, or keyword: latest, new",
@@ -74,14 +73,10 @@ public class WriteFullImage implements Command {
 	@Override
 	public void run() {
 		try {
-			LocalWriter.Downscale ds = LocalWriter.Downscale.NONE;
-			if (uploadRegime.contains("segment")) ds = LocalWriter.Downscale.NEARESTNEIGHBOR;
-			else if (uploadRegime.contains("raw")) ds = LocalWriter.Downscale.SMOOTH;
-
 			new LocalWriter(log.getContext()).writeNow((Img)inDatasetImg.getImgPlus().getImg(),
 					URL,datasetID,
 					timepoint,channel,angle,
-					resolutionLevelsAsStr,ds,versionAsStr,
+					resolutionLevelsAsStr,uploadResPyramids,versionAsStr,
 					timeout,verboseLog);
 		} catch (IOException | IllegalArgumentException e) {
 			log.error("Problem writing full image: "+e.getMessage());
@@ -133,12 +128,6 @@ public class WriteFullImage implements Command {
 			this.setContext(useThisCtx);
 		}
 
-		public enum Downscale {
-			NONE,
-			NEARESTNEIGHBOR,
-			SMOOTH
-		}
-
 		<T extends RealType<T>>
 		void writeNow(final Img<T> img, final String url, final String datasetID,
 		              final int timepoint, final int channel, final int angle,
@@ -146,13 +135,13 @@ public class WriteFullImage implements Command {
 		              final int serverTimeout, final boolean verboseLog)
 		throws IOException,IllegalArgumentException {
 			writeNow(img,url,datasetID,timepoint,channel,angle,
-					resolutionLevelsAsStr,Downscale.NONE,versionAsStr,serverTimeout,verboseLog);
+					resolutionLevelsAsStr,true,versionAsStr,serverTimeout,verboseLog);
 		}
 
 		<TR extends RealType<TR>, TNR extends NativeType<TNR> & RealType<TNR>>
 		void writeNow(final Img<TR> img, final String url, final String datasetID,
 		              final int timepoint, final int channel, final int angle,
-		              final String resolutionLevelsAsStr, final Downscale downRegime,
+		              final String resolutionLevelsAsStr, final boolean uploadResPyramids,
 		              final String versionAsStr,
 		              final int serverTimeout, final boolean verboseLog)
 		throws IOException,IllegalArgumentException {
@@ -193,7 +182,7 @@ public class WriteFullImage implements Command {
 
 			this.writeWithAType(image);
 
-			if (downRegime != Downscale.NONE)
+			if (uploadResPyramids)
 			{
 				//plan: find upper res levels, for each create downscaled image and upload it
 				int resLevelIdx = 0;
