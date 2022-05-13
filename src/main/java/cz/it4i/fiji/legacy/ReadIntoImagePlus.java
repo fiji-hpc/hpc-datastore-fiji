@@ -19,6 +19,7 @@ public class ReadIntoImagePlus extends ImagePlusTransferrer {
 		adjustReportingVerbosity();
 
 		outDatasetImg = readWithAType();
+		mainLogger.info("transfer is finished");
 		if (showRunCmd) {
 			final String howToRun = reportAsMacroCommand("Read full image");
 			mainLogger.info("Corresponding IJM command: "+howToRun);

@@ -78,6 +78,7 @@ public class WriteFullImage implements Command {
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,uploadResPyramids,versionAsStr,
 					timeout,verboseLog);
+			log.info("transfer is finished");
 		} catch (IOException | IllegalArgumentException e) {
 			log.error("Problem writing full image: "+e.getMessage());
 		}

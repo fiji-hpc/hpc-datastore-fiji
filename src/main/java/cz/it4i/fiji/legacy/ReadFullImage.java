@@ -72,6 +72,7 @@ public class ReadFullImage implements Command {
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,versionAsStr,
 					timeout,verboseLog);
+			log.info("transfer is finished");
 		} catch (IOException e) {
 			log.error("Problem reading full image: "+e.getMessage());
 			//e.printStackTrace();

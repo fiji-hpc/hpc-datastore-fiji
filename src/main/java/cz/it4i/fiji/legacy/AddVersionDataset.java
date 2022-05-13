@@ -25,7 +25,7 @@ public class AddVersionDataset implements Command {
 	public int newlyAddedVersion = 0;
 
 	@Parameter(type = ItemIO.OUTPUT)
-	public String universalReferenceHint = "Try the 'last' keyword instead of a particular version in scripts...";
+	public String universalReferenceHint = "Try the 'latest' keyword instead of a particular version in scripts...";
 
 	@Parameter
 	public DataStoreService dataStoreService;
