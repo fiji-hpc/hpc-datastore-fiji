@@ -10,6 +10,7 @@ import cz.it4i.fiji.datastore.service.DataStoreService;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 import net.imglib2.img.Img;
+import net.imglib2.view.Views;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.Context;
@@ -44,6 +45,10 @@ public class WriteFullImage implements Command {
 			persistKey="datasetreslevel")
 	public String resolutionLevelsAsStr = "[1, 1, 1]";
 
+	@Parameter(label = "Write also lower resolutions:", required = false,
+			choices = {"no","yes -> uploading segmentation", "yes -> uploading raw images"})
+	public String uploadRegime = "No";
+
 	@Parameter(label = "Selected version:",
 			description = "provide number, or keyword: latest, new",
 			persistKey="datasetversion")
@@ -69,10 +74,14 @@ public class WriteFullImage implements Command {
 	@Override
 	public void run() {
 		try {
+			LocalWriter.Downscale ds = LocalWriter.Downscale.NONE;
+			if (uploadRegime.contains("segment")) ds = LocalWriter.Downscale.NEARESTNEIGHBOR;
+			else if (uploadRegime.contains("raw")) ds = LocalWriter.Downscale.SMOOTH;
+
 			new LocalWriter(log.getContext()).writeNow((Img)inDatasetImg.getImgPlus().getImg(),
 					URL,datasetID,
 					timepoint,channel,angle,
-					resolutionLevelsAsStr,versionAsStr,
+					resolutionLevelsAsStr,ds,versionAsStr,
 					timeout,verboseLog);
 		} catch (IOException | IllegalArgumentException e) {
 			log.error("Problem writing full image: "+e.getMessage());
@@ -124,10 +133,27 @@ public class WriteFullImage implements Command {
 			this.setContext(useThisCtx);
 		}
 
+		public enum Downscale {
+			NONE,
+			NEARESTNEIGHBOR,
+			SMOOTH
+		}
+
+		<T extends RealType<T>>
+		void writeNow(final Img<T> img, final String url, final String datasetID,
+		              final int timepoint, final int channel, final int angle,
+		              final String resolutionLevelsAsStr, final String versionAsStr,
+		              final int serverTimeout, final boolean verboseLog)
+		throws IOException,IllegalArgumentException {
+			writeNow(img,url,datasetID,timepoint,channel,angle,
+					resolutionLevelsAsStr,Downscale.NONE,versionAsStr,serverTimeout,verboseLog);
+		}
+
 		<TR extends RealType<TR>, TNR extends NativeType<TNR> & RealType<TNR>>
 		void writeNow(final Img<TR> img, final String url, final String datasetID,
 		              final int timepoint, final int channel, final int angle,
-		              final String resolutionLevelsAsStr, final String versionAsStr,
+		              final String resolutionLevelsAsStr, final Downscale downRegime,
+		              final String versionAsStr,
 		              final int serverTimeout, final boolean verboseLog)
 		throws IOException,IllegalArgumentException {
 
@@ -167,6 +193,50 @@ public class WriteFullImage implements Command {
 
 			this.writeWithAType(image);
 
+			if (downRegime != Downscale.NONE)
+			{
+				//plan: find upper res levels, for each create downscaled image and upload it
+				int resLevelIdx = 0;
+				while (resLevelIdx < di.resolutionLevels.size()
+						&& di.resolutionLevels.get(resLevelIdx) != currentResLevel) ++resLevelIdx;
+				if (resLevelIdx == di.resolutionLevels.size())
+					throw new RuntimeException("Failed re-matching the resolution level, that's odd...");
+				myLogger.info("Starting to upload down-scaled versions from level "+ resLevelIdx +".");
+
+				//base downscale factors:
+				final int rx = currentResLevel.resolutions.get(0);
+				final int ry = currentResLevel.resolutions.get(1);
+				final int rz = currentResLevel.resolutions.get(2);
+
+				//these remaining res levels we're gonna write too
+				++resLevelIdx;
+				while (resLevelIdx < di.resolutionLevels.size())
+				{
+					currentResLevel = di.resolutionLevels.get(resLevelIdx);
+					this.resolutionLevelsAsStr = currentResLevel.resolutions.toString();
+					myLogger.info("==> Writing also: "+this.resolutionLevelsAsStr);
+
+					rangeSpatialX();
+					rangeSpatialY();
+					rangeSpatialZ();
+
+					//downscale factor w.r.t to the base factor
+					final int dx = currentResLevel.resolutions.get(0) / rx;
+					final int dy = currentResLevel.resolutions.get(1) / ry;
+					final int dz = currentResLevel.resolutions.get(2) / rz;
+
+					//check the scaling is integer, or skip this scaling
+					if (dx*rx != currentResLevel.resolutions.get(0)
+						|| dy*ry != currentResLevel.resolutions.get(1)
+						|| dz*rz != currentResLevel.resolutions.get(2))
+					{
+						myLogger.info("Cannot reach res level "+resLevelIdx+" from "+ resLevelIdx +" with integer-scaling.");
+					} else {
+						writeWithAType( Views.subsample(image, dx,dy,dz), image.firstElement() );
+					}
+					++resLevelIdx;
+				}
+			}
 		}
 	}
 }
