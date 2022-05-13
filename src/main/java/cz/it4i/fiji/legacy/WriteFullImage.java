@@ -233,6 +233,9 @@ public class WriteFullImage implements Command {
 
 			if (uploadResPyramids)
 			{
+				//prevent from creating new version with every next resolution
+				if (versionAsStr.startsWith("new")) this.versionAsStr = "latest";
+
 				//plan: find upper res levels, for each create downscaled image and upload it
 				int resLevelIdx = 0;
 				while (resLevelIdx < di.resolutionLevels.size()
