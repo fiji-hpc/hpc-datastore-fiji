@@ -3,6 +3,7 @@ package cz.it4i.fiji.legacy.common;
 import net.imagej.Dataset;
 import net.imagej.DefaultDataset;
 import net.imagej.ImgPlus;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.view.Views;
 import net.imglib2.type.NativeType;
@@ -267,9 +268,14 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 	public <T extends NativeType<T> & RealType<T>>
 	void writeWithAType(final Img<T> img) {
+		writeWithAType(img, img.firstElement());
+	}
+
+	public <T extends NativeType<T> & RealType<T>>
+	void writeWithAType(final RandomAccessibleInterval<T> rai, final T ofThisType) {
 		try {
 			@SuppressWarnings("unchecked")
-			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(img.firstElement());
+			final Imglib2Types.TypeHandler<T> th = Imglib2Types.getTypeHandler(ofThisType);
 
 			//sanity check already at the client
 			@SuppressWarnings("unchecked")
@@ -357,7 +363,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							pxData = new byte[blockLength];
 
 						//copy the current image block into the buffer
-						th.imgIntervalIntoBlock( Views.interval(img,
+						th.imgIntervalIntoBlock( Views.interval(rai,
 								new long[]{x-minX,      y-minY,      z-minZ},
 								new long[]{x-minX+ex-1, y-minY+ey-1, z-minZ+ez-1}),
 								ex*ey*ez, pxData);
