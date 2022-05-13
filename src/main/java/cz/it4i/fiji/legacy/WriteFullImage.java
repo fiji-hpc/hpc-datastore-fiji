@@ -69,14 +69,13 @@ public class WriteFullImage implements Command {
 	@Override
 	public void run() {
 		try {
-			new LocalWriter(log.getContext()).writeNow(inDatasetImg.getImgPlus().getImg(),
+			new LocalWriter(log.getContext()).writeNow((Img)inDatasetImg.getImgPlus().getImg(),
 					URL,datasetID,
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,versionAsStr,
 					timeout,verboseLog);
-		} catch (IOException e) {
+		} catch (IOException | IllegalArgumentException e) {
 			log.error("Problem writing full image: "+e.getMessage());
-			//e.printStackTrace();
 		}
 	}
 
@@ -86,7 +85,7 @@ public class WriteFullImage implements Command {
 	        final int timepoint, final int channel, final int angle,
 	        final int downscaleX, final int downscaleY, final int downscaleZ,
 	        final String versionAsStr)
-	throws IOException {
+	throws IOException,IllegalArgumentException {
 		to(image, url,datasetID,timepoint,channel,angle,
 				createResStr(downscaleX,downscaleY,downscaleZ),
 				versionAsStr,120000,false);
@@ -96,7 +95,7 @@ public class WriteFullImage implements Command {
 	void to(final Img<? extends RealType<?>> image, final String url, final String datasetID,
 	        final int timepoint, final int channel, final int angle,
 	        final String resolutionLevelsAsStr, final String versionAsStr)
-	throws IOException {
+	throws IOException,IllegalArgumentException {
 		to(image, url,datasetID,timepoint,channel,angle,
 				resolutionLevelsAsStr,
 				versionAsStr,120000,false);
@@ -107,8 +106,8 @@ public class WriteFullImage implements Command {
 	        final int timepoint, final int channel, final int angle,
 	        final String resolutionLevelsAsStr, final String versionAsStr,
 	        final int serverTimeout, final boolean verboseLog)
-	throws IOException {
-		new LocalWriter().writeNow(image, url, datasetID, timepoint, channel, angle,
+	throws IOException,IllegalArgumentException {
+		new LocalWriter().writeNow((Img)image, url, datasetID, timepoint, channel, angle,
 				resolutionLevelsAsStr, versionAsStr, serverTimeout, verboseLog);
 	}
 
@@ -125,17 +124,14 @@ public class WriteFullImage implements Command {
 			this.setContext(useThisCtx);
 		}
 
-		void writeNow(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+		<TR extends RealType<TR>, TNR extends NativeType<TNR> & RealType<TNR>>
+		void writeNow(final Img<TR> img, final String url, final String datasetID,
 		              final int timepoint, final int channel, final int angle,
 		              final String resolutionLevelsAsStr, final String versionAsStr,
 		              final int serverTimeout, final boolean verboseLog)
-		throws IOException {
+		throws IOException,IllegalArgumentException {
 
-			if (!(image.firstElement() instanceof NativeType)) {
-				throw new IllegalArgumentException("Provided type ("
-						+image.firstElement().getClass().getSimpleName()
-						+") is not derived from NativeType.");
-			}
+			final Img<TNR> image = checkForAndExtendWithNativeType(img);
 
 			this.URL = url;
 			this.datasetID = datasetID;
@@ -169,7 +165,8 @@ public class WriteFullImage implements Command {
 			rangeSpatialY();
 			rangeSpatialZ();
 
-			this.writeWithAType((Img)image);
+			this.writeWithAType(image);
+
 		}
 	}
 }
