@@ -116,6 +116,38 @@ public class WriteFullImage implements Command {
 	}
 
 
+	public static
+	void toWithoutPyramids(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final int downscaleX, final int downscaleY, final int downscaleZ,
+	        final String versionAsStr)
+	throws IOException,IllegalArgumentException {
+		toWithoutPyramids(image, url,datasetID,timepoint,channel,angle,
+				createResStr(downscaleX,downscaleY,downscaleZ),
+				versionAsStr,120000,false);
+	}
+
+	public static
+	void toWithoutPyramids(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final String resolutionLevelsAsStr, final String versionAsStr)
+	throws IOException,IllegalArgumentException {
+		toWithoutPyramids(image, url,datasetID,timepoint,channel,angle,
+				resolutionLevelsAsStr,
+				versionAsStr,120000,false);
+	}
+
+	public static
+	void toWithoutPyramids(final Img<? extends RealType<?>> image, final String url, final String datasetID,
+	        final int timepoint, final int channel, final int angle,
+	        final String resolutionLevelsAsStr, final String versionAsStr,
+	        final int serverTimeout, final boolean verboseLog)
+	throws IOException,IllegalArgumentException {
+		new LocalWriter().writeNowWithoutPyramids((Img)image, url, datasetID, timepoint, channel, angle,
+				resolutionLevelsAsStr, versionAsStr, serverTimeout, verboseLog);
+	}
+
+
 	static class LocalWriter extends ImagePlusTransferrer {
 		/** intended for use in solo (without a valid scijava context) application */
 		LocalWriter() {
@@ -133,10 +165,23 @@ public class WriteFullImage implements Command {
 		              final int timepoint, final int channel, final int angle,
 		              final String resolutionLevelsAsStr, final String versionAsStr,
 		              final int serverTimeout, final boolean verboseLog)
-		throws IOException,IllegalArgumentException {
+		throws IOException,IllegalArgumentException
+		{
 			writeNow(img,url,datasetID,timepoint,channel,angle,
 					resolutionLevelsAsStr,true,versionAsStr,serverTimeout,verboseLog);
 		}
+
+		<T extends RealType<T>>
+		void writeNowWithoutPyramids(final Img<T> img, final String url, final String datasetID,
+		              final int timepoint, final int channel, final int angle,
+		              final String resolutionLevelsAsStr, final String versionAsStr,
+		              final int serverTimeout, final boolean verboseLog)
+		throws IOException,IllegalArgumentException
+		{
+			writeNow(img,url,datasetID,timepoint,channel,angle,
+					resolutionLevelsAsStr,false,versionAsStr,serverTimeout,verboseLog);
+		}
+
 
 		<TR extends RealType<TR>, TNR extends NativeType<TNR> & RealType<TNR>>
 		void writeNow(final Img<TR> img, final String url, final String datasetID,
@@ -144,8 +189,8 @@ public class WriteFullImage implements Command {
 		              final String resolutionLevelsAsStr, final boolean uploadResPyramids,
 		              final String versionAsStr,
 		              final int serverTimeout, final boolean verboseLog)
-		throws IOException,IllegalArgumentException {
-
+		throws IOException,IllegalArgumentException
+		{
 			final Img<TNR> image = checkForAndExtendWithNativeType(img);
 
 			this.URL = url;
