@@ -225,6 +225,10 @@ public class WriteFullImage implements Command {
 			rangeSpatialY();
 			rangeSpatialZ();
 
+			if (currentResLevel == null)
+				throw new IOException("Cannot write to res level "+resolutionLevelsAsStr
+						+" because the dataset is not having this one.");
+
 			this.writeWithAType(image);
 
 			if (uploadResPyramids)

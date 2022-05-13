@@ -160,6 +160,10 @@ public class ReadFullImage implements Command {
 			rangeSpatialY();
 			rangeSpatialZ();
 
+			if (currentResLevel == null)
+				throw new IOException("Cannot read at res level "+resolutionLevelsAsStr
+						+" because the dataset is not having this one.");
+
 			return this.readWithAType();
 		}
 	}
