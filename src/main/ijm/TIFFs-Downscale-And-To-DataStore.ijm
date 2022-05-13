@@ -28,7 +28,7 @@ function padding(number, width) {
 }
 
 function justSaveAsLevel(resLevelX,resLevelY,resLevelZ) {
-	run("Write full image", "url="+host_port+" datasetid="+dataset+" timepoint="+t+" channel="+uploadIntoThisChannel+" angle="+uploadIntoThisAngle+" resolutionlevelsasstr=[["+resLevelX+", "+resLevelY+", "+resLevelZ+"]] versionasstr="+version+" timeout="+(timeout*1000)+" verboselog="+verboseUpload);
+	run("Write full image", "url="+host_port+" datasetid="+dataset+" versionasstr="+version+" timepoint="+t+" channel="+uploadIntoThisChannel+" angle="+uploadIntoThisAngle+" resolutionlevelsasstr=[["+resLevelX+", "+resLevelY+", "+resLevelZ+"]] timeout="+(timeout*1000)+" verboselog="+verboseUpload+" uploadrespyramids=false");
 }
 
 function scaleAndSave(refMainImg, resLevelX,resLevelY,resLevelZ) {
