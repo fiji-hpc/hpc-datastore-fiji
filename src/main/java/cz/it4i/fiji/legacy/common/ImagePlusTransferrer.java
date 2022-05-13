@@ -137,6 +137,21 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 
 	// ----------------------------------------------
+	public static
+	<TR extends RealType<TR>, TNR extends NativeType<TNR> & RealType<TNR>>
+	Img<TNR> checkForAndExtendWithNativeType(final Img<TR> image)
+	throws IllegalArgumentException
+	{
+		if (!(image.firstElement() instanceof NativeType)) {
+			throw new IllegalArgumentException("Provided type ("
+					+ image.firstElement().getClass().getSimpleName()
+					+ ") is not derived from NativeType.");
+		}
+		return (Img)image;
+	}
+
+
+	// ----------------------------------------------
 	public <T extends NativeType<T> & RealType<T>>
 	Dataset readWithAType() {
 		//future return value
