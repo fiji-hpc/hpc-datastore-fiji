@@ -32,7 +32,7 @@ for (t = downloadTimePoint_FROM; t <= downloadTimePoint_TILL; t++) {
 	filename = outputDir+"/"+fileNameBeforeTPNumber+padding(t,zeroPaddingWidth)+fileNameAfterTPNumber;
 	print("Doing TP "+t+", that is a file: "+filename);
 
-	run("Read full image", "url="+host_port+" datasetid="+dataset+" timepoint="+t+" channel="+downloadFromThisChannel+" angle="+downloadThisAngle+" resolutionlevelsasstr=[[1, 1, 1]] versionasstr="+version+" timeout="+(timeout*1000)+" verboselog="+verboseDownload);
+	run("Read full image", "url="+host_port+" datasetid="+dataset+" versionasstr="+version+" timepoint="+t+" channel="+downloadFromThisChannel+" angle="+downloadThisAngle+" resolutionlevelsasstr=[[1, 1, 1]] timeout="+(timeout*1000)+" verboselog="+verboseDownload);
 
 	saveAs("Tiff", filename);
 	close();
