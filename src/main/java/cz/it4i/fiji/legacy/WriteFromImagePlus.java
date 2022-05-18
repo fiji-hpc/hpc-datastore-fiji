@@ -19,6 +19,7 @@ public class WriteFromImagePlus extends ImagePlusTransferrer {
 		adjustReportingVerbosity();
 
 		writeWithAType((Img)inDatasetImg);
+		mainLogger.info("transfer is finished");
 		if (showRunCmd) {
 			final String howToRun = reportAsMacroCommand("Write full image");
 			mainLogger.info("Corresponding IJM command: "+howToRun);

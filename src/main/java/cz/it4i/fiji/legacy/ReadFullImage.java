@@ -72,6 +72,7 @@ public class ReadFullImage implements Command {
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,versionAsStr,
 					timeout,verboseLog);
+			log.info("transfer is finished");
 		} catch (IOException e) {
 			log.error("Problem reading full image: "+e.getMessage());
 			//e.printStackTrace();
@@ -159,6 +160,10 @@ public class ReadFullImage implements Command {
 			rangeSpatialX();
 			rangeSpatialY();
 			rangeSpatialZ();
+
+			if (currentResLevel == null)
+				throw new IOException("Cannot read at res level "+resolutionLevelsAsStr
+						+" because the dataset is not having this one.");
 
 			return this.readWithAType();
 		}

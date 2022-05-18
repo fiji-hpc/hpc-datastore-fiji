@@ -40,19 +40,19 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public String datasetLabel = "";
 
 	@Parameter(label="min X [px]:", min="0", callback = "rangeSpatialX")
-	public int minX = -1;
+	public int minX = -5;
 	@Parameter(label="max X [px]:", min="0", callback = "rangeSpatialX")
-	public int maxX = -1;
+	public int maxX = -5;
 
 	@Parameter(label="min Y [px]:", min="0", callback = "rangeSpatialY")
-	public int minY = -1;
+	public int minY = -5;
 	@Parameter(label="max Y [px]:", min="0", callback = "rangeSpatialY")
-	public int maxY = -1;
+	public int maxY = -5;
 
 	@Parameter(label="min Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int minZ = -1;
+	public int minZ = -5;
 	@Parameter(label="max Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int maxZ = -1;
+	public int maxZ = -5;
 
 	@Parameter(label="time point:", min="0", callback = "rangeTPs",
 			description="In units of the respective dataset.",
@@ -276,7 +276,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 		//upper bound: align to block size
 		if (max < 1) max = 1;
 		max = (int)Math.ceil((double)max / (double)blockSize) * blockSize -1;
-		if (max > maxx) max = maxx-1;
+		if (max > maxx || max < 0) max = maxx-1;
+		//NB: multiplication after ceil() can make 'max' overflow (and end up negative as a consequence)
 
 		//lower bound: align to block size
 		if (min < 0) min = 0;
