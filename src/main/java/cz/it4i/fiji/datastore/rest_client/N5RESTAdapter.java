@@ -11,6 +11,7 @@ package cz.it4i.fiji.datastore.rest_client;
 import static cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel.constructLevels;
 import static cz.it4i.fiji.datastore.rest_client.DataBlockRoutines.getSizeOfElement;
 import static cz.it4i.fiji.datastore.rest_client.Routines.getText;
+import static java.util.stream.Collectors.toList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -56,6 +57,7 @@ import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
+import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -103,6 +105,8 @@ public class N5RESTAdapter {
 				.angles(angles)
 				.channels(channels)
 				.timepoints(seq.getTimePoints().size())
+				.timepointIds(seq.getTimePoints().getTimePointsOrdered()
+											.stream().map(TimePoint::getId).sorted().collect(toList()))
 				.voxelUnit(setup.getVoxelSize().unit())
 				.voxelResolution(dimensionsasArray(setup.getVoxelSize()))
 				.compression(compression.getType())
