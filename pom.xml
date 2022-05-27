@@ -11,7 +11,7 @@
 
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore-fiji</artifactId>
-    <version>0.2.6-SNAPSHOT</version>
+    <version>0.2.5</version>
 
     <name>HPC DataStore Fiji client and Java client API</name>
     <description>Fiji client for HPC DataStore</description>
@@ -163,8 +163,38 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>bigdataviewer_fiji</artifactId>
+            <exclusions>
+            	<exclusion>
+  		           <groupId>ome</groupId>
+  					<artifactId>formats-gpl</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>ome</groupId>
+            		 <artifactId>formats-api</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>ome</groupId>
+            		 <artifactId>formats-bsd</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.openmicroscopy</groupId>
+            		<artifactId>ome-xml</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.openmicroscopy</groupId>
+            		<artifactId>ome-jai</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.openmicroscopy</groupId>
+            		<artifactId>ome-common</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpcore</artifactId>
+		</dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
