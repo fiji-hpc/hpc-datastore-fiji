@@ -40,7 +40,10 @@ public class DatasetInfo {
 	}
 
 	public double[][] transformations;
+
 	public double[][] viewRegistrations;
+
+	public List<Integer> timepointIds;
 
 	@Override
 	public String toString() {

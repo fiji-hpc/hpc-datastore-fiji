@@ -63,4 +63,10 @@ public class Fiji {
 			true);
 		result.get();
 	}
+
+	public static void main(String[] args) {
+		final ImageJ ij = new ImageJ();
+		ij.ui().showUI();
+
+	}
 }
