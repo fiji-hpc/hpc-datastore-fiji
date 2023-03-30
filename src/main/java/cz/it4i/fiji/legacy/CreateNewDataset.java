@@ -97,6 +97,13 @@ public class CreateNewDataset implements Command {
 	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
 	public String newDatasetLabel;
 
+	@Parameter(label = "DatasetType:", choices = { "N5", "Zarr" })
+	public String datasetType;
+	protected  String getDatasetType()
+	{
+		return this.datasetType;
+	}
+
 	@Override
 	public void run() {
 		//logging facility
@@ -115,9 +122,18 @@ public class CreateNewDataset implements Command {
 		di.timepointResolution = new DatasetInfo.ResolutionWithOwnUnit(time_res, time_unit);
 		di.channelResolution = new DatasetInfo.ResolutionWithOwnUnit(channel_res, channel_unit);
 		di.angleResolution = new DatasetInfo.ResolutionWithOwnUnit(angle_res, angle_unit);
-
-		di.compression = this.compression.equals("none") ? "raw" : this.compression;
-
+		//This solution was chosen so that there was no need to change the DatasetDTO object,
+		// so the information about the dataset type is placed after the compression with the delimiter '/',
+		// according to which it is then divided in the registerServiceEndpoint and only the actual value of the compression is stored in the compression.
+		// datasetType is then normally stored in the Dataset class and is used to select a suitable handler.
+		// The most likely solution would be to add the datasetType attribute to the DatasetDTO class, but unfortunately this was not entirely within my power.
+		if(this.datasetType.equals("Zarr")) {
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "/Zarr";
+		}
+		else
+		{
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "/N5";
+		}
 		di.versions = Collections.emptyList();
 		di.resolutionLevels = new ArrayList<>(numberOfAllResLevels);
 		di.label = label;
@@ -162,7 +178,7 @@ public class CreateNewDataset implements Command {
 			myLogger.info("CREATED JSON:\n"+json);
 
 			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
-					"url",url, "json",json, "showRunCmd",showRunCmd);
+					"url",url, "json",json, "showRunCmd",showRunCmd,"datasetType",getDatasetType());
 			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
 			newDatasetLabel = di.getLabel();
 		} catch (ExecutionException e) {
