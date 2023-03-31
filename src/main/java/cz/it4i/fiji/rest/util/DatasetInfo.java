@@ -137,30 +137,6 @@ public class DatasetInfo {
 	}
 
 
-	// ========= constructing... =========
-	/** default c'tor for testing only */
-	public DatasetInfo() {
-		voxelType = "uint64";
-		dimensions = Arrays.asList(100,100,20);
-		timepoints = 2;
-		channels = 1;
-		angles = 1;
-
-		voxelUnit = "microns";
-		voxelResolution = Arrays.asList(0.2,0.2,0.6);
-
-		timepointResolution = new ResolutionWithOwnUnit(90, "second");
-		channelResolution = new ResolutionWithOwnUnit(1, "band");
-		angleResolution = new ResolutionWithOwnUnit();
-
-		compression = "raw";
-
-		resolutionLevels = new ArrayList<>();
-		resolutionLevels.add( new ResolutionLevel(1,1,1, 64,64,32) );
-		resolutionLevels.add( new ResolutionLevel() );
-		versions = Collections.emptyList();
-	}
-
 	public static DatasetInfo createFrom(final String hostnameURL, final String datasetID)
 	throws IOException
 	{
