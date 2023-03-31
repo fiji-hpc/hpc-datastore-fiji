@@ -35,6 +35,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 	@Parameter
 	public DataStoreService dataStoreService;
 
+	public static final int DEFAULT_TIMEOUT_PERIOD = 10000;
+
 	// ----------------------------------------------
 	// common attributes to transfers, irrespective of the transfer direction:
 	final int[] blockSize = new int[3];                  //x,y,z size of a normal/inner block
@@ -439,7 +441,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 		lastUsedRequest = new DataStoreRequest(URL,datasetID,
 				currentResLevel.resolutions.get(0), currentResLevel.resolutions.get(1),
-				currentResLevel.resolutions.get(2), versionAsStr, accessRegime, timeout);
+				currentResLevel.resolutions.get(2), versionAsStr, accessRegime, DEFAULT_TIMEOUT_PERIOD /*timeout*/);
 		myLogger.info("1: "+lastUsedRequest.createRequestURL());
 
 		try {

@@ -5,6 +5,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.DEFAULT_TIMEOUT_PERIOD;
 import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.createResStr;
 import cz.it4i.fiji.datastore.service.DataStoreService;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
@@ -53,11 +54,13 @@ public class WriteFullImage implements Command {
 			persistKey="datasetversion")
 	public String versionAsStr = "latest";
 
+	/*
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "1", stepSize = "1000",
 			description = "How long inactivity period has to pass before the connection gets closed...",
 			persistKey="datasettimeout",
 			required = false)
 	public int timeout = 30000;
+	*/
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.",
@@ -77,7 +80,7 @@ public class WriteFullImage implements Command {
 					URL,datasetID,
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,uploadResPyramids,versionAsStr,
-					timeout,verboseLog);
+					DEFAULT_TIMEOUT_PERIOD /*timeout*/,verboseLog);
 			log.info("transfer is finished");
 		} catch (IOException | IllegalArgumentException e) {
 			log.error("Problem writing full image: "+e.getMessage());
@@ -201,7 +204,7 @@ public class WriteFullImage implements Command {
 			this.angle = angle;
 			this.resolutionLevelsAsStr = resolutionLevelsAsStr;
 			this.versionAsStr = versionAsStr;
-			this.timeout = serverTimeout;
+			//this.timeout = serverTimeout;
 			this.verboseLog = verboseLog;
 			this.accessRegime = "write";
 			this.minX=0;
