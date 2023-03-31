@@ -124,11 +124,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			persistKey="datasetversion")
 	public String versionAsStr = null;
 
+	/*
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "1", stepSize = "1000",
 			description = "How long inactivity period has to pass before the connection gets closed...",
 			persistKey="datasettimeout",
 			required = false)
 	public int timeout = 30000;
+	*/
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.",
@@ -400,10 +402,12 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				versionAsStr = prefService.get(this.getClass(),"versionAsStr");
 				//NB: null default value forces the readInfo() to choose some existing version
 			}
+			/*
 			if (timeout == -99) {
 				prefVal = prefService.get(this.getClass(),"timeout");
 				timeout = prefVal != null ? Integer.parseInt(prefVal) : 30000;
 			}
+			*/
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Fiji preferences contain non-integer value for either minX,minY,minZ,maxX,maxY or maxZ",e);
 		}
@@ -425,8 +429,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" maxz="+maxZ
 				+" timepoint="+timepoint
 				+" channel="+channel
-				+" angle="+angle
-				+" timeout="+timeout;
+				+" angle="+angle;
+				//+" timeout="+timeout;
 	}
 
 	public String reportAsMacroCommand(final String forThisCommand) {
@@ -444,7 +448,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" timepoint="+timepoint
 				+" channel="+channel
 				+" angle="+angle
-				+" timeout="+timeout
+				//+" timeout="+timeout
 				+" verboselog="+verboseLog+"\");";
 				//+" showruncmd="+showRunCmd+"\");";
 	}

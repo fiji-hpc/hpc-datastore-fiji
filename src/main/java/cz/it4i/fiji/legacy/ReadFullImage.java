@@ -6,6 +6,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.DEFAULT_TIMEOUT_PERIOD;
 import static cz.it4i.fiji.legacy.common.ImagePlusTransferrer.createResStr;
 import cz.it4i.fiji.datastore.service.DataStoreService;
 import cz.it4i.fiji.legacy.common.ImagePlusTransferrer;
@@ -48,11 +49,13 @@ public class ReadFullImage implements Command {
 			persistKey="datasetversion")
 	public String versionAsStr = "latest";
 
+	/*
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "1", stepSize = "1000",
 			description = "How long inactivity period has to pass before the connection gets closed...",
 			persistKey="datasettimeout",
 			required = false)
 	public int timeout = 30000;
+	*/
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.",
@@ -71,7 +74,7 @@ public class ReadFullImage implements Command {
 			outDatasetImg = new LocalReader(log.getContext()).readNow(URL,datasetID,
 					timepoint,channel,angle,
 					resolutionLevelsAsStr,versionAsStr,
-					timeout,verboseLog);
+					DEFAULT_TIMEOUT_PERIOD /*timeout*/,verboseLog);
 			log.info("transfer is finished");
 		} catch (IOException e) {
 			log.error("Problem reading full image: "+e.getMessage());
@@ -136,7 +139,7 @@ public class ReadFullImage implements Command {
 			this.angle = angle;
 			this.resolutionLevelsAsStr = resolutionLevelsAsStr;
 			this.versionAsStr = versionAsStr;
-			this.timeout = serverTimeout;
+			//this.timeout = serverTimeout;
 			this.verboseLog = verboseLog;
 			this.accessRegime = "read";
 			this.minX=0;
