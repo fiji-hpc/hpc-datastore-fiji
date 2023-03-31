@@ -347,8 +347,10 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				gd.addMessage("");
 				gd.addStringField("Export_URL", lastServerURL, 25);
 				gd.addStringField("Label", lastLabel, 25);
+				/*
 				gd.addStringField("Timeout for Dataserver[s]", "" +
 					lastDataserverTimeout, 25);
+				*/
 
 				tryLoadSPIMData(lastSPIMdata);
 				if (autoChunkSizes != null && autoSubsampling != null && !cManualMipmap.getState())
@@ -398,6 +400,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 				lastCompressionDefaultSettings = gd.getNextBoolean();
 				lastServerURL = gd.getNextString();
 				lastLabel = gd.getNextString();
+				/*
 				String timeoutValue = gd.getNextString();
 				try {
 					lastDataserverTimeout = Integer.parseInt(timeoutValue);
@@ -406,6 +409,7 @@ public class ExportSPIMAsN5PlugIn implements Command {
 					IJ.showMessage("Cannot parse lastTimeout " + timeoutValue);
 					continue;
 				}
+				*/
 				// parse mipmap resolutions and cell sizes
 				final int[][] resolutions = PluginHelper.parseResolutionsString(
 					lastSubsampling);
