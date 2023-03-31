@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * IT4Innovations - National Supercomputing Center
+ * Copyright (c) 2017 - 2023 All Right Reserved, https://www.it4i.cz
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this project.
+ ******************************************************************************/
 package cz.it4i.fiji.rest.util;
 
 import java.net.URL;
@@ -52,6 +59,9 @@ public class DatasetInfo {
 				"\nvoxelType = " + voxelType +
 				"\ndimensions,timepoints,channels,angles = " +
 					dimensions + ", " + timepoints + "," + channels + "," + angles +
+				"\ndeclared timepoints = " + timepointIds +
+				"\ntransformations array length = " + (transformations != null ? transformations.length : "NA") +
+				"\nviewRegistrations array length = " + (viewRegistrations != null ? viewRegistrations.length : "NA") +
 				"\nvoxelResolution = " + voxelResolution + " " + voxelUnit +
 				"\ntimepointResolution = " + timepointResolution +
 				"\nchannelResolution = " + channelResolution +
@@ -136,30 +146,6 @@ public class DatasetInfo {
 		}
 	}
 
-
-	// ========= constructing... =========
-	/** default c'tor for testing only */
-	public DatasetInfo() {
-		voxelType = "uint64";
-		dimensions = Arrays.asList(100,100,20);
-		timepoints = 2;
-		channels = 1;
-		angles = 1;
-
-		voxelUnit = "microns";
-		voxelResolution = Arrays.asList(0.2,0.2,0.6);
-
-		timepointResolution = new ResolutionWithOwnUnit(90, "second");
-		channelResolution = new ResolutionWithOwnUnit(1, "band");
-		angleResolution = new ResolutionWithOwnUnit();
-
-		compression = "raw";
-
-		resolutionLevels = new ArrayList<>();
-		resolutionLevels.add( new ResolutionLevel(1,1,1, 64,64,32) );
-		resolutionLevels.add( new ResolutionLevel() );
-		versions = Collections.emptyList();
-	}
 
 	public static DatasetInfo createFrom(final String hostnameURL, final String datasetID)
 	throws IOException

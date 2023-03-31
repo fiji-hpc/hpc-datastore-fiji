@@ -1,6 +1,6 @@
 /*******************************************************************************
  * IT4Innovations - National Supercomputing Center
- * Copyright (c) 2017 - 2021 All Right Reserved, https://www.it4i.cz
+ * Copyright (c) 2017 - 2023 All Right Reserved, https://www.it4i.cz
  *
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE', which is part of this project.
@@ -29,7 +29,6 @@ public interface DatasetRegisterServiceClient {
 	static final String R_Y_PARAM = "RyParam";
 	static final String R_Z_PARAM = "RzParam";
 	static final String VERSION_PARAM = "versionParam";
-	static final String VERSION_PARAMS = "versionParams";
 	static final String MODE_PARAM = "mode";
 	static final String TIMEOUT_PARAM = "timeout";
 

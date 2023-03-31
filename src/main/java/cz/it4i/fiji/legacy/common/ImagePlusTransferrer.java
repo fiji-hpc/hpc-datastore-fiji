@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * IT4Innovations - National Supercomputing Center
+ * Copyright (c) 2017 - 2023 All Right Reserved, https://www.it4i.cz
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this project.
+ ******************************************************************************/
 package cz.it4i.fiji.legacy.common;
 
 import net.imagej.Dataset;
@@ -34,6 +41,8 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 	@Parameter
 	public DataStoreService dataStoreService;
+
+	public static final int DEFAULT_TIMEOUT_PERIOD = 10000;
 
 	// ----------------------------------------------
 	// common attributes to transfers, irrespective of the transfer direction:
@@ -439,7 +448,7 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 
 		lastUsedRequest = new DataStoreRequest(URL,datasetID,
 				currentResLevel.resolutions.get(0), currentResLevel.resolutions.get(1),
-				currentResLevel.resolutions.get(2), versionAsStr, accessRegime, timeout);
+				currentResLevel.resolutions.get(2), versionAsStr, accessRegime, DEFAULT_TIMEOUT_PERIOD /*timeout*/);
 		myLogger.info("1: "+lastUsedRequest.createRequestURL());
 
 		try {

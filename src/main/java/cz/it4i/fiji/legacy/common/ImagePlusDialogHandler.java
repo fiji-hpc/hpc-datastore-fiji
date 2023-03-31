@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * IT4Innovations - National Supercomputing Center
+ * Copyright (c) 2017 - 2023 All Right Reserved, https://www.it4i.cz
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this project.
+ ******************************************************************************/
 package cz.it4i.fiji.legacy.common;
 
 import org.scijava.ItemVisibility;
@@ -40,34 +47,34 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public String datasetLabel = "";
 
 	@Parameter(label="min X [px]:", min="0", callback = "rangeSpatialX")
-	public int minX = -5;
+	public int minX = -1;
 	@Parameter(label="max X [px]:", min="0", callback = "rangeSpatialX")
-	public int maxX = -5;
+	public int maxX = -1;
 
 	@Parameter(label="min Y [px]:", min="0", callback = "rangeSpatialY")
-	public int minY = -5;
+	public int minY = -1;
 	@Parameter(label="max Y [px]:", min="0", callback = "rangeSpatialY")
-	public int maxY = -5;
+	public int maxY = -1;
 
 	@Parameter(label="min Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int minZ = -5;
+	public int minZ = -1;
 	@Parameter(label="max Z [px]:", min="0", callback = "rangeSpatialZ")
-	public int maxZ = -5;
+	public int maxZ = -1;
 
 	@Parameter(label="time point:", min="0", callback = "rangeTPs",
 			description="In units of the respective dataset.",
 			persistKey="datasettimepoint")
-	public int timepoint = 0;
+	public int timepoint = -1;
 
 	@Parameter(label="channel:", min="0", callback = "rangeChannels",
 			description="In units of the respective dataset.",
 			persistKey="datasetchannel")
-	public int channel = 0;
+	public int channel = -1;
 
 	@Parameter(label="angle:", min="0", callback = "rangeAngles",
 			description="In units of the respective dataset.",
 			persistKey="datasetangle")
-	public int angle = 0;
+	public int angle = -1;
 
 	@Parameter(label = "Available down-resolutions:", choices = {""},
 			initializer = "readInfo", callback = "updateSpatialRanges",
@@ -124,11 +131,13 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			persistKey="datasetversion")
 	public String versionAsStr = null;
 
+	/*
 	@Parameter(label = "Server alive timeout [miliseconds]:", min = "1", stepSize = "1000",
 			description = "How long inactivity period has to pass before the connection gets closed...",
 			persistKey="datasettimeout",
 			required = false)
 	public int timeout = 30000;
+	*/
 
 	@Parameter(label = "Verbose reporting:", required = false,
 			description = "The change takes effect always during transfers and for future use of this dialog, not for the current use.",
@@ -148,7 +157,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			//logging flags
 			if (minX == -1) {
 				//if no CLI at all, use prefs, or class default (which was the verboseLog holds now)
-				verboseLog = prefService.getBoolean(this.getClass(), "verboseLog", verboseLog);
+				verboseLog = prefService.getBoolean(PrefService.class, "datasetverboselog", verboseLog);
 				showRunCmd = prefService.getBoolean(this.getClass(), "showRunCmd", showRunCmd);
 			}
 
@@ -202,7 +211,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			//current value of res. level -> we have to fix&set res. level prominently
 			if (resolutionLevelsAsStr == null) {
 				//class default value -> no CLI -> try prefs
-				resolutionLevelsAsStr = prefService.get(this.getClass(),"resolutionLevelsAsStr");
+				resolutionLevelsAsStr = prefService.get(PrefService.class,"datasetreslevel");
 			}
 			//
 			//got some res. level anyhow? and is it a valid one?
@@ -384,26 +393,28 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			}
 
 			if (timepoint == -1) {
-				prefVal = prefService.get(this.getClass(),"timepoint");
+				prefVal = prefService.get(PrefService.class,"datasettimepoint");
 				timepoint = prefVal != null ? Integer.parseInt(prefVal) : 0;
 			}
 			if (channel == -1) {
-				prefVal = prefService.get(this.getClass(),"channel");
+				prefVal = prefService.get(PrefService.class,"datasetchannel");
 				channel = prefVal != null ? Integer.parseInt(prefVal) : 0;
 			}
 			if (angle == -1) {
-				prefVal = prefService.get(this.getClass(),"angle");
+				prefVal = prefService.get(PrefService.class,"datasetangle");
 				angle = prefVal != null ? Integer.parseInt(prefVal) : 0;
 			}
 
 			if (versionAsStr == null) {
-				versionAsStr = prefService.get(this.getClass(),"versionAsStr");
+				versionAsStr = prefService.get(PrefService.class,"datasetversion");
 				//NB: null default value forces the readInfo() to choose some existing version
 			}
+			/*
 			if (timeout == -99) {
 				prefVal = prefService.get(this.getClass(),"timeout");
 				timeout = prefVal != null ? Integer.parseInt(prefVal) : 30000;
 			}
+			*/
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Fiji preferences contain non-integer value for either minX,minY,minZ,maxX,maxY or maxZ",e);
 		}
@@ -425,8 +436,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" maxz="+maxZ
 				+" timepoint="+timepoint
 				+" channel="+channel
-				+" angle="+angle
-				+" timeout="+timeout;
+				+" angle="+angle;
+				//+" timeout="+timeout;
 	}
 
 	public String reportAsMacroCommand(final String forThisCommand) {
@@ -444,7 +455,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 				+" timepoint="+timepoint
 				+" channel="+channel
 				+" angle="+angle
-				+" timeout="+timeout
+				//+" timeout="+timeout
 				+" verboselog="+verboseLog+"\");";
 				//+" showruncmd="+showRunCmd+"\");";
 	}

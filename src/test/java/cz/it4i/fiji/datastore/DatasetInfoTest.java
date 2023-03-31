@@ -1,5 +1,8 @@
 package cz.it4i.fiji.datastore;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.it4i.fiji.rest.util.DatasetInfo;
@@ -41,5 +44,33 @@ public class DatasetInfoTest {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Test
+	public void ExampleCreateDatasetInfo() {
+		final DatasetInfo di = new DatasetInfo();
+		di.voxelType = "uint64";
+		di.dimensions = Arrays.asList(100,100,20);
+		di.timepointIds = new ArrayList<>();
+		di.timepointIds.addAll(Arrays.asList(20,25,33));
+		di.timepoints = di.timepointIds.size();
+		di.channels = 1;
+		di.angles = 1;
+
+		di.voxelUnit = "microns";
+		di.voxelResolution = Arrays.asList(0.2,0.2,0.6);
+
+		di.timepointResolution = new DatasetInfo.ResolutionWithOwnUnit(90, "second");
+		di.channelResolution = new DatasetInfo.ResolutionWithOwnUnit(1, "band");
+		di.angleResolution = new DatasetInfo.ResolutionWithOwnUnit();
+
+		di.compression = "raw";
+
+		di.resolutionLevels = new ArrayList<>();
+		di.resolutionLevels.add( new DatasetInfo.ResolutionLevel(1,1,1, 64,64,32) );
+		di.resolutionLevels.add( new DatasetInfo.ResolutionLevel() );
+		di.versions = Collections.emptyList();
+
+		System.out.println(di);
 	}
 }
