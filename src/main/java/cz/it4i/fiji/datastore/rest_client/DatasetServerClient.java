@@ -29,8 +29,6 @@ public interface DatasetServerClient {
 
 	static final String ANGLE_PARAM = "ANGLE";
 
-	static final String BLOCKS_PARAM = "BLOCKS";
-
 //@formatter:off
 	@Path("/{" + X_PARAM + "}"
 			+"/{" + Y_PARAM + "}"

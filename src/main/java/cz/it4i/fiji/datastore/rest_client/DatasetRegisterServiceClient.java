@@ -29,7 +29,6 @@ public interface DatasetRegisterServiceClient {
 	static final String R_Y_PARAM = "RyParam";
 	static final String R_Z_PARAM = "RzParam";
 	static final String VERSION_PARAM = "versionParam";
-	static final String VERSION_PARAMS = "versionParams";
 	static final String MODE_PARAM = "mode";
 	static final String TIMEOUT_PARAM = "timeout";
 
