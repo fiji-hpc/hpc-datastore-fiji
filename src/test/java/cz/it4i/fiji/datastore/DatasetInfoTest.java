@@ -51,7 +51,9 @@ public class DatasetInfoTest {
 		final DatasetInfo di = new DatasetInfo();
 		di.voxelType = "uint64";
 		di.dimensions = Arrays.asList(100,100,20);
-		di.timepoints = 2;
+		di.timepointIds = new ArrayList<>();
+		di.timepointIds.addAll(Arrays.asList(20,25,33));
+		di.timepoints = di.timepointIds.size();
 		di.channels = 1;
 		di.angles = 1;
 

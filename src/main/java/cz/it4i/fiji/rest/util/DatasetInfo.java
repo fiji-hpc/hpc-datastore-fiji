@@ -52,6 +52,9 @@ public class DatasetInfo {
 				"\nvoxelType = " + voxelType +
 				"\ndimensions,timepoints,channels,angles = " +
 					dimensions + ", " + timepoints + "," + channels + "," + angles +
+				"\ndeclared timepoints = " + timepointIds +
+				"\ntransformations array length = " + (transformations != null ? transformations.length : "NA") +
+				"\nviewRegistrations array length = " + (viewRegistrations != null ? viewRegistrations.length : "NA") +
 				"\nvoxelResolution = " + voxelResolution + " " + voxelUnit +
 				"\ntimepointResolution = " + timepointResolution +
 				"\nchannelResolution = " + channelResolution +
