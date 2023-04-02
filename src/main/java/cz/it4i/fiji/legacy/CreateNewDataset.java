@@ -27,7 +27,7 @@ import cz.it4i.fiji.legacy.util.Imglib2Types;
 import cz.it4i.fiji.rest.util.DatasetInfo;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create>Create new dataset")
-public abstract class CreateNewDataset implements Command {
+public class CreateNewDataset implements Command {
 	@Parameter(label = "URL of a DatasetsRegisterService:", persistKey = "datasetserverurl")
 	public String url = "someHostname:9080";
 
@@ -97,9 +97,11 @@ public abstract class CreateNewDataset implements Command {
 	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
 	public String newDatasetLabel;
 
+	@Parameter(label = "DatasetType:", choices = { "N5", "Zarr" })
+	public String datasetType;
 	protected  String getDatasetType()
 	{
-		return "N5";
+		return this.datasetType;
 	}
 
 	@Override
@@ -177,6 +179,8 @@ public abstract class CreateNewDataset implements Command {
 		} catch (JsonProcessingException e) {
 			myLogger.error("Error converting dataset description into JSON:"+e.getMessage());
 		}
+
+
 	}
 
 

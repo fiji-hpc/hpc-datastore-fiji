@@ -37,6 +37,7 @@ public class CreateNewDatasetFromJSON implements Command {
 	public String newDatasetUUID;
 	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
 	public String newDatasetLabel;
+
 	@Parameter
 	public String datasetType;
 

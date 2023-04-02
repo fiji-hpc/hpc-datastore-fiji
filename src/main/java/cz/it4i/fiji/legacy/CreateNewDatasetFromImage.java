@@ -179,7 +179,7 @@ public class CreateNewDatasetFromImage implements Command {
 			myLogger.info("CREATED JSON:\n"+json);
 
 			final Future<CommandModule> subcall = cs.run(CreateNewDatasetFromJSON.class, true,
-					"url",url, "json",json, "showRunCmd",showRunCmd);
+					"url",url, "json",json, "showRunCmd",showRunCmd,"datasetType");
 			newDatasetUUID = (String)subcall.get().getOutput("newDatasetUUID");
 			newDatasetLabel = di.getLabel();
 		} catch (ExecutionException e) {
