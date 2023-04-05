@@ -8,7 +8,6 @@
 package cz.it4i.fiji.legacy;
 
 import cz.it4i.fiji.legacy.util.OpenOsWebBrowser;
-import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
