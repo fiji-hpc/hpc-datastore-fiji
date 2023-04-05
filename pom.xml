@@ -292,7 +292,7 @@
                     <executable>sh</executable>
                     <arguments>
                         <argument>-c</argument>
-                        <argument>rm -v '${project.build.outputDirectory}'/COMMITrev_*; touch '${project.build.outputDirectory}'/COMMITrev_${git.commit.id.abbrev};</argument>
+                        <argument>rm -v '${project.build.outputDirectory}'/COMMITrev_*; touch '${project.build.outputDirectory}'/COMMITrev_${git.commit.id.abbrev}_${project.artifactId};</argument>
                     </arguments>
                 </configuration>
             </plugin>
