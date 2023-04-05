@@ -12,7 +12,6 @@ import bdv.ij.util.ProgressWriterIJ;
 import bdv.viewer.ViewerOptions;
 import com.google.gson.stream.JsonReader;
 import mpicbg.spim.data.SpimDataException;
-import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -78,7 +77,7 @@ public class GuiBdvBrowseDialog {
 			if ( id != null )
 			{
 				nameList.add( id );
-				if ( thumbnailUrl != null && StringUtils.isNotEmpty( thumbnailUrl ) )
+				if ( thumbnailUrl != null && thumbnailUrl.length() > 0 )
 					imageMap.put( id, new ImageIcon( new URL( thumbnailUrl ) ) );
 				if ( datasetUrl != null )
 					datasetUrlMap.put( id, datasetUrl );
