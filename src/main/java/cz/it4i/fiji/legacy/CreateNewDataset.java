@@ -122,9 +122,14 @@ public class CreateNewDataset implements Command {
 		di.timepointResolution = new DatasetInfo.ResolutionWithOwnUnit(time_res, time_unit);
 		di.channelResolution = new DatasetInfo.ResolutionWithOwnUnit(channel_res, channel_unit);
 		di.angleResolution = new DatasetInfo.ResolutionWithOwnUnit(angle_res, angle_unit);
-
-		di.compression = this.compression.equals("none") ? "raw" : this.compression;
-
+		//TODO totally random solution
+		if(this.datasetType.equals("Zarr")) {
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "|Zarr";
+		}
+		else
+		{
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "|N5";
+		}
 		di.versions = Collections.emptyList();
 		di.resolutionLevels = new ArrayList<>(numberOfAllResLevels);
 		di.label = label;

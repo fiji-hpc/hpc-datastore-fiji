@@ -48,10 +48,10 @@ public class CreateNewDatasetFromJSON implements Command {
 
 		try {
 			String add="/datasets";
-			if(datasetType.equals("Zarr"))
+			/*if(datasetType.equals("Zarr"))
 			{
 				add+="zarr";
-			}
+			}*/
 			final HttpURLConnection connection = (HttpURLConnection)new URL("http://"+this.url+add).openConnection();
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type","application/json");

@@ -115,6 +115,9 @@ public class CreateNewDatasetFromImage implements Command {
 	@Parameter(type = ItemIO.OUTPUT, label="Label of the created dataset:")
 	public String newDatasetLabel;
 
+	@Parameter(label = "DatasetType:", choices = { "N5", "Zarr" })
+	public String datasetType;
+
 	@Override
 	public void run() {
 		//logging facility
@@ -134,7 +137,14 @@ public class CreateNewDatasetFromImage implements Command {
 		di.channelResolution = new DatasetInfo.ResolutionWithOwnUnit(channel_res, channel_unit);
 		di.angleResolution = new DatasetInfo.ResolutionWithOwnUnit(angle_res, angle_unit);
 
-		di.compression = this.compression.equals("none") ? "raw" : this.compression;
+		//di.compression = this.compression.equals("none") ? "raw" : this.compression;
+		if(this.datasetType.equals("Zarr")) {
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "/Zarr";
+		}
+		else
+		{
+			di.compression = this.compression.equals("none") ? "raw" : this.compression + "/N5";
+		}
 
 		di.versions = Collections.emptyList();
 		di.resolutionLevels = new ArrayList<>(numberOfAllResLevels);
