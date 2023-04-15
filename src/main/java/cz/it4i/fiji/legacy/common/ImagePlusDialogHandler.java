@@ -105,7 +105,9 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	/** updates currentResLevel given the current choice in resolutionLevelsAsStr,
 	    sets currentResLevel to null when resolutionLevelsAsStr is not valid */
 	protected void matchResLevel() {
+		//TODO CLEAR
 		myLogger.info("going to match against: "+resolutionLevelsAsStr);
+		System.out.println(resolutionLevelsAsStr);
 		int i = 0;
 		while (i < di.resolutionLevels.size()) {
 			DatasetInfo.ResolutionLevel l = di.resolutionLevels.get(i);

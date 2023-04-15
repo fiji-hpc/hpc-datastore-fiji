@@ -181,6 +181,7 @@ public class WriteSequenceToN5
 		int numCompletedTasks = 0;
 
 		final ExecutorService executorService = Executors.newFixedThreadPool( numCellCreatorThreads );
+		//TODO FIND N5 WRITER AND MAKE HIM CHANGABLE
 		try (N5Writer n5 = writerSupplier.get()) {
 			// write image data for all views
 			final int numTimepoints = timepointIds.size();
