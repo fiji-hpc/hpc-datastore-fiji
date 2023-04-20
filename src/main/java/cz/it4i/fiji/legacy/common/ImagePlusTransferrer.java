@@ -337,8 +337,6 @@ public class ImagePlusTransferrer extends ImagePlusDialogHandler {
 							myLogger.info("=========================");
 							myLogger.info("Uploading "+t);
 							connection = (HttpURLConnection) new URL(t.URL).openConnection();
-							//todo clean
-							System.out.println("URL for test"+URL);
 							connection.setRequestMethod("POST");
 							connection.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
 							connection.setDoOutput(true);

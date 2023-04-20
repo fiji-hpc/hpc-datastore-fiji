@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>Create ZARR>Create new dataset from existing N5")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>HPC DataStore>ZARR Convert>Create new dataset from existing N5")
 
 public class CloneEmptyDatasetFromN5toZarr implements Command {
     @Parameter(label = "URL of a reference DatasetsRegisterService:", persistKey = "datasetserverurl")
