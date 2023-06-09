@@ -52,9 +52,12 @@ public class DatasetInfo {
 
 	public List<Integer> timepointIds;
 
+	public String datasetType;
+
 	@Override
 	public String toString() {
 		return "UUID = " + uuid +
+				" (storage type " + (datasetType == null?"BDV's N5":datasetType) + ")" +
 				"\nlabel = " + label +
 				"\nvoxelType = " + voxelType +
 				"\ndimensions,timepoints,channels,angles = " +
