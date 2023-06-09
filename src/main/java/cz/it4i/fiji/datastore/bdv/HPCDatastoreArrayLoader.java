@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.bdv;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -49,6 +50,10 @@ class HPCDatastoreArrayLoader<T, A> implements CacheArrayLoader<T>
 		throws InterruptedException
 	{
 		final long[] coords = getCellGridCoords(setupToMipmap.get(setup).getSubdivisions()[level], min);
+		System.out.println("DS loadArray for timepoint="+timepoint
+				+ ", setupID="+setup+", level="+level
+				+ " (block dimensions="+Arrays.toString(dimensions)+" and min="+Arrays.toString(min)+")"
+				+ " translated into grid position "+Arrays.toString(coords));
 		final ViewSetupValues setupValues = ViewSetupValues.construct(setup,
 			sequenceDescription);
 		final DatasetServer<A> server = serverPool.getServerClient(
