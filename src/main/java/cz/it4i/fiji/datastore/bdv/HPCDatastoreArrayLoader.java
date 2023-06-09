@@ -8,8 +8,10 @@
 package cz.it4i.fiji.datastore.bdv;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Function;
 
+import bdv.img.hdf5.MipmapInfo;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 
@@ -25,6 +27,7 @@ class HPCDatastoreArrayLoader<T, A> implements CacheArrayLoader<T>
 	private final DataType dataType;
 	private final Function<A, T> producer;
 	private final int bytesPerElement;
+	private final Map<Integer, MipmapInfo> setupToMipmap;
 
 	public HPCDatastoreArrayLoader(DataType dataType, final String baseUrl,
 		HPCDatastoreImageLoaderMetaData metadata,
@@ -36,6 +39,7 @@ class HPCDatastoreArrayLoader<T, A> implements CacheArrayLoader<T>
 		this.sequenceDescription = sequenceDescription;
 		this.producer = producer;
 		this.bytesPerElement = getBytesPerElement(dataType);
+		this.setupToMipmap = metadata.getPerSetupMipmapInfo();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -44,7 +48,7 @@ class HPCDatastoreArrayLoader<T, A> implements CacheArrayLoader<T>
 		final int level, final int[] dimensions, final long[] min)
 		throws InterruptedException
 	{
-		final long[] coords = getCoords(dimensions, min);
+		final long[] coords = getCellGridCoords(setupToMipmap.get(setup).getSubdivisions()[level], min);
 		final ViewSetupValues setupValues = ViewSetupValues.construct(setup,
 			sequenceDescription);
 		final DatasetServer<A> server = serverPool.getServerClient(
@@ -64,7 +68,7 @@ class HPCDatastoreArrayLoader<T, A> implements CacheArrayLoader<T>
 		return producer.apply(block.getData());
 	}
 
-	private long[] getCoords(int[] dimensions, long[] min) {
+	private long[] getCellGridCoords(int[] dimensions, long[] min) {
 
 		long[] result = new long[dimensions.length];
 		for (int i = 0; i < min.length; i++) {
