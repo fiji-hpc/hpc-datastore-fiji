@@ -121,8 +121,10 @@ public class DatasetInfo {
 		public int[] dimensions = new int[3];
 
 		public void setDimensions(final List<Integer> fullResDims) {
-			for (int d = 0; d < 3; ++d)
-				dimensions[d] = (int)Math.floor( (double)fullResDims.get(d) / (double)resolutions.get(d) );
+			for (int d = 0; d < 3; ++d) {
+				dimensions[d] = fullResDims.get(d) / resolutions.get(d);
+				if (dimensions[d] == 0) dimensions[d] = 1; //make sure no dimension is lost (by making it 0 pixels wide)
+			}
 		}
 
 		@Override
