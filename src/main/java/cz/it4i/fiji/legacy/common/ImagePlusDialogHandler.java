@@ -148,6 +148,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 	public boolean showRunCmd = false;
 
 	protected DatasetInfo di;
+	protected int tp_min = 0;
+	protected int tp_max = 0;
 
 	/** this acts as a c'tor: it is called when the dialog is initialized to retrieve dataset
 	    parameters to know how to populate/setup this dialog's choice boxes and bounds...
@@ -188,6 +190,8 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 			myLogger.info("Reading "+datasetID+" from "+URL);
 			di = DatasetInfo.createFrom(URL, datasetID);
 			myLogger.info(di.toString());
+			tp_min = di.timepointIds.stream().reduce(Math::min).orElse(0);
+			tp_max = di.timepointIds.stream().reduce(Math::max).orElse(0);
 
 			//set choices lists:
 			getInfo().getMutableInput("resolutionLevelsAsStr",String.class).setChoices(
@@ -326,7 +330,7 @@ abstract class ImagePlusDialogHandler extends DynamicCommand {
 
 	// ========= other bounds checking and adjusting =========
 	protected void rangeTPs() {
-		timepoint = Math.max(0, Math.min(timepoint, di.timepoints-1));
+		timepoint = Math.max(tp_min, Math.min(timepoint, tp_max));
 	}
 	protected void rangeChannels() {
 		channel = Math.max(0, Math.min(channel, di.channels-1));
