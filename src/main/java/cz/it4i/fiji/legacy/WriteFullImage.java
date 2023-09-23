@@ -284,7 +284,15 @@ public class WriteFullImage implements Command {
 					{
 						myLogger.info("Cannot reach res level "+resLevelIdx+" from "+ resLevelIdx +" with integer-scaling.");
 					} else {
-						writeWithAType( Views.subsample(image, dx,dy,dz), image.firstElement() );
+						if (image.numDimensions() == 3) {
+							myLogger.info("Doing 3D pyramid, downscale factor: "+dx+","+dy+","+dz);
+							writeWithAType(Views.subsample(image, dx, dy, dz), image.firstElement());
+						} else if (image.numDimensions() == 2) {
+							myLogger.info("Doing 2D pyramid, downscale factor: "+dx+","+dy);
+							writeWithAType(Views.subsample(image, dx, dy), image.firstElement());
+						} else {
+							myLogger.error("Can't handle image with not 2 or 3 dimensions, this image: "+image);
+						}
 					}
 					++resLevelIdx;
 				}
