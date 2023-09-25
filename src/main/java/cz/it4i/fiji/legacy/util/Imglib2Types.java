@@ -32,8 +32,9 @@ public class Imglib2Types {
 			new TypeHandler<>("uint32", new UnsignedIntType(),   BufferProcessors.INT_BUFFERS),
 			new TypeHandler<>( "int64", new LongType(),          BufferProcessors.LONG_BUFFERS),
 			new TypeHandler<>("uint64", new UnsignedLongType(),  BufferProcessors.LONG_BUFFERS),
-			new TypeHandler<>( "float", new FloatType(),         BufferProcessors.FLOAT_BUFFERS),
-			new TypeHandler<>("double", new DoubleType(),        BufferProcessors.DOUBLE_BUFFERS)
+			new TypeHandler<>("float32", new FloatType(),        BufferProcessors.FLOAT_BUFFERS),
+			new TypeHandler<>("float64", new DoubleType(),       BufferProcessors.DOUBLE_BUFFERS)
+			//NB: types should match the org.janelia.saalfeldlab.n5.DataType enum
 	);
 
 	public static class TypeHandler<T extends NativeType<T> & RealType<T>> {
